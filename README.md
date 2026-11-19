@@ -18,7 +18,7 @@ npm run build:blaze
 
 Serve `dist/` at the root of an HTTPS origin and open `/blaze/`. The build includes the judge landing page, video and pitch deck. Serve static files first and route wallet navigation to `/index.html`.
 
-For native builds, read [development setup](docs/development.md). The [contract guide](docs/contracts.md) describes the shared funds. The [MIT license](LICENSE) covers the project. Bundled dependencies include their own license files.
+For Android, use the [signed BLAZE preview and checksum](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview). The preview has its own application ID and uses a standalone release bundle. For local native builds, read [development setup](docs/development.md). The [contract guide](docs/contracts.md) describes the shared funds. The [MIT license](LICENSE) covers the project. Bundled dependencies include their own license files.
 
 This source snapshot comes from Venn release revision `da29126`. The hosted acceptance test paired an unfunded Mainnet wallet and verified its receiving address. The automated payment test checked a signed Mainnet transaction against the BCH VM without broadcasting.
 
