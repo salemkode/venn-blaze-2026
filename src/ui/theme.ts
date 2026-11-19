@@ -1,0 +1,26 @@
+// Monochrome first: near-black ink and cards on a soft grey page, white
+// surfaces, and colour reserved for meaning (network state, coin marks, errors).
+export const colors = {
+  background: '#F4F4F6',
+  paper: '#FFFFFF',
+  tile: '#EAEAEE',
+  border: '#E4E4E8',
+  ink: '#0B0B0D',
+  muted: '#6E6E73',
+  faint: '#B4B4BA',
+  card: '#0B0B0D',
+  cardEdge: '#2A2A30',
+  cardMuted: '#9A9AA1',
+  cardFaint: '#5E5E66',
+  green: '#12804C',
+  mint: '#E2F4EA',
+  bch: '#0AC18E',
+  violet: '#7B5CFF',
+  tokenInk: '#6A4DF5',
+  tokenPaper: '#ECE8FF',
+  amber: '#E59A1F',
+  danger: '#C4342B',
+  warning: '#FFF3D9',
+  warningInk: '#75500C',
+  disabled: '#D2D2D7',
+};

@@ -1,0 +1,293 @@
+pragma cashscript ^0.14.0;
+
+// Circle v1: a savings circle (jam'eya). Every member pays the same contribution each round,
+// and each round the whole pot goes to the member whose turn it is, in an order fixed when
+// the Circle is created. The contract holds one state NFT; contributions wait at the Circle's
+// VennMoney address until the round pays out.
+//
+//   state NFT   circleCategory, mutable, 8 bytes:
+//               [0] version 0x01  [1] round (0 … members)  [2..5] seats paid this round
+//               [5..8] seats that have ever missed a round  (bitmaps, little-endian)
+//
+// `members` is the payout order: 20-byte key hashes, round 0's member first. Round r's deadline
+// is start + (r + 1) * period. Anyone may pay a seat's contribution, and anyone may pay out a
+// round once every seat has paid or once its deadline has passed; the pot can only ever go to
+// that round's member, so nobody needs to sign and no money can be stuck mid-circle.
+// What the contract cannot do: make anyone pay. A member who stops paying after their own
+// turn keeps what they received; the missed bitmap records every seat that did not pay.
+// Money that reaches the Circle after its last payout (or that a payout left behind) is
+// never stuck: sweep() sends it to the last member in the order, the Circle's final recipient.
+
+bytes constant MONEY_TEMPLATE = 0xc000a06900c787;
+int constant MAX_MEMBERS = 16;
+
+// The VennMoney address that belongs to the Circle address `lock`.
+function moneyLockOf(bytes lock) returns (bytes) {
+    return 0xaa20 + hash256(0x23 + lock + MONEY_TEMPLATE) + 0x87;
+}
+
+// 2 to the power `n`, for 0 <= n <= MAX_MEMBERS.
+function pow2(int n) returns (int) {
+    int v = 1;
+    int k = 0;
+    do {
+        if (k < n) {
+            v = v * 2;
+        }
+        k = k + 1;
+    } while (k < n);
+    return v;
+}
+
+// How many of the lowest `n` bits of `flags` are set.
+function countBits(int flags, int n) returns (int) {
+    int count = 0;
+    int rest = flags;
+    int k = 0;
+    do {
+        if (k < n) {
+            count = count + rest % 2;
+            rest = rest / 2;
+        }
+        k = k + 1;
+    } while (k < n);
+    return count;
+}
+
+// A state commitment, with every field in range for a Circle of `n` members.
+function checkState(bytes state, int n) {
+    require(state.length == 8);
+    require(state.slice(0, 1) == 0x01);
+    int round = int(state.slice(1, 2) + 0x00);
+    int paid = int(state.slice(2, 5) + 0x00);
+    int missed = int(state.slice(5, 8) + 0x00);
+    int all = pow2(n);
+    require(within(round, 0, n + 1));
+    require(within(paid, 0, all));
+    require(within(missed, 0, all));
+}
+
+contract CircleVault(bytes32 circleCategory, bytes32 assetCategory, int contribution, int period, int start, bytes members) {
+    // Money sent to the Circle address by mistake moves only with the state NFT at input 0,
+    // and then only into the round's payout.
+    function follow() {
+        require(this.activeInputIndex > 0);
+        require(tx.inputs[0].lockingBytecode == tx.inputs[this.activeInputIndex].lockingBytecode);
+        require(tx.inputs[0].tokenCategory == circleCategory + 0x01);
+    }
+
+    // Pays `seat`'s contribution for the current round. Output 0 is the state with that seat
+    // marked paid; output 1 is exactly one contribution at the Circle's money address.
+    function contribute(int seat) {
+        require(this.activeInputIndex == 0);
+        int n = members.length / 20;
+        require(members.length == n * 20);
+        require(within(n, 2, MAX_MEMBERS + 1));
+        require(contribution > 0);
+        // Every deadline must fit a transaction locktime, or a round could never time out;
+        // a Circle with such a schedule never accepts money.
+        require(start >= 500000000);
+        require(period > 0);
+        require(start + n * period <= 4294967295);
+        bytes stateCategory = circleCategory + 0x01;
+        require(tx.inputs[0].tokenCategory == stateCategory);
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        bytes state = tx.inputs[0].nftCommitment;
+        checkState(state, n);
+        int round = int(state.slice(1, 2) + 0x00);
+        require(round < n);
+        int paid = int(state.slice(2, 5) + 0x00);
+        require(within(seat, 0, n));
+        int bit = pow2(seat);
+        require((paid / bit) % 2 == 0);
+
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == stateCategory);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        require(tx.outputs[0].nftCommitment == state.slice(0, 2) + toPaddedBytes(paid + bit, 3) + state.slice(5, 8));
+
+        require(tx.outputs[1].lockingBytecode == money);
+        require(tx.outputs[1].tokenCategory == assetCategory);
+        require(tx.outputs[1].tokenAmount == contribution);
+
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                require(tx.inputs[i].lockingBytecode != lock);
+                require(tx.inputs[i].lockingBytecode != money);
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+        int j = 2;
+        do {
+            if (j < tx.outputs.length) {
+                require(tx.outputs[j].lockingBytecode != lock);
+                require(tx.outputs[j].lockingBytecode != money);
+                bytes outCategory = tx.outputs[j].tokenCategory;
+                if (outCategory.length > 0) {
+                    require(outCategory.slice(0, 32) != circleCategory);
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+        require(j >= tx.outputs.length);
+    }
+
+    // Pays the current round's pot to the member whose turn it is, then starts the next round.
+    // Allowed once every seat has paid, or at any time after the round's deadline (the
+    // transaction's locktime proves that time has passed). Every money input of the Circle
+    // goes to that member at output 1, at least one contribution for every seat marked paid.
+    function payout() {
+        require(this.activeInputIndex == 0);
+        int n = members.length / 20;
+        require(members.length == n * 20);
+        require(within(n, 2, MAX_MEMBERS + 1));
+        bytes stateCategory = circleCategory + 0x01;
+        require(tx.inputs[0].tokenCategory == stateCategory);
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        bytes state = tx.inputs[0].nftCommitment;
+        checkState(state, n);
+        int round = int(state.slice(1, 2) + 0x00);
+        require(round < n);
+        int paid = int(state.slice(2, 5) + 0x00);
+        int missed = int(state.slice(5, 8) + 0x00);
+        int all = pow2(n) - 1;
+        if (paid != all) {
+            // The transaction's own time claim; the network rejects one that has not passed.
+            // (The compiler also checks the locktime is enforced: input 0 is never final.)
+            int now = tx.locktime;
+            require(now >= 500000000);
+            require(now >= start + (round + 1) * period);
+            require(tx.inputs[0].sequenceNumber < 4294967295);
+        }
+
+        // Seats that did not pay this round join the missed record.
+        int unpaid = all - paid;
+        int nextMissed = 0;
+        int bit = 1;
+        int k = 0;
+        do {
+            if (k < n) {
+                if ((unpaid / bit) % 2 == 1 || (missed / bit) % 2 == 1) {
+                    nextMissed = nextMissed + bit;
+                }
+                bit = bit * 2;
+            }
+            k = k + 1;
+        } while (k < n);
+
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == stateCategory);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        require(tx.outputs[0].nftCommitment == 0x01 + toPaddedBytes(round + 1, 1) + 0x000000 + toPaddedBytes(nextMissed, 3));
+
+        int assetIn = 0;
+        int bchIn = 0;
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                bytes inLock = tx.inputs[i].lockingBytecode;
+                if (inLock == lock || inLock == money) {
+                    bytes category = tx.inputs[i].tokenCategory;
+                    require(category == 0x || category == assetCategory);
+                    assetIn = assetIn + tx.inputs[i].tokenAmount;
+                    bchIn = bchIn + tx.inputs[i].value;
+                }
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+        require(assetIn >= countBits(paid, n) * contribution);
+
+        int j = 1;
+        if (assetIn > 0 || bchIn > 0) {
+            bytes pkh = members.slice(round * 20, round * 20 + 20);
+            require(tx.outputs[1].lockingBytecode == 0x76a914 + pkh + 0x88ac);
+            require(tx.outputs[1].tokenAmount == assetIn);
+            if (assetIn > 0) {
+                require(tx.outputs[1].tokenCategory == assetCategory);
+            } else {
+                require(tx.outputs[1].tokenCategory == 0x);
+            }
+            require(tx.outputs[1].value >= bchIn);
+            j = 2;
+        }
+        do {
+            if (j < tx.outputs.length) {
+                require(tx.outputs[j].lockingBytecode != lock);
+                require(tx.outputs[j].lockingBytecode != money);
+                bytes outCategory = tx.outputs[j].tokenCategory;
+                if (outCategory.length > 0) {
+                    require(outCategory.slice(0, 32) != circleCategory);
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+        require(j >= tx.outputs.length);
+    }
+
+    // After the last round, sends every Circle money coin the transaction spends to the last
+    // member in the payout order. The finished state NFT continues unchanged at output 0.
+    function sweep() {
+        require(this.activeInputIndex == 0);
+        int n = members.length / 20;
+        require(members.length == n * 20);
+        require(within(n, 2, MAX_MEMBERS + 1));
+        bytes stateCategory = circleCategory + 0x01;
+        require(tx.inputs[0].tokenCategory == stateCategory);
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        bytes state = tx.inputs[0].nftCommitment;
+        checkState(state, n);
+        require(int(state.slice(1, 2) + 0x00) == n);
+
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == stateCategory);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        require(tx.outputs[0].nftCommitment == state);
+
+        int assetIn = 0;
+        int bchIn = 0;
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                bytes inLock = tx.inputs[i].lockingBytecode;
+                if (inLock == lock || inLock == money) {
+                    bytes category = tx.inputs[i].tokenCategory;
+                    require(category == 0x || category == assetCategory);
+                    assetIn = assetIn + tx.inputs[i].tokenAmount;
+                    bchIn = bchIn + tx.inputs[i].value;
+                }
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+        require(bchIn > 0);
+
+        bytes last = members.slice((n - 1) * 20, n * 20);
+        require(tx.outputs[1].lockingBytecode == 0x76a914 + last + 0x88ac);
+        require(tx.outputs[1].tokenAmount == assetIn);
+        if (assetIn > 0) {
+            require(tx.outputs[1].tokenCategory == assetCategory);
+        } else {
+            require(tx.outputs[1].tokenCategory == 0x);
+        }
+        require(tx.outputs[1].value >= bchIn);
+        int j = 2;
+        do {
+            if (j < tx.outputs.length) {
+                require(tx.outputs[j].lockingBytecode != lock);
+                require(tx.outputs[j].lockingBytecode != money);
+                bytes outCategory = tx.outputs[j].tokenCategory;
+                if (outCategory.length > 0) {
+                    require(outCategory.slice(0, 32) != circleCategory);
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+        require(j >= tx.outputs.length);
+    }
+}

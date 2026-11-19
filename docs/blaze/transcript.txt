@@ -1,0 +1,13 @@
+Venn is a Bitcoin Cash wallet for shared money. Each group agrees on who can spend and how much before the fund is created.
+
+Consider a household fund. Each person can buy groceries within a budget. Larger expenses require a vote. The app shows the permissions and their trade-offs before anyone joins.
+
+The creator chooses Shared, names the members, and sends an invitation. Each member reviews the rules and signs for their own seat. Creation waits for every acceptance.
+
+The Bitcoin Cash covenant holds the fund. CashTokens carry the rules and the member state. The Android screenshot shows a separate check of native cryptography and secure storage.
+
+Here is the spending rule in action with local test fixtures. The Bitcoin Cash virtual machine accepts a signed payment within budget. It rejects a transaction above the budget.
+
+The shared-money prototype is available on Chipnet. A complete live two-wallet run and browser pairing are the next checks. Group approvals and recovery are covered at the contract level.
+
+The Venn repository includes the source, a three-minute demo guide, and the commands to reproduce the contract checks.

@@ -1,0 +1,42 @@
+{
+  "contractName": "VennMoney",
+  "constructorInputs": [
+    {
+      "name": "vaultLock",
+      "type": "bytes35"
+    }
+  ],
+  "abi": [
+    {
+      "name": "follow",
+      "inputs": []
+    }
+  ],
+  "bytecode": "OP_INPUTINDEX OP_0 OP_GREATERTHAN OP_VERIFY OP_0 OP_UTXOBYTECODE OP_EQUAL",
+  "source": "pragma cashscript ^0.14.0;\n\n// Venn money. Holds a Venn's plain BCH or its asset's fungible tokens at an address of its\n// own, so spending a money coin does not repeat the full Venn contract. A money coin moves\n// only when input 0 is spent by the Venn contract itself (`vaultLock`). Input 0 of that\n// contract is always a rules NFT or a member card, and every one of its functions checks\n// every money input and output of the transaction.\ncontract VennMoney(bytes35 vaultLock) {\n    function follow() {\n        require(this.activeInputIndex > 0);\n        require(tx.inputs[0].lockingBytecode == vaultLock);\n    }\n}\n",
+  "fingerprint": "8f5258e194acf3f6ff6de892d614db8084a7081604c9810d237011f46f5f63a1",
+  "debug": {
+    "bytecode": "c000a06900c787",
+    "sourceMap": "10:16:10:37;:40::41;:16:::1;:8::43;11:26:11:27:0;:16::44:1;:8::59",
+    "logs": [],
+    "requires": [
+      {
+        "ip": 4,
+        "line": 10
+      },
+      {
+        "ip": 8,
+        "line": 11
+      }
+    ]
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.14.0",
+    "options": {
+      "enforceFunctionParameterTypes": true,
+      "enforceLocktimeGuard": true
+    }
+  },
+  "updatedAt": "1970-01-01T00:00:00.000Z"
+}

@@ -1,0 +1,477 @@
+{
+  "contractName": "CircleVault",
+  "constructorInputs": [
+    {
+      "name": "circleCategory",
+      "type": "bytes32"
+    },
+    {
+      "name": "assetCategory",
+      "type": "bytes32"
+    },
+    {
+      "name": "contribution",
+      "type": "int"
+    },
+    {
+      "name": "period",
+      "type": "int"
+    },
+    {
+      "name": "start",
+      "type": "int"
+    },
+    {
+      "name": "members",
+      "type": "bytes"
+    }
+  ],
+  "abi": [
+    {
+      "name": "follow",
+      "inputs": []
+    },
+    {
+      "name": "contribute",
+      "inputs": [
+        {
+          "name": "seat",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "name": "payout",
+      "inputs": []
+    },
+    {
+      "name": "sweep",
+      "inputs": []
+    }
+  ],
+  "bytecode": "02aa2001237b7e07c000a06900c7877eaa7e01877e OP_0 OP_DEFINE 5100657653799f637852957b757c688b765379a2667577 OP_1 OP_DEFINE 788277589d78517f75518878527f75517f7701007e815279557f75527f7701007e81537a587f75557f7701007e815379518a537a00557a8ba5697b005279a5697c007ba569 OP_2 OP_DEFINE OP_6 OP_PICK OP_0 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_0 OP_GREATERTHAN OP_VERIFY OP_0 OP_UTXOBYTECODE OP_INPUTINDEX OP_UTXOBYTECODE OP_EQUALVERIFY OP_0 OP_UTXOTOKENCATEGORY OP_SWAP OP_1 OP_CAT OP_EQUALVERIFY OP_2DROP OP_2DROP OP_2DROP OP_1 OP_ELSE OP_6 OP_PICK OP_1 OP_NUMEQUAL OP_IF OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_5 OP_PICK OP_SIZE OP_NIP 14 OP_DIV OP_6 OP_ROLL OP_SIZE OP_NIP OP_OVER 14 OP_MUL OP_NUMEQUALVERIFY OP_DUP OP_2 OP_16 OP_1ADD OP_WITHIN OP_VERIFY OP_3 OP_PICK OP_0 OP_GREATERTHAN OP_VERIFY OP_5 OP_PICK 0065cd1d OP_GREATERTHANOREQUAL OP_VERIFY OP_4 OP_PICK OP_0 OP_GREATERTHAN OP_VERIFY OP_5 OP_ROLL OP_OVER OP_6 OP_ROLL OP_MUL OP_ADD ffffffff00 OP_LESSTHANOREQUAL OP_VERIFY OP_OVER OP_1 OP_CAT OP_0 OP_UTXOTOKENCATEGORY OP_OVER OP_EQUALVERIFY OP_0 OP_UTXOBYTECODE OP_DUP OP_0 OP_INVOKE OP_0 OP_UTXOTOKENCOMMITMENT OP_DUP OP_5 OP_PICK OP_2 OP_INVOKE OP_DUP OP_2 OP_SPLIT OP_DROP OP_1 OP_SPLIT OP_NIP 00 OP_CAT OP_BIN2NUM OP_5 OP_PICK OP_LESSTHAN OP_VERIFY OP_DUP OP_5 OP_SPLIT OP_DROP OP_2 OP_SPLIT OP_NIP 00 OP_CAT OP_BIN2NUM OP_10 OP_PICK OP_0 OP_7 OP_ROLL OP_WITHIN OP_VERIFY OP_9 OP_ROLL OP_1 OP_INVOKE OP_2DUP OP_DIV OP_2 OP_MOD OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_5 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_6 OP_ROLL OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_GREATERTHANOREQUAL OP_VERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_3 OP_PICK OP_2 OP_SPLIT OP_DROP OP_2SWAP OP_ADD OP_3 OP_NUM2BIN OP_CAT OP_ROT OP_8 OP_SPLIT OP_DROP OP_5 OP_SPLIT OP_NIP OP_CAT OP_EQUALVERIFY OP_1 OP_OUTPUTBYTECODE OP_OVER OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENCATEGORY OP_4 OP_ROLL OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENAMOUNT OP_4 OP_ROLL OP_NUMEQUALVERIFY OP_1 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_IF OP_DUP OP_UTXOBYTECODE OP_3 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_UTXOBYTECODE OP_2 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_ENDIF OP_1ADD OP_DUP OP_TXINPUTCOUNT OP_GREATERTHANOREQUAL OP_UNTIL OP_2 OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_IF OP_DUP OP_OUTPUTBYTECODE OP_4 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_OUTPUTBYTECODE OP_3 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_OUTPUTTOKENCATEGORY OP_SIZE OP_0 OP_GREATERTHAN OP_IF OP_DUP 20 OP_SPLIT OP_DROP OP_6 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_ENDIF OP_DROP OP_ENDIF OP_1ADD OP_DUP OP_TXOUTPUTCOUNT OP_GREATERTHANOREQUAL OP_UNTIL OP_TXOUTPUTCOUNT OP_GREATERTHANOREQUAL OP_VERIFY OP_2DROP OP_2DROP OP_DROP OP_1 OP_ELSE OP_6 OP_PICK OP_2 OP_NUMEQUAL OP_IF OP_TXLOCKTIME OP_CHECKLOCKTIMEVERIFY OP_DROP OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_5 OP_PICK OP_SIZE OP_NIP 14 OP_DIV OP_6 OP_PICK OP_SIZE OP_NIP OP_OVER 14 OP_MUL OP_NUMEQUALVERIFY OP_DUP OP_2 OP_16 OP_1ADD OP_WITHIN OP_VERIFY OP_OVER OP_1 OP_CAT OP_0 OP_UTXOTOKENCATEGORY OP_OVER OP_EQUALVERIFY OP_0 OP_UTXOBYTECODE OP_DUP OP_0 OP_INVOKE OP_0 OP_UTXOTOKENCOMMITMENT OP_DUP OP_5 OP_PICK OP_2 OP_INVOKE OP_DUP OP_2 OP_SPLIT OP_DROP OP_1 OP_SPLIT OP_NIP 00 OP_CAT OP_BIN2NUM OP_DUP OP_6 OP_PICK OP_LESSTHAN OP_VERIFY OP_OVER OP_5 OP_SPLIT OP_DROP OP_2 OP_SPLIT OP_NIP 00 OP_CAT OP_BIN2NUM OP_ROT OP_8 OP_SPLIT OP_DROP OP_5 OP_SPLIT OP_NIP 00 OP_CAT OP_BIN2NUM OP_6 OP_PICK OP_1 OP_INVOKE OP_1SUB OP_2 OP_PICK OP_OVER OP_NUMNOTEQUAL OP_IF OP_TXLOCKTIME OP_DUP 0065cd1d OP_GREATERTHANOREQUAL OP_VERIFY OP_DUP OP_14 OP_PICK OP_6 OP_PICK OP_1ADD OP_15 OP_PICK OP_MUL OP_ADD OP_GREATERTHANOREQUAL OP_VERIFY OP_0 OP_INPUTSEQUENCENUMBER ffffffff00 OP_LESSTHAN OP_VERIFY OP_DROP OP_ENDIF OP_2 OP_PICK OP_SUB OP_0 OP_1 OP_0 OP_BEGIN OP_DUP OP_11 OP_PICK OP_LESSTHAN OP_IF OP_3 OP_PICK OP_2 OP_PICK OP_DIV OP_2 OP_MOD OP_1 OP_NUMEQUAL OP_5 OP_PICK OP_3 OP_PICK OP_DIV OP_2 OP_MOD OP_1 OP_NUMEQUAL OP_BOOLOR OP_IF OP_2 OP_PICK OP_2 OP_PICK OP_ADD OP_2SWAP OP_NIP OP_ROT OP_ENDIF OP_OVER OP_2 OP_MUL OP_ROT OP_DROP OP_SWAP OP_ENDIF OP_1ADD OP_DUP OP_11 OP_PICK OP_GREATERTHANOREQUAL OP_UNTIL OP_0 OP_OUTPUTBYTECODE OP_9 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_10 OP_ROLL OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_GREATERTHANOREQUAL OP_VERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_1 OP_8 OP_PICK OP_1ADD OP_1 OP_NUM2BIN OP_CAT 000000 OP_CAT OP_4 OP_ROLL OP_3 OP_NUM2BIN OP_CAT OP_EQUALVERIFY OP_0 OP_0 OP_1 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_IF OP_DUP OP_UTXOBYTECODE OP_DUP OP_12 OP_PICK OP_EQUAL OP_OVER OP_12 OP_PICK OP_EQUAL OP_BOOLOR OP_IF OP_OVER OP_UTXOTOKENCATEGORY OP_DUP OP_0 OP_EQUAL OP_OVER 11 OP_PICK OP_EQUAL OP_BOOLOR OP_VERIFY OP_4 OP_PICK OP_3 OP_PICK OP_UTXOTOKENAMOUNT OP_ADD OP_5 OP_ROLL OP_DROP OP_SWAP OP_TOALTSTACK OP_SWAP OP_2SWAP OP_ROT OP_FROMALTSTACK OP_2OVER OP_UTXOVALUE OP_ADD OP_4 OP_ROLL OP_DROP OP_SWAP OP_2SWAP OP_ROT OP_DROP OP_ENDIF OP_DROP OP_ENDIF OP_1ADD OP_DUP OP_TXINPUTCOUNT OP_GREATERTHANOREQUAL OP_UNTIL OP_2 OP_PICK OP_8 OP_ROLL OP_12 OP_ROLL OP_0 OP_ROT OP_0 OP_BEGIN OP_DUP OP_4 OP_PICK OP_LESSTHAN OP_IF OP_2 OP_PICK OP_2 OP_PICK OP_2 OP_MOD OP_ADD OP_2SWAP OP_NIP OP_ROT OP_OVER OP_2 OP_DIV OP_ROT OP_DROP OP_SWAP OP_ENDIF OP_1ADD OP_DUP OP_4 OP_PICK OP_GREATERTHANOREQUAL OP_UNTIL OP_ROT OP_NIP OP_NIP OP_NIP OP_14 OP_ROLL OP_MUL OP_GREATERTHANOREQUAL OP_VERIFY OP_1 OP_3 OP_PICK OP_0 OP_GREATERTHAN OP_3 OP_PICK OP_0 OP_GREATERTHAN OP_BOOLOR OP_IF OP_15 OP_PICK OP_9 OP_PICK 14 OP_MUL 14 OP_ADD OP_SPLIT OP_DROP OP_9 OP_PICK 14 OP_MUL OP_SPLIT OP_NIP OP_1 OP_OUTPUTBYTECODE 76a914 OP_2 OP_PICK OP_CAT 88ac OP_CAT OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENAMOUNT OP_5 OP_PICK OP_NUMEQUALVERIFY OP_4 OP_PICK OP_0 OP_GREATERTHAN OP_IF OP_1 OP_OUTPUTTOKENCATEGORY OP_14 OP_PICK OP_EQUALVERIFY OP_ELSE OP_1 OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_ENDIF OP_1 OP_OUTPUTVALUE OP_4 OP_PICK OP_GREATERTHANOREQUAL OP_VERIFY OP_2DROP OP_2 OP_ENDIF OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_IF OP_DUP OP_OUTPUTBYTECODE OP_11 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_OUTPUTBYTECODE OP_10 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_OUTPUTTOKENCATEGORY OP_SIZE OP_0 OP_GREATERTHAN OP_IF OP_DUP 20 OP_SPLIT OP_DROP OP_13 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_ENDIF OP_DROP OP_ENDIF OP_1ADD OP_DUP OP_TXOUTPUTCOUNT OP_GREATERTHANOREQUAL OP_UNTIL OP_TXOUTPUTCOUNT OP_GREATERTHANOREQUAL OP_VERIFY OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_1 OP_ELSE OP_6 OP_ROLL OP_3 OP_NUMEQUALVERIFY OP_INPUTINDEX OP_0 OP_NUMEQUALVERIFY OP_5 OP_PICK OP_SIZE OP_NIP 14 OP_DIV OP_6 OP_PICK OP_SIZE OP_NIP OP_OVER 14 OP_MUL OP_NUMEQUALVERIFY OP_DUP OP_2 OP_16 OP_1ADD OP_WITHIN OP_VERIFY OP_OVER OP_1 OP_CAT OP_0 OP_UTXOTOKENCATEGORY OP_OVER OP_EQUALVERIFY OP_0 OP_UTXOBYTECODE OP_DUP OP_0 OP_INVOKE OP_0 OP_UTXOTOKENCOMMITMENT OP_DUP OP_5 OP_PICK OP_2 OP_INVOKE OP_DUP OP_2 OP_SPLIT OP_DROP OP_1 OP_SPLIT OP_NIP 00 OP_CAT OP_BIN2NUM OP_5 OP_PICK OP_NUMEQUALVERIFY OP_0 OP_OUTPUTBYTECODE OP_3 OP_PICK OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENCATEGORY OP_4 OP_ROLL OP_EQUALVERIFY OP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_NUMEQUALVERIFY OP_0 OP_OUTPUTVALUE OP_0 OP_UTXOVALUE OP_GREATERTHANOREQUAL OP_VERIFY OP_0 OP_OUTPUTTOKENCOMMITMENT OP_EQUALVERIFY OP_0 OP_0 OP_1 OP_BEGIN OP_DUP OP_TXINPUTCOUNT OP_LESSTHAN OP_IF OP_DUP OP_UTXOBYTECODE OP_DUP OP_6 OP_PICK OP_EQUAL OP_OVER OP_6 OP_PICK OP_EQUAL OP_BOOLOR OP_IF OP_OVER OP_UTXOTOKENCATEGORY OP_DUP OP_0 OP_EQUAL OP_OVER OP_11 OP_PICK OP_EQUAL OP_BOOLOR OP_VERIFY OP_4 OP_PICK OP_3 OP_PICK OP_UTXOTOKENAMOUNT OP_ADD OP_5 OP_ROLL OP_DROP OP_SWAP OP_TOALTSTACK OP_SWAP OP_2SWAP OP_ROT OP_FROMALTSTACK OP_2OVER OP_UTXOVALUE OP_ADD OP_4 OP_ROLL OP_DROP OP_SWAP OP_2SWAP OP_ROT OP_DROP OP_ENDIF OP_DROP OP_ENDIF OP_1ADD OP_DUP OP_TXINPUTCOUNT OP_GREATERTHANOREQUAL OP_UNTIL OP_OVER OP_0 OP_GREATERTHAN OP_VERIFY OP_11 OP_ROLL OP_6 OP_PICK 14 OP_MUL OP_SPLIT OP_DROP OP_6 OP_ROLL OP_1SUB 14 OP_MUL OP_SPLIT OP_NIP OP_1 OP_OUTPUTBYTECODE 76a914 OP_ROT OP_CAT 88ac OP_CAT OP_EQUALVERIFY OP_1 OP_OUTPUTTOKENAMOUNT OP_3 OP_PICK OP_NUMEQUALVERIFY OP_ROT OP_0 OP_GREATERTHAN OP_IF OP_1 OP_OUTPUTTOKENCATEGORY OP_6 OP_PICK OP_EQUALVERIFY OP_ELSE OP_1 OP_OUTPUTTOKENCATEGORY OP_0 OP_EQUALVERIFY OP_ENDIF OP_1 OP_OUTPUTVALUE OP_ROT OP_GREATERTHANOREQUAL OP_VERIFY OP_2 OP_BEGIN OP_DUP OP_TXOUTPUTCOUNT OP_LESSTHAN OP_IF OP_DUP OP_OUTPUTBYTECODE OP_4 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_OUTPUTBYTECODE OP_3 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_DUP OP_OUTPUTTOKENCATEGORY OP_SIZE OP_0 OP_GREATERTHAN OP_IF OP_DUP 20 OP_SPLIT OP_DROP OP_6 OP_PICK OP_EQUAL OP_NOT OP_VERIFY OP_ENDIF OP_DROP OP_ENDIF OP_1ADD OP_DUP OP_TXOUTPUTCOUNT OP_GREATERTHANOREQUAL OP_UNTIL OP_TXOUTPUTCOUNT OP_GREATERTHANOREQUAL OP_VERIFY OP_2DROP OP_2DROP OP_2DROP OP_2DROP OP_1 OP_ENDIF OP_ENDIF OP_ENDIF",
+  "source": "pragma cashscript ^0.14.0;\n\n// Circle v1: a savings circle (jam'eya). Every member pays the same contribution each round,\n// and each round the whole pot goes to the member whose turn it is, in an order fixed when\n// the Circle is created. The contract holds one state NFT; contributions wait at the Circle's\n// VennMoney address until the round pays out.\n//\n//   state NFT   circleCategory, mutable, 8 bytes:\n//               [0] version 0x01  [1] round (0 … members)  [2..5] seats paid this round\n//               [5..8] seats that have ever missed a round  (bitmaps, little-endian)\n//\n// `members` is the payout order: 20-byte key hashes, round 0's member first. Round r's deadline\n// is start + (r + 1) * period. Anyone may pay a seat's contribution, and anyone may pay out a\n// round once every seat has paid or once its deadline has passed; the pot can only ever go to\n// that round's member, so nobody needs to sign and no money can be stuck mid-circle.\n// What the contract cannot do: make anyone pay. A member who stops paying after their own\n// turn keeps what they received; the missed bitmap records every seat that did not pay.\n// Money that reaches the Circle after its last payout (or that a payout left behind) is\n// never stuck: sweep() sends it to the last member in the order, the Circle's final recipient.\n\nbytes constant MONEY_TEMPLATE = 0xc000a06900c787;\nint constant MAX_MEMBERS = 16;\n\n// The VennMoney address that belongs to the Circle address `lock`.\nfunction moneyLockOf(bytes lock) returns (bytes) {\n    return 0xaa20 + hash256(0x23 + lock + MONEY_TEMPLATE) + 0x87;\n}\n\n// 2 to the power `n`, for 0 <= n <= MAX_MEMBERS.\nfunction pow2(int n) returns (int) {\n    int v = 1;\n    int k = 0;\n    do {\n        if (k < n) {\n            v = v * 2;\n        }\n        k = k + 1;\n    } while (k < n);\n    return v;\n}\n\n// How many of the lowest `n` bits of `flags` are set.\nfunction countBits(int flags, int n) returns (int) {\n    int count = 0;\n    int rest = flags;\n    int k = 0;\n    do {\n        if (k < n) {\n            count = count + rest % 2;\n            rest = rest / 2;\n        }\n        k = k + 1;\n    } while (k < n);\n    return count;\n}\n\n// A state commitment, with every field in range for a Circle of `n` members.\nfunction checkState(bytes state, int n) {\n    require(state.length == 8);\n    require(state.slice(0, 1) == 0x01);\n    int round = int(state.slice(1, 2) + 0x00);\n    int paid = int(state.slice(2, 5) + 0x00);\n    int missed = int(state.slice(5, 8) + 0x00);\n    int all = pow2(n);\n    require(within(round, 0, n + 1));\n    require(within(paid, 0, all));\n    require(within(missed, 0, all));\n}\n\ncontract CircleVault(bytes32 circleCategory, bytes32 assetCategory, int contribution, int period, int start, bytes members) {\n    // Money sent to the Circle address by mistake moves only with the state NFT at input 0,\n    // and then only into the round's payout.\n    function follow() {\n        require(this.activeInputIndex > 0);\n        require(tx.inputs[0].lockingBytecode == tx.inputs[this.activeInputIndex].lockingBytecode);\n        require(tx.inputs[0].tokenCategory == circleCategory + 0x01);\n    }\n\n    // Pays `seat`'s contribution for the current round. Output 0 is the state with that seat\n    // marked paid; output 1 is exactly one contribution at the Circle's money address.\n    function contribute(int seat) {\n        require(this.activeInputIndex == 0);\n        int n = members.length / 20;\n        require(members.length == n * 20);\n        require(within(n, 2, MAX_MEMBERS + 1));\n        require(contribution > 0);\n        // Every deadline must fit a transaction locktime, or a round could never time out;\n        // a Circle with such a schedule never accepts money.\n        require(start >= 500000000);\n        require(period > 0);\n        require(start + n * period <= 4294967295);\n        bytes stateCategory = circleCategory + 0x01;\n        require(tx.inputs[0].tokenCategory == stateCategory);\n        bytes lock = tx.inputs[0].lockingBytecode;\n        bytes money = moneyLockOf(lock);\n        bytes state = tx.inputs[0].nftCommitment;\n        checkState(state, n);\n        int round = int(state.slice(1, 2) + 0x00);\n        require(round < n);\n        int paid = int(state.slice(2, 5) + 0x00);\n        require(within(seat, 0, n));\n        int bit = pow2(seat);\n        require((paid / bit) % 2 == 0);\n\n        require(tx.outputs[0].lockingBytecode == lock);\n        require(tx.outputs[0].tokenCategory == stateCategory);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value >= tx.inputs[0].value);\n        require(tx.outputs[0].nftCommitment == state.slice(0, 2) + toPaddedBytes(paid + bit, 3) + state.slice(5, 8));\n\n        require(tx.outputs[1].lockingBytecode == money);\n        require(tx.outputs[1].tokenCategory == assetCategory);\n        require(tx.outputs[1].tokenAmount == contribution);\n\n        int i = 1;\n        do {\n            if (i < tx.inputs.length) {\n                require(tx.inputs[i].lockingBytecode != lock);\n                require(tx.inputs[i].lockingBytecode != money);\n            }\n            i = i + 1;\n        } while (i < tx.inputs.length);\n        int j = 2;\n        do {\n            if (j < tx.outputs.length) {\n                require(tx.outputs[j].lockingBytecode != lock);\n                require(tx.outputs[j].lockingBytecode != money);\n                bytes outCategory = tx.outputs[j].tokenCategory;\n                if (outCategory.length > 0) {\n                    require(outCategory.slice(0, 32) != circleCategory);\n                }\n            }\n            j = j + 1;\n        } while (j < tx.outputs.length);\n        require(j >= tx.outputs.length);\n    }\n\n    // Pays the current round's pot to the member whose turn it is, then starts the next round.\n    // Allowed once every seat has paid, or at any time after the round's deadline (the\n    // transaction's locktime proves that time has passed). Every money input of the Circle\n    // goes to that member at output 1, at least one contribution for every seat marked paid.\n    function payout() {\n        require(this.activeInputIndex == 0);\n        int n = members.length / 20;\n        require(members.length == n * 20);\n        require(within(n, 2, MAX_MEMBERS + 1));\n        bytes stateCategory = circleCategory + 0x01;\n        require(tx.inputs[0].tokenCategory == stateCategory);\n        bytes lock = tx.inputs[0].lockingBytecode;\n        bytes money = moneyLockOf(lock);\n        bytes state = tx.inputs[0].nftCommitment;\n        checkState(state, n);\n        int round = int(state.slice(1, 2) + 0x00);\n        require(round < n);\n        int paid = int(state.slice(2, 5) + 0x00);\n        int missed = int(state.slice(5, 8) + 0x00);\n        int all = pow2(n) - 1;\n        if (paid != all) {\n            // The transaction's own time claim; the network rejects one that has not passed.\n            // (The compiler also checks the locktime is enforced: input 0 is never final.)\n            int now = tx.locktime;\n            require(now >= 500000000);\n            require(now >= start + (round + 1) * period);\n            require(tx.inputs[0].sequenceNumber < 4294967295);\n        }\n\n        // Seats that did not pay this round join the missed record.\n        int unpaid = all - paid;\n        int nextMissed = 0;\n        int bit = 1;\n        int k = 0;\n        do {\n            if (k < n) {\n                if ((unpaid / bit) % 2 == 1 || (missed / bit) % 2 == 1) {\n                    nextMissed = nextMissed + bit;\n                }\n                bit = bit * 2;\n            }\n            k = k + 1;\n        } while (k < n);\n\n        require(tx.outputs[0].lockingBytecode == lock);\n        require(tx.outputs[0].tokenCategory == stateCategory);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value >= tx.inputs[0].value);\n        require(tx.outputs[0].nftCommitment == 0x01 + toPaddedBytes(round + 1, 1) + 0x000000 + toPaddedBytes(nextMissed, 3));\n\n        int assetIn = 0;\n        int bchIn = 0;\n        int i = 1;\n        do {\n            if (i < tx.inputs.length) {\n                bytes inLock = tx.inputs[i].lockingBytecode;\n                if (inLock == lock || inLock == money) {\n                    bytes category = tx.inputs[i].tokenCategory;\n                    require(category == 0x || category == assetCategory);\n                    assetIn = assetIn + tx.inputs[i].tokenAmount;\n                    bchIn = bchIn + tx.inputs[i].value;\n                }\n            }\n            i = i + 1;\n        } while (i < tx.inputs.length);\n        require(assetIn >= countBits(paid, n) * contribution);\n\n        int j = 1;\n        if (assetIn > 0 || bchIn > 0) {\n            bytes pkh = members.slice(round * 20, round * 20 + 20);\n            require(tx.outputs[1].lockingBytecode == 0x76a914 + pkh + 0x88ac);\n            require(tx.outputs[1].tokenAmount == assetIn);\n            if (assetIn > 0) {\n                require(tx.outputs[1].tokenCategory == assetCategory);\n            } else {\n                require(tx.outputs[1].tokenCategory == 0x);\n            }\n            require(tx.outputs[1].value >= bchIn);\n            j = 2;\n        }\n        do {\n            if (j < tx.outputs.length) {\n                require(tx.outputs[j].lockingBytecode != lock);\n                require(tx.outputs[j].lockingBytecode != money);\n                bytes outCategory = tx.outputs[j].tokenCategory;\n                if (outCategory.length > 0) {\n                    require(outCategory.slice(0, 32) != circleCategory);\n                }\n            }\n            j = j + 1;\n        } while (j < tx.outputs.length);\n        require(j >= tx.outputs.length);\n    }\n\n    // After the last round, sends every Circle money coin the transaction spends to the last\n    // member in the payout order. The finished state NFT continues unchanged at output 0.\n    function sweep() {\n        require(this.activeInputIndex == 0);\n        int n = members.length / 20;\n        require(members.length == n * 20);\n        require(within(n, 2, MAX_MEMBERS + 1));\n        bytes stateCategory = circleCategory + 0x01;\n        require(tx.inputs[0].tokenCategory == stateCategory);\n        bytes lock = tx.inputs[0].lockingBytecode;\n        bytes money = moneyLockOf(lock);\n        bytes state = tx.inputs[0].nftCommitment;\n        checkState(state, n);\n        require(int(state.slice(1, 2) + 0x00) == n);\n\n        require(tx.outputs[0].lockingBytecode == lock);\n        require(tx.outputs[0].tokenCategory == stateCategory);\n        require(tx.outputs[0].tokenAmount == 0);\n        require(tx.outputs[0].value >= tx.inputs[0].value);\n        require(tx.outputs[0].nftCommitment == state);\n\n        int assetIn = 0;\n        int bchIn = 0;\n        int i = 1;\n        do {\n            if (i < tx.inputs.length) {\n                bytes inLock = tx.inputs[i].lockingBytecode;\n                if (inLock == lock || inLock == money) {\n                    bytes category = tx.inputs[i].tokenCategory;\n                    require(category == 0x || category == assetCategory);\n                    assetIn = assetIn + tx.inputs[i].tokenAmount;\n                    bchIn = bchIn + tx.inputs[i].value;\n                }\n            }\n            i = i + 1;\n        } while (i < tx.inputs.length);\n        require(bchIn > 0);\n\n        bytes last = members.slice((n - 1) * 20, n * 20);\n        require(tx.outputs[1].lockingBytecode == 0x76a914 + last + 0x88ac);\n        require(tx.outputs[1].tokenAmount == assetIn);\n        if (assetIn > 0) {\n            require(tx.outputs[1].tokenCategory == assetCategory);\n        } else {\n            require(tx.outputs[1].tokenCategory == 0x);\n        }\n        require(tx.outputs[1].value >= bchIn);\n        int j = 2;\n        do {\n            if (j < tx.outputs.length) {\n                require(tx.outputs[j].lockingBytecode != lock);\n                require(tx.outputs[j].lockingBytecode != money);\n                bytes outCategory = tx.outputs[j].tokenCategory;\n                if (outCategory.length > 0) {\n                    require(outCategory.slice(0, 32) != circleCategory);\n                }\n            }\n            j = j + 1;\n        } while (j < tx.outputs.length);\n        require(j >= tx.outputs.length);\n    }\n}\n",
+  "fingerprint": "b5c368826847cc22686415916b675654a81679b1ec65b82e9bdf38d0f4cae95b",
+  "debug": {
+    "bytecode": "1502aa2001237b7e07c000a06900c7877eaa7e01877e0089175100657653799f637852957b757c688b765379a2667577518945788277589d78517f75518878527f75517f7701007e815279557f75527f7701007e81537a587f75557f7701007e815379518a537a00557a8ba5697b005279a5697c007ba56952895679009c63c000a06900c7c0c78800ce7c517e886d6d6d51675679519c63c0009d55798277011496567a8277780114959d7652608ba569537900a0695579040065cd1da269547900a069557a78567a959305ffffffff00a16978517e00ce788800c776008a00cf765579528a76527f75517f7701007e8155799f6976557f75527f7701007e815a7900577aa569597a518a6e965297009d00cd55798800d1567a8800d3009d00cc00c6a26900d25379527f75729353807e7b587f75557f777e8851cd788851d1547a8851d3547a9d516576c39f6376c7537987916976c75279879169688b76c3a266526576c49f6376cd547987916976cd537987916976d18200a0637601207f7556798791696875688b76c4a266c4a2696d6d7551675679529c63c5b175c0009d5579827701149656798277780114959d7652608ba56978517e00ce788800c776008a00cf765579528a76527f75517f7701007e817656799f6978557f75527f7701007e817b587f75557f7701007e815679518a8c5279789e63c576040065cd1da269765e7956798b5f799593a26900cb05ffffffff009f69756852799400510065765b799f6353795279965297519c55795379965297519c9b63527952799372777b687852957b757c688b765b79a26600cd59798800d15a7a8800d3009d00cc00c6a26900d25158798b51807e030000007e547a53807e880000516576c39f6376c7765c7987785c79879b6378ce76008778011179879b6954795379d093557a757c6b7c727b6c70c693547a757c727b756875688b76c3a2665279587a5c7a007b00657654799f635279527952979372777b7852967b757c688b765479a2667b7777775e7a95a26951537900a0537900a09b635f7959790114950114937f7559790114957f7751cd0376a91452797e0288ac7e8851d355799d547900a06351d15e79886751d100886851cc5479a2696d52686576c49f6376cd5b7987916976cd5a7987916976d18200a0637601207f755d798791696875688b76c4a266c4a2696d6d6d6d6d6d6d6d5167567a539dc0009d5579827701149656798277780114959d7652608ba56978517e00ce788800c776008a00cf765579528a76527f75517f7701007e8155799d00cd53798800d1547a8800d3009d00cc00c6a26900d2880000516576c39f6376c776567987785679879b6378ce760087785b79879b6954795379d093557a757c6b7c727b6c70c693547a757c727b756875688b76c3a2667800a0695b7a56790114957f75567a8c0114957f7751cd0376a9147b7e0288ac7e8851d353799d7b00a06351d15679886751d100886851cc7ba269526576c49f6376cd547987916976cd537987916976d18200a0637601207f7556798791696875688b76c4a266c4a2696d6d6d6d51686868",
+    "sourceMap": "25::27:1;;::::1;30::40::0;;::::1;58::68::0;;::::1;73:4:77:5:0;;;;;74:16:74:37;:40::41;:16:::1;:8::43;75:26:75:27:0;:16::44:1;:58::79:0;:48::96:1;:8::98;76:26:76:27:0;:16::42:1;:46::60:0;:63::67;:46:::1;:8::69;73:22:77:5;;;;:4;81::136::0;;;;;82:16:82:37;:41::42;:8::44:1;83:16:83:23:0;;:::30:1;;:33::35:0;:16:::1;84::84:23:0;;:::30:1;;:34::35:0;:38::40;:34:::1;:8::42;85:23:85:24:0;:26::27;:29::40:1;:::44;:16::45;:8::47;86:16:86:28:0;;:31::32;:16:::1;:8::34;89:16:89:21:0;;:25::34;:16:::1;:8::36;90:16:90:22:0;;:25::26;:16:::1;:8::28;91:16:91:21:0;;:24::25;:28::34;;:24:::1;:16;:38::48:0;:16:::1;:8::50;92:30:92:44:0;:47::51;:30:::1;93:26:93:27:0;:16::42:1;:46::59:0;:8::61:1;94:31:94:32:0;:21::49:1;95:34:95:38:0;:22::39:1;;96:32:96:33:0;:22::48:1;97:19:97:24:0;:26::27;;:8::28:1;;98:24:98:29:0;:39::40;:24::41:1;;:36::37:0;:24::41:1;;:44::48:0;:24:::1;:20::49;99:24:99:25:0;;:16:::1;:8::27;100:23:100:28:0;:38::39;:23::40:1;;:35::36:0;:23::40:1;;:43::47:0;:23:::1;:19::48;101:23:101:27:0;;:29::30;:32::33;;:16::34:1;:8::36;102:23:102:27:0;;:18::28:1;;103:17:103:27:0;::::1;:31::32:0;:16:::1;:36::37:0;:8::39:1;105:27:105:28:0;:16::45:1;:49::53:0;;:8::55:1;106:27:106:28:0;:16::43:1;:47::60:0;;:8::62:1;107:27:107:28:0;:16::41:1;:45::46:0;:8::48:1;108:27:108:28:0;:16::35:1;:49::50:0;:39::57:1;:16;:8::59;109:27:109:28:0;:16::43:1;:47::52:0;;:62::63;:47::64:1;;:81::91:0;::::1;:93::94:0;:67::95:1;:47;:98::103:0;:113::114;:98::115:1;;:110::111:0;:98::115:1;;:47;:8::117;111:27:111:28:0;:16::45:1;:49::54:0;:8::56:1;112:27:112:28:0;:16::43:1;:47::60:0;;:8::62:1;113:27:113:28:0;:16::41:1;:45::57:0;;:8::59:1;115:16:115:17:0;116:8:122:39;117:16:117:17;:20::36;:16:::1;:38:120:13:0;118:34:118:35;:24::52:1;:56::60:0;;:24:::1;;:16::62;119:34:119:35:0;:24::52:1;:56::61:0;;:24:::1;;:16::63;117:38:120:13;121:12:121:22;122:17:122:18:0;:21::37;116:8::39:1;;123:16:123:17:0;124:8:134:40;125:16:125:17;:20::37;:16:::1;:39:132:13:0;126:35:126:36;:24::53:1;:57::61:0;;:24:::1;;:16::63;127:35:127:36:0;:24::53:1;:57::62:0;;:24:::1;;:16::64;128:47:128:48:0;:36::63:1;129:20:129:38;:41::42:0;:20:::1;:44:131:17:0;130:28:130:39;:49::51;:28::52:1;;:56::70:0;;:28:::1;;:20::72;129:44:131:17;125:39:132:13;;133:12:133:22;134:17:134:18:0;:21::38;124:8::40:1;;135:21:135:38:0;:16:::1;:8::40;81:34:136:5;;;;:4;142::230::0;;;;;:22:142:22;::::1;;143:16:143:37:0;:41::42;:8::44:1;144:16:144:23:0;;:::30:1;;:33::35:0;:16:::1;145::145:23:0;;:::30:1;;:34::35:0;:38::40;:34:::1;:8::42;146:23:146:24:0;:26::27;:29::40:1;:::44;:16::45;:8::47;147:30:147:44:0;:47::51;:30:::1;148:26:148:27:0;:16::42:1;:46::59:0;:8::61:1;149:31:149:32:0;:21::49:1;150:34:150:38:0;:22::39:1;;151:32:151:33:0;:22::48:1;152:19:152:24:0;:26::27;;:8::28:1;;153:24:153:29:0;:39::40;:24::41:1;;:36::37:0;:24::41:1;;:44::48:0;:24:::1;:20::49;154:16:154:21:0;:24::25;;:16:::1;:8::27;155:23:155:28:0;:38::39;:23::40:1;;:35::36:0;:23::40:1;;:43::47:0;:23:::1;:19::48;156:25:156:30:0;:40::41;:25::42:1;;:37::38:0;:25::42:1;;:45::49:0;:25:::1;:21::50;157:23:157:24:0;;:18::25:1;;:::29;158:12:158:16:0;;:20::23;:12:::1;:25:165:9:0;161:22:161:33;162:20:162:23;:27::36;:20:::1;:12::38;163:20:163:23:0;:27::32;;:36::41;;:::45:1;:49::55:0;;:35:::1;:27;:20;:12::57;164:30:164:31:0;:20::47:1;:50::60:0;:20:::1;:12::62;158:25:165:9;;168:27:168:31:0;;:21:::1;169:25:169:26:0;170:18:170:19;171:16:171:17;172:8:180:24;173:16:173:17;:20::21;;:16:::1;:23:178:13:0;174:21:174:27;;:30::33;;:21:::1;:37::38:0;:20:::1;:42::43:0;:20:::1;:48::54:0;;:57::60;;:48:::1;:64::65:0;:47:::1;:69::70:0;:47:::1;:20;:72:176:17:0;175:33:175:43;;:46::49;;:33:::1;:20::50;;;174:72:176:17;177:22:177:25:0;:28::29;:22:::1;:16::30;;;173:23:178:13;179:12:179:22;180:17:180:18:0;:21::22;;172:8::24:1;;182:27:182:28:0;:16::45:1;:49::53:0;;:8::55:1;183:27:183:28:0;:16::43:1;:47::60:0;;:8::62:1;184:27:184:28:0;:16::41:1;:45::46:0;:8::48:1;185:27:185:28:0;:16::35:1;:49::50:0;:39::57:1;:16;:8::59;186:27:186:28:0;:16::43:1;:47::51:0;:68::73;;:::77:1;:79::80:0;:54::81:1;:47;:84::92:0;:47:::1;:109::119:0;;:121::122;:95::123:1;:47;:8::125;188:22:188:23:0;189:20:189:21;190:16:190:17;191:8:202:39;192:16:192:17;:20::36;:16:::1;:38:200:13:0;193:41:193:42;:31::59:1;194:20:194:26:0;:30::34;;:20:::1;:38::44:0;:48::53;;:38:::1;:20;:55:199:17:0;195:47:195:48;:37::63:1;196:28:196:36:0;:40::42;:28:::1;:46::54:0;:58::71;;:46:::1;:28;:20::73;197:30:197:37:0;;:50::51;;:40::64:1;:30;:20::65;;;;;;;;;198:28:198:47:0;:36::54:1;:28;:20::55;;;;;;194:55:199:17;;192:38:200:13;;201:12:201:22;202:17:202:18:0;:21::37;191:8::39:1;;203:16:203:23:0;;:37::41;;:43::44;;:27::45:1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;:48::60:0;;:27:::1;:16;:8::62;205:16:205:17:0;206:12:206:19;;:22::23;:12:::1;:27::32:0;;:35::36;:27:::1;:12;:38:217:9:0;207:24:207:31;;:50::55;;:58::60;:50:::1;:63::65:0;:50:::1;:24::66;;:38::43:0;;:46::48;:38:::1;:24::66;;208:31:208:32:0;:20::49:1;:53::61:0;:64::67;;:53:::1;:70::76:0;:53:::1;:12::78;209:31:209:32:0;:20::45:1;:49::56:0;;:12::58:1;210:16:210:23:0;;:26::27;:16:::1;:29:212:13:0;211:35:211:36;:24::51:1;:55::68:0;;:16::70:1;212:19:214:13:0;213:35:213:36;:24::51:1;:55::57:0;:16::59:1;212:19:214:13;215:31:215:32:0;:20::39:1;:43::48:0;;:20:::1;:12::50;206:38:217:9;;;218:8:228:40:0;219:16:219:17;:20::37;:16:::1;:39:226:13:0;220:35:220:36;:24::53:1;:57::61:0;;:24:::1;;:16::63;221:35:221:36:0;:24::53:1;:57::62:0;;:24:::1;;:16::64;222:47:222:48:0;:36::63:1;223:20:223:38;:41::42:0;:20:::1;:44:225:17:0;224:28:224:39;:49::51;:28::52:1;;:56::70:0;;:28:::1;;:20::72;223:44:225:17;219:39:226:13;;227:12:227:22;228:17:228:18:0;:21::38;218:8::40:1;;229:21:229:38:0;:16:::1;:8::40;142:22:230:5;;;;;;;;;:4;234::292::0;;;;235:16:235:37;:41::42;:8::44:1;236:16:236:23:0;;:::30:1;;:33::35:0;:16:::1;237::237:23:0;;:::30:1;;:34::35:0;:38::40;:34:::1;:8::42;238:23:238:24:0;:26::27;:29::40:1;:::44;:16::45;:8::47;239:30:239:44:0;:47::51;:30:::1;240:26:240:27:0;:16::42:1;:46::59:0;:8::61:1;241:31:241:32:0;:21::49:1;242:34:242:38:0;:22::39:1;;243:32:243:33:0;:22::48:1;244:19:244:24:0;:26::27;;:8::28:1;;245:20:245:25:0;:35::36;:20::37:1;;:32::33:0;:20::37:1;;:40::44:0;:20:::1;:16::45;:49::50:0;;:8::52:1;247:27:247:28:0;:16::45:1;:49::53:0;;:8::55:1;248:27:248:28:0;:16::43:1;:47::60:0;;:8::62:1;249:27:249:28:0;:16::41:1;:45::46:0;:8::48:1;250:27:250:28:0;:16::35:1;:49::50:0;:39::57:1;:16;:8::59;251:27:251:28:0;:16::43:1;:8::54;253:22:253:23:0;254:20:254:21;255:16:255:17;256:8:267:39;257:16:257:17;:20::36;:16:::1;:38:265:13:0;258:41:258:42;:31::59:1;259:20:259:26:0;:30::34;;:20:::1;:38::44:0;:48::53;;:38:::1;:20;:55:264:17:0;260:47:260:48;:37::63:1;261:28:261:36:0;:40::42;:28:::1;:46::54:0;:58::71;;:46:::1;:28;:20::73;262:30:262:37:0;;:50::51;;:40::64:1;:30;:20::65;;;;;;;;;263:28:263:47:0;:36::54:1;:28;:20::55;;;;;;259:55:264:17;;257:38:265:13;;266:12:266:22;267:17:267:18:0;:21::37;256:8::39:1;;268:16:268:21:0;:24::25;:16:::1;:8::27;270:21:270:28:0;;:49::50;;:53::55;:49:::1;:21::56;;:36::37:0;;:::41:1;:45::47:0;:35:::1;:21::56;;271:27:271:28:0;:16::45:1;:49::57:0;:60::64;:49:::1;:67::73:0;:49:::1;:8::75;272:27:272:28:0;:16::41:1;:45::52:0;;:8::54:1;273:12:273:19:0;:22::23;:12:::1;:25:275:9:0;274:31:274:32;:20::47:1;:51::64:0;;:12::66:1;275:15:277:9:0;276:31:276:32;:20::47:1;:51::53:0;:12::55:1;275:15:277:9;278:27:278:28:0;:16::35:1;:39::44:0;:16:::1;:8::46;279:16:279:17:0;280:8:290:40;281:16:281:17;:20::37;:16:::1;:39:288:13:0;282:35:282:36;:24::53:1;:57::61:0;;:24:::1;;:16::63;283:35:283:36:0;:24::53:1;:57::62:0;;:24:::1;;:16::64;284:47:284:48:0;:36::63:1;285:20:285:38;:41::42:0;:20:::1;:44:287:17:0;286:28:286:39;:49::51;:28::52:1;;:56::70:0;;:28:::1;;:20::72;285:44:287:17;281:39:288:13;;289:12:289:22;290:17:290:18:0;:21::38;280:8::40:1;;291:21:291:38:0;:16:::1;:8::40;234:21:292:5;;;;;70:0:293:1;;",
+    "logs": [],
+    "requires": [
+      {
+        "ip": 23,
+        "line": 74
+      },
+      {
+        "ip": 28,
+        "line": 75
+      },
+      {
+        "ip": 34,
+        "line": 76
+      },
+      {
+        "ip": 47,
+        "line": 82
+      },
+      {
+        "ip": 61,
+        "line": 84
+      },
+      {
+        "ip": 67,
+        "line": 85
+      },
+      {
+        "ip": 72,
+        "line": 86
+      },
+      {
+        "ip": 77,
+        "line": 89
+      },
+      {
+        "ip": 82,
+        "line": 90
+      },
+      {
+        "ip": 92,
+        "line": 91
+      },
+      {
+        "ip": 99,
+        "line": 93
+      },
+      {
+        "ip": 125,
+        "line": 99
+      },
+      {
+        "ip": 142,
+        "line": 101
+      },
+      {
+        "ip": 152,
+        "line": 103
+      },
+      {
+        "ip": 157,
+        "line": 105
+      },
+      {
+        "ip": 162,
+        "line": 106
+      },
+      {
+        "ip": 166,
+        "line": 107
+      },
+      {
+        "ip": 172,
+        "line": 108
+      },
+      {
+        "ip": 193,
+        "line": 109
+      },
+      {
+        "ip": 197,
+        "line": 111
+      },
+      {
+        "ip": 202,
+        "line": 112
+      },
+      {
+        "ip": 207,
+        "line": 113
+      },
+      {
+        "ip": 220,
+        "line": 118
+      },
+      {
+        "ip": 227,
+        "line": 119
+      },
+      {
+        "ip": 246,
+        "line": 126
+      },
+      {
+        "ip": 253,
+        "line": 127
+      },
+      {
+        "ip": 268,
+        "line": 130
+      },
+      {
+        "ip": 279,
+        "line": 135
+      },
+      {
+        "ip": 291,
+        "line": 142,
+        "message": "Using tx.locktime requires a non-final sequence number on the spending input"
+      },
+      {
+        "ip": 295,
+        "line": 143
+      },
+      {
+        "ip": 309,
+        "line": 145
+      },
+      {
+        "ip": 315,
+        "line": 146
+      },
+      {
+        "ip": 322,
+        "line": 148
+      },
+      {
+        "ip": 349,
+        "line": 154
+      },
+      {
+        "ip": 384,
+        "line": 162
+      },
+      {
+        "ip": 396,
+        "line": 163
+      },
+      {
+        "ip": 401,
+        "line": 164
+      },
+      {
+        "ip": 462,
+        "line": 182
+      },
+      {
+        "ip": 467,
+        "line": 183
+      },
+      {
+        "ip": 471,
+        "line": 184
+      },
+      {
+        "ip": 477,
+        "line": 185
+      },
+      {
+        "ip": 494,
+        "line": 186
+      },
+      {
+        "ip": 525,
+        "line": 196
+      },
+      {
+        "ip": 605,
+        "line": 203
+      },
+      {
+        "ip": 641,
+        "line": 208
+      },
+      {
+        "ip": 646,
+        "line": 209
+      },
+      {
+        "ip": 656,
+        "line": 211
+      },
+      {
+        "ip": 661,
+        "line": 213
+      },
+      {
+        "ip": 668,
+        "line": 215
+      },
+      {
+        "ip": 683,
+        "line": 220
+      },
+      {
+        "ip": 690,
+        "line": 221
+      },
+      {
+        "ip": 705,
+        "line": 224
+      },
+      {
+        "ip": 716,
+        "line": 229
+      },
+      {
+        "ip": 733,
+        "line": 235
+      },
+      {
+        "ip": 747,
+        "line": 237
+      },
+      {
+        "ip": 753,
+        "line": 238
+      },
+      {
+        "ip": 760,
+        "line": 240
+      },
+      {
+        "ip": 785,
+        "line": 245
+      },
+      {
+        "ip": 790,
+        "line": 247
+      },
+      {
+        "ip": 795,
+        "line": 248
+      },
+      {
+        "ip": 799,
+        "line": 249
+      },
+      {
+        "ip": 805,
+        "line": 250
+      },
+      {
+        "ip": 808,
+        "line": 251
+      },
+      {
+        "ip": 839,
+        "line": 261
+      },
+      {
+        "ip": 876,
+        "line": 268
+      },
+      {
+        "ip": 899,
+        "line": 271
+      },
+      {
+        "ip": 904,
+        "line": 272
+      },
+      {
+        "ip": 913,
+        "line": 274
+      },
+      {
+        "ip": 918,
+        "line": 276
+      },
+      {
+        "ip": 924,
+        "line": 278
+      },
+      {
+        "ip": 937,
+        "line": 282
+      },
+      {
+        "ip": 944,
+        "line": 283
+      },
+      {
+        "ip": 959,
+        "line": 286
+      },
+      {
+        "ip": 970,
+        "line": 291
+      }
+    ],
+    "sourceTags": "264:264:sc;284:286:lg;396:396:sc;544:544:sc;546:546:sc;592:594:sc;701:701:sc;858:858:sc;860:860:sc;955:955:sc",
+    "functions": [
+      {
+        "id": 0,
+        "name": "moneyLockOf",
+        "inputs": [
+          {
+            "name": "lock",
+            "type": "bytes"
+          }
+        ],
+        "bytecode": "02aa2001237b7e07c000a06900c7877eaa7e01877e",
+        "sourceMap": "26:11:26:17;:28::32;:35::39;:28:::1;:42::56;:28;:20::57;:11;:60::64:0;:11:::1",
+        "logs": [],
+        "requires": [],
+        "inlineRanges": "4:4:MONEY_TEMPLATE"
+      },
+      {
+        "id": 1,
+        "name": "pow2",
+        "inputs": [
+          {
+            "name": "n",
+            "type": "int"
+          }
+        ],
+        "bytecode": "5100657653799f637852957b757c688b765379a2667577",
+        "sourceMap": "31:12:31:13;32::32;33:4:38:20;34:12:34:13;:16::17;;:12:::1;:19:36:9:0;35:16:35:17;:20::21;:16:::1;:12::22;;;34:19:36:9;37:8:37:18;38:13:38:14:0;:17::18;;33:4::20:1;;30:35:40:1;",
+        "sourceTags": "21:22:sc",
+        "logs": [],
+        "requires": []
+      },
+      {
+        "id": 2,
+        "name": "checkState",
+        "inputs": [
+          {
+            "name": "state",
+            "type": "bytes"
+          },
+          {
+            "name": "n",
+            "type": "int"
+          }
+        ],
+        "bytecode": "788277589d78517f75518878527f75517f7701007e815279557f75527f7701007e81537a587f75557f7701007e815379518a537a00557a8ba5697b005279a5697c007ba569",
+        "sourceMap": "59:12:59:17;:::24:1;;:28::29:0;:4::31:1;60:12:60:17:0;:27::28;:12::29:1;;:33::37:0;:4::39:1;61:20:61:25:0;:35::36;:20::37:1;;:32::33:0;:20::37:1;;:40::44:0;:20:::1;:16::45;62:19:62:24:0;;:34::35;:19::36:1;;:31::32:0;:19::36:1;;:39::43:0;:19:::1;:15::44;63:21:63:26:0;;:36::37;:21::38:1;;:33::34:0;:21::38:1;;:41::45:0;:21:::1;:17::46;64:19:64:20:0;;:14::21:1;;65:19:65:24:0;;:26::27;:29::30;;:::34:1;:12::35;:4::37;66:19:66:23:0;:25::26;:28::31;;:12::32:1;:4::34;67:19:67:25:0;:27::28;:30::33;:12::34:1;:4::36",
+        "logs": [],
+        "requires": [
+          {
+            "ip": 4,
+            "line": 59
+          },
+          {
+            "ip": 10,
+            "line": 60
+          },
+          {
+            "ip": 54,
+            "line": 65
+          },
+          {
+            "ip": 60,
+            "line": 66
+          },
+          {
+            "ip": 65,
+            "line": 67
+          }
+        ]
+      },
+      {
+        "name": "MAX_MEMBERS",
+        "kind": "constant",
+        "inputs": [],
+        "bytecode": "60",
+        "sourceMap": "22:27:22:29",
+        "logs": [],
+        "requires": []
+      },
+      {
+        "name": "MONEY_TEMPLATE",
+        "kind": "constant",
+        "inputs": [],
+        "bytecode": "07c000a06900c787",
+        "sourceMap": "21:32:21:48",
+        "logs": [],
+        "requires": []
+      },
+      {
+        "name": "countBits",
+        "inputs": [
+          {
+            "name": "flags",
+            "type": "int"
+          },
+          {
+            "name": "n",
+            "type": "int"
+          }
+        ],
+        "bytecode": "007b00657654799f635279527952979372777b7852967b757c688b765479a2667b777777",
+        "sourceMap": "44:16:44:17;45:15:45:20;46:12:46:13;47:4:53:20;48:12:48:13;:16::17;;:12:::1;:19:51:9:0;49:20:49:25;;:28::32;;:35::36;:28:::1;:20;:12::37;;;50:19:50:23:0;:26::27;:19:::1;:12::28;;;48:19:51:9;52:8:52:18;53:13:53:14:0;:17::18;;47:4::20:1;;54:11:54:16:0;43:51:55:1:1;;",
+        "sourceTags": "33:35:sc",
+        "logs": [],
+        "requires": []
+      }
+    ],
+    "inlineRanges": "64:64:MAX_MEMBERS;312:312:MAX_MEMBERS;565:600:countBits;750:750:MAX_MEMBERS"
+  },
+  "compiler": {
+    "name": "cashc",
+    "version": "0.14.0",
+    "options": {
+      "enforceFunctionParameterTypes": true,
+      "enforceLocktimeGuard": true
+    }
+  },
+  "updatedAt": "1970-01-01T00:00:00.000Z"
+}

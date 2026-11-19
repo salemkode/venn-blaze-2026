@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Venn is a Bitcoin Cash wallet for shared expenses. Agree on a budget, accept a seat, and pay from your share.">
+  <title>Venn — Shared Bitcoin Cash</title>
+  <link rel="stylesheet" href="site.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast wrap">
+    <a class="brand" href="#main"><span class="venn-mark" aria-hidden="true"></span>Venn</a>
+    <nav aria-label="Resources"><!-- hosted-wallet --><a href="walkthrough.mp4">Watch demo (1:08)</a><a href="venn-blaze-2026.pptx">Pitch deck</a><a href="https://github.com/salemkode/venn">Source</a></nav>
+  </header>
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">Bitcoin Cash · Chipnet alpha</p>
+        <h1 id="hero-title">The grocery<br>money is <em>ours.</em></h1>
+        <p class="intro">Venn lets housemates agree on spending rules, sign for their own seats, and pay from a shared Bitcoin Cash fund.</p>
+        <a class="button" href="#budget">Try a payment <span aria-hidden="true">↓</span></a>
+      </div>
+      <article class="receipt" id="budget" aria-labelledby="budget-title" data-budget>
+        <div class="receipt-head"><span class="eyebrow">Interactive example</span><span class="tag">Test BCH</span></div>
+        <h2 id="budget-title">The grocery fund</h2>
+        <dl class="receipt-lines">
+          <div><dt>Member’s allowance</dt><dd>50,000 sat</dd></div>
+          <div class="amount-row"><dt><label for="expense">Payment amount</label></dt><dd><input id="expense" type="number" min="1" max="1000000" step="1" value="20000" inputmode="numeric" aria-describedby="payment-hint"> sat</dd></div>
+        </dl>
+        <p class="sr-only" id="payment-hint">Enter a whole number from 1 to 1,000,000 satoshis. A satoshi is the smallest unit of BCH.</p>
+        <div class="presets" aria-label="Example amounts">
+          <button type="button" data-amount="20000" aria-pressed="true">20,000 sat</button>
+          <button type="button" data-amount="50000" aria-pressed="false">Exact limit</button>
+          <button type="button" data-amount="50001" aria-pressed="false">1 sat over</button>
+        </div>
+        <div class="receipt-outcome" role="status" data-outcome data-state="approved">
+          <strong data-verdict>Fits the budget</strong>
+          <span data-remaining>30,000 sat would remain.</span>
+        </div>
+        <p class="caption">Each example starts with a fresh allowance. This is a simulation.</p>
+      </article>
+    </section>
+    <section class="rule-band" id="rules">
+      <div class="wrap rules">
+        <div>
+          <p class="eyebrow">A shared fund, step by step</p>
+          <h2>Everyone gets to read the rules.</h2>
+          <ol class="steps">
+            <li><div><h3>Pick rules together</h3><p>Start with Shared for individual budgets, or Pot when every payment needs a vote. A Shared member can spend their available budget at once. Pot payments can wait when voters are away.</p></div></li>
+            <li><div><h3>Accept a seat</h3><p>Review the plan and sign your seat with your own key. Once every member has accepted, the creator can fund the Venn.</p></div></li>
+            <li><div><h3>Pay within your allowance</h3><p>Review the recipient, amount, and fee. A CashScript contract checks the payment and the updated allowance stored in a member CashToken.</p></div></li>
+          </ol>
+        </div>
+        <figure class="native-shot">
+          <img src="images/create-a-venn-ios.png" width="302" height="656" alt="Venn on iOS showing spending presets with their trade-offs" loading="lazy">
+          <figcaption>Venn for iOS · Preset picker</figcaption>
+        </figure>
+      </div>
+    </section>
+    <section class="wrap platform-section" id="platforms">
+      <p class="eyebrow">Source alpha</p>
+      <h2>Try Venn on your platform.</h2>
+      <div class="platforms">
+        <article><h3>Android</h3><p>Use a development build to try planning, seat acceptance, and shared spending with test BCH.</p><code>npm run android</code></article>
+        <article><h3>iOS</h3><p>Use a development build for the same Chipnet Venn flow, with keys stored on the device.</p><code>npm run ios</code></article>
+        <article><h3>Web</h3><p>Pair a compatible wallet via WizardConnect for ordinary wallet activity. Shared Venn flows are available in the native alpha.</p><code>npm run web</code></article>
+      </div>
+      <p class="platform-note">Run these commands from the source checkout after <code>npm ci</code>. Native builds also require <code>npm run setup:native</code> and local platform tooling. To check the signed payments yourself, run <code>npm run demo:blaze</code>. <a href="https://github.com/salemkode/venn#readme">Venn source and setup</a> · <a href="transcript.txt">Demo transcript</a></p>
+    </section>
+  </main>
+  <footer class="wrap foot"><span>Venn · Built by salemkode</span><a href="https://bchblaze.com/">Built for BCH BLAZE 2026</a></footer>
+</body>
+</html>

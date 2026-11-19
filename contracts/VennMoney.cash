@@ -1,0 +1,13 @@
+pragma cashscript ^0.14.0;
+
+// Venn money. Holds a Venn's plain BCH or its asset's fungible tokens at an address of its
+// own, so spending a money coin does not repeat the full Venn contract. A money coin moves
+// only when input 0 is spent by the Venn contract itself (`vaultLock`). Input 0 of that
+// contract is always a rules NFT or a member card, and every one of its functions checks
+// every money input and output of the transaction.
+contract VennMoney(bytes35 vaultLock) {
+    function follow() {
+        require(this.activeInputIndex > 0);
+        require(tx.inputs[0].lockingBytecode == vaultLock);
+    }
+}

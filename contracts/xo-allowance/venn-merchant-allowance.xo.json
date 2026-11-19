@@ -1,0 +1,348 @@
+{
+  "$schema": "https://libauth.org/schemas/wallet-template-v0.schema.json",
+  "name": "Venn Test USD Paced Merchant Allowance",
+  "description": "Pay a preselected merchant in a fungible CashToken, at most one capped payment per interval of blocks. The envelope carries Chipnet BCH for network fees and token outputs.",
+  "version": "3",
+  "supported": [
+    "BCH_2025_05",
+    "BCH_2026_05"
+  ],
+  "roles": {
+    "operator": {
+      "name": "Operator",
+      "description": "Anyone can trigger one capped payment per interval or, after the refund height, send the remainder to the fixed sponsor address."
+    }
+  },
+  "start": [
+    {
+      "action": "pay",
+      "role": "operator"
+    },
+    {
+      "action": "refund",
+      "role": "operator"
+    }
+  ],
+  "actions": {
+    "pay": {
+      "name": "Pay merchant",
+      "description": "Pay an amount within the cap, at most once per interval, and carry the same allowance forward.",
+      "roles": {
+        "operator": {
+          "requirements": {
+            "variables": [
+              "merchantLock",
+              "refundLock",
+              "paymentCap",
+              "refundHeight",
+              "paymentInterval",
+              "cashBalance",
+              "tokenBalance",
+              "category",
+              "paymentUnits"
+            ]
+          }
+        }
+      },
+      "requirements": {
+        "participants": [
+          {
+            "role": "operator",
+            "slots": {
+              "min": 1,
+              "max": 1
+            }
+          }
+        ]
+      },
+      "transaction": "payment"
+    },
+    "refund": {
+      "name": "Refund remainder",
+      "description": "Send the remaining allowance to the sponsor once the refund height permits it.",
+      "roles": {
+        "operator": {
+          "requirements": {
+            "variables": [
+              "merchantLock",
+              "refundLock",
+              "paymentCap",
+              "refundHeight",
+              "paymentInterval",
+              "cashBalance",
+              "tokenBalance",
+              "category"
+            ]
+          }
+        }
+      },
+      "requirements": {
+        "participants": [
+          {
+            "role": "operator",
+            "slots": {
+              "min": 1,
+              "max": 1
+            }
+          }
+        ]
+      },
+      "transaction": "refund"
+    }
+  },
+  "transactions": {
+    "payment": {
+      "name": "Merchant payment",
+      "description": "Preserves the remaining allowance and pays the merchant.",
+      "version": 2,
+      "locktime": 0,
+      "composable": false,
+      "inputs": [
+        {
+          "input": "paymentInput",
+          "inputIndex": 0
+        }
+      ],
+      "outputs": [
+        {
+          "output": "allowance",
+          "outputIndex": 0
+        },
+        {
+          "output": "merchantPayment",
+          "outputIndex": 1
+        }
+      ]
+    },
+    "refund": {
+      "name": "Allowance refund",
+      "description": "Closes the envelope and pays its remaining BCH to the sponsor.",
+      "version": 2,
+      "locktime": "$(<refundHeight>)",
+      "composable": false,
+      "inputs": [
+        {
+          "input": "refundInput",
+          "inputIndex": 0
+        }
+      ],
+      "outputs": [
+        {
+          "output": "sponsorRefund",
+          "outputIndex": 0
+        }
+      ]
+    }
+  },
+  "inputs": {
+    "paymentInput": {
+      "name": "Current allowance",
+      "description": "A fungible CashToken envelope with a separate BCH reserve for network costs. It must be at least one payment interval old.",
+      "valueSatoshis": "$(<cashBalance>)",
+      "token": {
+        "category": "$(<category>)",
+        "amount": "$(<tokenBalance>)",
+        "nft": null
+      },
+      "sequenceNumber": "$(<paymentInterval>)",
+      "unlockingScript": "unlockPay"
+    },
+    "refundInput": {
+      "name": "Current allowance",
+      "description": "A fungible CashToken envelope with a separate BCH reserve for network costs.",
+      "valueSatoshis": "$(<cashBalance>)",
+      "token": {
+        "category": "$(<category>)",
+        "amount": "$(<tokenBalance>)",
+        "nft": null
+      },
+      "sequenceNumber": 4294967294,
+      "unlockingScript": "unlockRefund"
+    }
+  },
+  "outputs": {
+    "allowance": {
+      "name": "Remaining allowance",
+      "description": "The same allowance and category, less the payment and network cost.",
+      "lockingScript": "allowanceLock",
+      "valueSatoshis": "$(<cashBalance> <2000> OP_SUB)",
+      "token": {
+        "category": "$(<category>)",
+        "amount": "$(<tokenBalance> <paymentUnits> OP_SUB)",
+        "nft": null
+      },
+      "selectable": false,
+      "roles": {
+        "operator": {
+          "state": {
+            "variables": [
+              "merchantLock",
+              "refundLock",
+              "paymentCap",
+              "refundHeight",
+              "paymentInterval"
+            ]
+          },
+          "actions": [
+            {
+              "action": "pay",
+              "role": "operator",
+              "variables": [
+                {
+                  "merchantLock": null
+                },
+                {
+                  "refundLock": null
+                },
+                {
+                  "paymentCap": null
+                },
+                {
+                  "refundHeight": null
+                },
+                {
+                  "paymentInterval": null
+                },
+                {
+                  "cashBalance": "$(XO_OUTPUTVALUE)"
+                },
+                {
+                  "tokenBalance": "$(XO_OUTPUTTOKENAMOUNT)"
+                },
+                {
+                  "category": "$(XO_OUTPUTTOKENCATEGORY)"
+                }
+              ]
+            },
+            {
+              "action": "refund",
+              "role": "operator",
+              "variables": [
+                {
+                  "merchantLock": null
+                },
+                {
+                  "refundLock": null
+                },
+                {
+                  "paymentCap": null
+                },
+                {
+                  "refundHeight": null
+                },
+                {
+                  "paymentInterval": null
+                },
+                {
+                  "cashBalance": "$(XO_OUTPUTVALUE)"
+                },
+                {
+                  "tokenBalance": "$(XO_OUTPUTTOKENAMOUNT)"
+                },
+                {
+                  "category": "$(XO_OUTPUTTOKENCATEGORY)"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "merchantPayment": {
+      "name": "Merchant payment",
+      "description": "Test dollars in the fixed CashToken category paid to the merchant.",
+      "lockingScript": "$(<merchantLock>)",
+      "valueSatoshis": "$(<1000>)",
+      "token": {
+        "category": "$(<category>)",
+        "amount": "$(<paymentUnits>)",
+        "nft": null
+      },
+      "selectable": false
+    },
+    "sponsorRefund": {
+      "name": "Sponsor refund",
+      "description": "Remaining test dollars and the unused BCH reserve, less the fixed fee.",
+      "lockingScript": "$(<refundLock>)",
+      "valueSatoshis": "$(<cashBalance> <1000> OP_SUB)",
+      "token": {
+        "category": "$(<category>)",
+        "amount": "$(<tokenBalance>)",
+        "nft": null
+      },
+      "selectable": false
+    }
+  },
+  "lockingScripts": {
+    "allowanceLock": {
+      "name": "Venn allowance covenant",
+      "description": "A P2SH32 CashToken envelope with a fixed merchant, payment cap in cents, one payment per interval of blocks, and timelocked sponsor refund.",
+      "lockingType": "p2sh",
+      "lockingBytecode": "allowanceRedeem",
+      "selectable": false,
+      "state": {
+        "variables": [
+          "merchantLock",
+          "refundLock",
+          "paymentCap",
+          "refundHeight",
+          "paymentInterval"
+        ]
+      }
+    }
+  },
+  "scripts": {
+    "allowanceRedeem": "OP_TXINPUTCOUNT OP_1 OP_NUMEQUALVERIFY\n/* Require a 32-byte category and a positive fungible amount. The demo uses an FT-only genesis. */\nOP_0 OP_UTXOTOKENCATEGORY OP_SIZE <32> OP_NUMEQUALVERIFY OP_DROP\nOP_0 OP_UTXOTOKENAMOUNT OP_0 OP_GREATERTHAN OP_VERIFY\nOP_0 OP_UTXOTOKENCOMMITMENT OP_0 OP_EQUALVERIFY\n/* The path selector is exactly 0 (refund) or 1 (pay), so nobody can rewrite it and change the txid. */\nOP_DUP OP_0 OP_2 OP_WITHIN OP_VERIFY\nOP_IF payMerchant OP_ELSE refundSponsor OP_ENDIF",
+    "payMerchant": "/* One payment per interval: this envelope must be at least paymentInterval blocks old. */\n<paymentInterval> OP_CHECKSEQUENCEVERIFY OP_DROP\nOP_TXOUTPUTCOUNT OP_2 OP_NUMEQUALVERIFY\nOP_0 OP_OUTPUTBYTECODE <0xaa20> OP_ACTIVEBYTECODE OP_HASH256 OP_CAT <0x87> OP_CAT OP_EQUALVERIFY\nOP_1 OP_OUTPUTBYTECODE <merchantLock> OP_EQUALVERIFY\nOP_0 OP_UTXOTOKENCATEGORY OP_0 OP_OUTPUTTOKENCATEGORY OP_EQUALVERIFY\nOP_0 OP_UTXOTOKENCATEGORY OP_1 OP_OUTPUTTOKENCATEGORY OP_EQUALVERIFY\nOP_0 OP_OUTPUTTOKENCOMMITMENT OP_0 OP_EQUALVERIFY\nOP_1 OP_OUTPUTTOKENCOMMITMENT OP_0 OP_EQUALVERIFY\nOP_1 OP_OUTPUTTOKENAMOUNT OP_DUP OP_0 OP_GREATERTHAN OP_VERIFY\n<paymentCap> OP_LESSTHANOREQUAL OP_VERIFY\nOP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_GREATERTHAN OP_VERIFY\nOP_0 OP_OUTPUTTOKENAMOUNT OP_1 OP_OUTPUTTOKENAMOUNT OP_ADD OP_0 OP_UTXOTOKENAMOUNT OP_NUMEQUALVERIFY\nOP_1 OP_OUTPUTVALUE <1000> OP_NUMEQUALVERIFY\nOP_0 OP_OUTPUTVALUE <2000> OP_GREATERTHANOREQUAL OP_VERIFY\nOP_0 OP_UTXOVALUE <2000> OP_SUB OP_0 OP_OUTPUTVALUE OP_NUMEQUAL",
+    "refundSponsor": "<refundHeight> OP_CHECKLOCKTIMEVERIFY OP_DROP\nOP_TXOUTPUTCOUNT OP_1 OP_NUMEQUALVERIFY\nOP_0 OP_OUTPUTBYTECODE <refundLock> OP_EQUALVERIFY\nOP_0 OP_UTXOTOKENCATEGORY OP_0 OP_OUTPUTTOKENCATEGORY OP_EQUALVERIFY\nOP_0 OP_OUTPUTTOKENCOMMITMENT OP_0 OP_EQUALVERIFY\nOP_0 OP_OUTPUTTOKENAMOUNT OP_0 OP_UTXOTOKENAMOUNT OP_NUMEQUALVERIFY\nOP_0 OP_OUTPUTVALUE OP_DUP <1000> OP_GREATERTHANOREQUAL OP_VERIFY\nOP_0 OP_UTXOVALUE <1000> OP_SUB OP_NUMEQUAL",
+    "unlockPay": "OP_1 <allowanceRedeem>",
+    "unlockRefund": "OP_0 <allowanceRedeem>"
+  },
+  "variables": {
+    "merchantLock": {
+      "name": "Merchant script",
+      "description": "Fixed Chipnet P2PKH destination for payments.",
+      "type": "locking_script"
+    },
+    "refundLock": {
+      "name": "Sponsor script",
+      "description": "Fixed Chipnet P2PKH destination for the refund.",
+      "type": "locking_script"
+    },
+    "paymentCap": {
+      "name": "Payment cap",
+      "description": "Maximum test-dollar cents per payment.",
+      "type": "token_amount"
+    },
+    "refundHeight": {
+      "name": "Refund height",
+      "description": "Earliest transaction locktime for a sponsor refund, expressed as a block height.",
+      "type": "integer"
+    },
+    "paymentInterval": {
+      "name": "Payment interval",
+      "description": "Blocks that must pass after the previous payment (or the funding) before the next payment. Each payment restarts the interval.",
+      "type": "integer"
+    },
+    "cashBalance": {
+      "name": "Network cost reserve",
+      "description": "Exact value in satoshis of the allowance output being spent.",
+      "type": "satoshis"
+    },
+    "paymentUnits": {
+      "name": "Payment in cents",
+      "description": "Cents paid to the merchant.",
+      "type": "token_amount"
+    },
+    "tokenBalance": {
+      "name": "Allowance balance in cents",
+      "description": "Fungible token units on the input.",
+      "type": "token_amount"
+    },
+    "category": {
+      "name": "CashToken category",
+      "description": "Category from the fixed-supply Chipnet token genesis.",
+      "type": "token_category"
+    }
+  }
+}

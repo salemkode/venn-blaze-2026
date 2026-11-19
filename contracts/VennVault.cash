@@ -1,0 +1,748 @@
+pragma cashscript ^0.14.0;
+
+// Venn v2. The Venn address holds the rules NFT and one card per person; its money sits at a
+// separate VennMoney address that only moves when this contract leads the transaction.
+//   rules NFT   vaultCategory, minting   settings and member counts (54-byte commitment)
+//   card        vaultCategory, mutable   one per person: key hash, roles, budget (85 bytes)
+//   money       VennMoney address        plain BCH, or the asset's fungible tokens
+// Input 0 is always the lead (a card or the rules NFT) and checks the whole transaction;
+// every other Venn input runs follow(), and every money input runs VennMoney's follow().
+// Fees come from the acting person's own coins.
+//
+// Roles (card byte 20): 1 spend alone, 2 vote, 4 required (must sign every vote), 8 helper.
+// Rules byte 4..8: membership, spending, recovery, governance, payments rule; 0 locked,
+// 1 majority, 2 everyone (payments is never locked).
+
+// VennMoney's compiled template. scripts/compile-contract.mjs checks that it matches.
+bytes constant MONEY_TEMPLATE = 0xc000a06900c787;
+// No vote can need more card inputs than a standard transaction holds.
+int constant MAX_VOTERS = 16;
+// Every Venn signature commits to all inputs, all outputs and every spent coin.
+bytes constant SIGHASH = 0x61;
+bytes constant ZERO23 = 0x0000000000000000000000000000000000000000000000;
+
+// The VennMoney address that belongs to the Venn address `lock`.
+function moneyLockOf(bytes lock) returns (bytes) {
+    return 0xaa20 + hash256(0x23 + lock + MONEY_TEMPLATE) + 0x87;
+}
+
+// A signature this contract accepts: DER-sized, with hash type ALL|UTXOS|FORKID.
+function isVennSig(bytes s) returns (bool) {
+    return within(s.length, 9, 74) && s.slice(s.length - 1, s.length) == SIGHASH;
+}
+
+// One of the coins the Venn counts as money: no Venn token, and plain BCH or the asset.
+function isMoneyShape(bytes category, bytes assetCategory) returns (bool) {
+    return category == 0x || (assetCategory.length > 0 && category == assetCategory);
+}
+
+// Every card a vote writes must be one the app could have made. Recovery fields are clear.
+function checkCard(bytes card) {
+    require(card.length == 85);
+    int roles = int(card.slice(20, 21) + 0x00);
+    require(within(roles, 1, 16));
+    if ((roles / 4) % 2 == 1) {
+        require((roles / 2) % 2 == 1);
+    }
+    int mode = int(card.slice(21, 22) + 0x00);
+    if (mode == 0) {
+        require(roles % 2 == 0);
+        require(card.slice(22, 54) == 0x0000000000000000000000000000000000000000000000000000000000000000);
+    } else {
+        require(mode == 1 || mode == 2);
+        require(roles % 2 == 1);
+        int budget = int(card.slice(22, 30));
+        int period = int(card.slice(30, 38));
+        int cap = int(card.slice(38, 46));
+        int left = int(card.slice(46, 54));
+        require(budget > 0);
+        require(period > 0);
+        require(cap >= 0);
+        require(toPaddedBytes(cap, 8) == card.slice(38, 46));
+        require(within(left, 0, budget + 1));
+        require(toPaddedBytes(left, 8) == card.slice(46, 54));
+    }
+    int last = int(card.slice(54, 62));
+    require(last >= 0);
+    require(toPaddedBytes(last, 8) == card.slice(54, 62));
+    require(card.slice(62, 85) == ZERO23);
+}
+
+// Approvals lists (votes, recovery requests and cancellations): each entry is the signer's
+// input index (1 byte), public key (33), signature length (1) and signature; indexes strictly
+// increase, so nobody counts twice. This checks one signer: a card at `lock` holding `role`,
+// with no recovery waiting, never input `skip`, whose key is `pk`. Returns its roles. The
+// contract function itself then checks the signature.
+function signerRoles(int idx, bytes pk, bytes lock, bytes cardCategory, int role, int skip) returns (int) {
+    require(idx != skip);
+    require(tx.inputs[idx].lockingBytecode == lock);
+    require(tx.inputs[idx].tokenCategory == cardCategory);
+    bytes card = tx.inputs[idx].nftCommitment;
+    require(card.length == 85);
+    require(card.slice(62, 63) == 0x00);
+    require(hash160(pk) == card.slice(0, 20));
+    int roles = int(card.slice(20, 21) + 0x00);
+    require((roles / role) % 2 == 1);
+    return roles;
+}
+
+// A transaction that changes one card on its own: nothing else of the Venn moves.
+function aloneAtInputZero(bytes lock) {
+    bytes money = moneyLockOf(lock);
+    int i = 1;
+    do {
+        if (i < tx.inputs.length) {
+            require(tx.inputs[i].lockingBytecode != lock);
+            require(tx.inputs[i].lockingBytecode != money);
+        }
+        i = i + 1;
+    } while (i < tx.inputs.length);
+    require(i >= tx.inputs.length);
+}
+
+// Outputs after output 0 neither go to the Venn or its money nor carry the Venn's token.
+function nothingElseOut(bytes lock, bytes vaultCategory) {
+    bytes money = moneyLockOf(lock);
+    int j = 1;
+    do {
+        if (j < tx.outputs.length) {
+            require(tx.outputs[j].lockingBytecode != lock);
+            require(tx.outputs[j].lockingBytecode != money);
+            bytes outCategory = tx.outputs[j].tokenCategory;
+            if (outCategory.length > 0) {
+                require(outCategory.slice(0, 32) != vaultCategory);
+            }
+        }
+        j = j + 1;
+    } while (j < tx.outputs.length);
+    require(j >= tx.outputs.length);
+}
+
+contract VennVault(bytes32 vaultCategory, bytes assetCategory) {
+    // A non-lead Venn input (a card, or money sent to the Venn address by mistake): the lead
+    // at input 0 decides what may happen to it.
+    function follow() {
+        require(this.activeInputIndex > 0);
+        require(tx.inputs[0].lockingBytecode == tx.inputs[this.activeInputIndex].lockingBytecode);
+        bytes lead = tx.inputs[0].tokenCategory;
+        require(lead == vaultCategory + 0x01 || lead == vaultCategory + 0x02);
+    }
+
+    // A member spends alone within their budget. Input 0 is their card; every other Venn or
+    // money input is money; money left over goes back to the money address.
+    function spend(pubkey pk, bytes s) {
+        require(this.activeInputIndex == 0);
+        require(tx.inputs[0].tokenCategory == vaultCategory + 0x01);
+        bytes card = tx.inputs[0].nftCommitment;
+        require(card.length == 85);
+        require(hash160(pk) == card.slice(0, 20));
+        require(isVennSig(s));
+        require(checkSig(sig(s), pk));
+
+        int roles = int(card.slice(20, 21) + 0x00);
+        require(roles % 2 == 1);
+        int mode = int(card.slice(21, 22) + 0x00);
+        require(mode == 1 || mode == 2);
+        int budget = int(card.slice(22, 30));
+        int period = int(card.slice(30, 38));
+        int cap = int(card.slice(38, 46));
+        int left = int(card.slice(46, 54));
+        int last = int(card.slice(54, 62));
+        require(card.slice(62, 63) == 0x00);
+        require(budget > 0);
+        require(period > 0);
+
+        // The transaction's own time claim: the network rejects a future one, and an earlier
+        // one only lowers what is available.
+        int now = tx.locktime;
+        require(now >= 500000000);
+        require(now >= last);
+        require(tx.inputs[0].sequenceNumber < 4294967295);
+
+        int available = left;
+        int nextLast = last;
+        if (mode == 1) {
+            // Refill: the budget comes back evenly over the period. Only the time the refill
+            // used up is consumed, so frequent small payments do not lose any refill.
+            int gained = budget * (now - last) / period;
+            if (left + gained >= budget) {
+                available = budget;
+                nextLast = now;
+            } else {
+                available = left + gained;
+                nextLast = last + (gained * period + budget - 1) / budget;
+            }
+        } else {
+            if (now >= last + period) {
+                available = budget;
+                nextLast = now;
+            }
+        }
+
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        int assetIn = 0;
+        int bchIn = 0;
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                bytes inLock = tx.inputs[i].lockingBytecode;
+                if (inLock == lock || inLock == money) {
+                    require(isMoneyShape(tx.inputs[i].tokenCategory, assetCategory));
+                    if (assetCategory.length == 0) {
+                        assetIn = assetIn + tx.inputs[i].value;
+                    } else {
+                        assetIn = assetIn + tx.inputs[i].tokenAmount;
+                        bchIn = bchIn + tx.inputs[i].value;
+                    }
+                }
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+
+        int assetOut = 0;
+        int bchOut = 0;
+        int j = 1;
+        do {
+            if (j < tx.outputs.length) {
+                bytes outLock = tx.outputs[j].lockingBytecode;
+                bytes outCategory = tx.outputs[j].tokenCategory;
+                require(outLock != lock);
+                if (outLock == money) {
+                    require(isMoneyShape(outCategory, assetCategory));
+                    if (assetCategory.length == 0) {
+                        assetOut = assetOut + tx.outputs[j].value;
+                    } else {
+                        assetOut = assetOut + tx.outputs[j].tokenAmount;
+                        bchOut = bchOut + tx.outputs[j].value;
+                    }
+                } else {
+                    if (outCategory.length > 0) {
+                        require(outCategory.slice(0, 32) != vaultCategory);
+                    }
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+
+        int sent = assetIn - assetOut;
+        require(sent > 0);
+        require(sent <= available);
+        require(cap == 0 || sent <= cap);
+        require(bchOut >= bchIn);
+
+        // The card continues with only "left" and "last" updated.
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == vaultCategory + 0x01);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        bytes left8 = toPaddedBytes(available - sent, 8);
+        bytes last8 = toPaddedBytes(nextLast, 8);
+        require(tx.outputs[0].nftCommitment == card.slice(0, 46) + left8 + last8 + card.slice(62, 85));
+    }
+
+    // Members change the Venn together. Input 0 is the rules NFT. Every card that is burned,
+    // changed or signing is an input; `plan` has one byte per input from 1 upward: 0x01 burns
+    // that card, 0x00 keeps it, and every input that is not a card has 0x00. Kept cards come
+    // back in input order at outputs 1, 2, …; card outputs after those are new members.
+    // `approvals` lists exactly as many voters as the vote needs (see signerRoles).
+    function vote(bytes approvals, bytes plan) {
+        require(this.activeInputIndex == 0);
+        bytes cardCategory = vaultCategory + 0x01;
+        require(tx.inputs[0].tokenCategory == vaultCategory + 0x02);
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        bytes rules = tx.inputs[0].nftCommitment;
+        require(rules.length == 54);
+        int voters = int(rules.slice(1, 3) + 0x00);
+        int required = int(rules.slice(3, 4) + 0x00);
+        int helpers = int(rules.slice(20, 22) + 0x00);
+
+        // The rules continue at output 0 with valid settings; reserved bytes stay as they were.
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == vaultCategory + 0x02);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        bytes next = tx.outputs[0].nftCommitment;
+        require(next.length == 54);
+        require(next.slice(0, 1) == rules.slice(0, 1));
+        require(next.slice(9, 12) == 0x000000);
+        require(next.slice(22, 54) == rules.slice(22, 54));
+        require(within(int(next.slice(4, 5) + 0x00), 0, 3));
+        require(within(int(next.slice(5, 6) + 0x00), 0, 3));
+        require(within(int(next.slice(6, 7) + 0x00), 0, 3));
+        require(within(int(next.slice(7, 8) + 0x00), 0, 3));
+        require(within(int(next.slice(8, 9) + 0x00), 1, 3));
+        require(within(int(next.slice(16, 17) + 0x00), 1, 4));
+
+        int membership = 0;
+        int spending = 0;
+        int recovery = 0;
+        int dVoters = 0;
+        int dRequired = 0;
+        int dHelpers = 0;
+        int assetIn = 0;
+        int bchIn = 0;
+        int nextOut = 1;
+        require(plan.length == tx.inputs.length - 1);
+
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                bytes step = plan.slice(i - 1, i);
+                bytes inLock = tx.inputs[i].lockingBytecode;
+                bytes category = tx.inputs[i].tokenCategory;
+                if (inLock == lock && category == cardCategory) {
+                    bytes card = tx.inputs[i].nftCommitment;
+                    require(card.length == 85);
+                    int roles = int(card.slice(20, 21) + 0x00);
+                    if (step == 0x01) {
+                        // A burned card's BCH goes back to the money, like any money input.
+                        membership = 1;
+                        dVoters = dVoters - (roles / 2) % 2;
+                        dRequired = dRequired - (roles / 4) % 2;
+                        if ((roles / 8) % 2 == 1) {
+                            dHelpers = dHelpers - 1;
+                            recovery = 1;
+                        }
+                        if (assetCategory.length == 0) {
+                            assetIn = assetIn + tx.inputs[i].value;
+                        } else {
+                            bchIn = bchIn + tx.inputs[i].value;
+                        }
+                    } else {
+                        // A kept card has no recovery waiting: that card is frozen until it
+                        // completes or is stopped, and spending it here would restart its wait.
+                        require(step == 0x00);
+                        require(card.slice(62, 63) == 0x00);
+                        require(tx.outputs[nextOut].lockingBytecode == lock);
+                        require(tx.outputs[nextOut].tokenCategory == cardCategory);
+                        require(tx.outputs[nextOut].tokenAmount == 0);
+                        require(tx.outputs[nextOut].value >= tx.inputs[i].value);
+                        bytes after = tx.outputs[nextOut].nftCommitment;
+                        checkCard(after);
+                        int newRoles = int(after.slice(20, 21) + 0x00);
+                        if (after.slice(0, 20) != card.slice(0, 20) || newRoles % 8 != roles % 8) {
+                            membership = 1;
+                        }
+                        // Handing a budget to another key, or giving or taking the right to
+                        // spend alone, is a spending change as well.
+                        if (roles % 2 == 1 || newRoles % 2 == 1) {
+                            if (after.slice(0, 20) != card.slice(0, 20) || newRoles % 2 != roles % 2) {
+                                spending = 1;
+                            }
+                        }
+                        if ((newRoles / 8) % 2 != (roles / 8) % 2) {
+                            recovery = 1;
+                        }
+                        dVoters = dVoters + (newRoles / 2) % 2 - (roles / 2) % 2;
+                        dRequired = dRequired + (newRoles / 4) % 2 - (roles / 4) % 2;
+                        dHelpers = dHelpers + (newRoles / 8) % 2 - (roles / 8) % 2;
+                        if (after.slice(21, 46) != card.slice(21, 46)) {
+                            // A new budget starts full; its clock carries over.
+                            spending = 1;
+                            require(after.slice(46, 54) == after.slice(22, 30));
+                            require(after.slice(54, 62) == card.slice(54, 62));
+                        } else {
+                            require(after.slice(46, 62) == card.slice(46, 62));
+                        }
+                        nextOut = nextOut + 1;
+                    }
+                } else {
+                    require(step == 0x00);
+                    if (inLock == lock || inLock == money) {
+                        require(isMoneyShape(category, assetCategory));
+                        if (assetCategory.length == 0) {
+                            assetIn = assetIn + tx.inputs[i].value;
+                        } else {
+                            assetIn = assetIn + tx.inputs[i].tokenAmount;
+                            bchIn = bchIn + tx.inputs[i].value;
+                        }
+                    }
+                }
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+
+        int assetOut = 0;
+        int bchOut = 0;
+        int j = nextOut;
+        do {
+            if (j < tx.outputs.length) {
+                bytes outLock = tx.outputs[j].lockingBytecode;
+                bytes outCategory = tx.outputs[j].tokenCategory;
+                if (outLock == lock) {
+                    // A new member's card starts full, with no history and no recovery.
+                    require(outCategory == cardCategory);
+                    require(tx.outputs[j].tokenAmount == 0);
+                    bytes fresh = tx.outputs[j].nftCommitment;
+                    checkCard(fresh);
+                    require(fresh.slice(46, 54) == fresh.slice(22, 30));
+                    require(fresh.slice(54, 62) == 0x0000000000000000);
+                    int r = int(fresh.slice(20, 21) + 0x00);
+                    membership = 1;
+                    if (r % 2 == 1) {
+                        spending = 1;
+                    }
+                    dVoters = dVoters + (r / 2) % 2;
+                    dRequired = dRequired + (r / 4) % 2;
+                    if ((r / 8) % 2 == 1) {
+                        dHelpers = dHelpers + 1;
+                        recovery = 1;
+                    }
+                } else {
+                    if (outLock == money) {
+                        require(isMoneyShape(outCategory, assetCategory));
+                        if (assetCategory.length == 0) {
+                            assetOut = assetOut + tx.outputs[j].value;
+                        } else {
+                            assetOut = assetOut + tx.outputs[j].tokenAmount;
+                            bchOut = bchOut + tx.outputs[j].value;
+                        }
+                    } else {
+                        if (outCategory.length > 0) {
+                            require(outCategory.slice(0, 32) != vaultCategory);
+                        }
+                    }
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+
+        // The new rules count exactly the cards that now exist, and stay workable.
+        int nextVoters = voters + dVoters;
+        int nextRequired = required + dRequired;
+        int nextHelpers = helpers + dHelpers;
+        require(int(next.slice(1, 3) + 0x00) == nextVoters);
+        require(int(next.slice(3, 4) + 0x00) == nextRequired);
+        require(int(next.slice(20, 22) + 0x00) == nextHelpers);
+        require(within(nextVoters, 1, MAX_VOTERS + 1));
+        require(nextRequired <= nextVoters);
+
+        // Recovery settings: on or off; when on, reachable thresholds and a real wait, and a
+        // strong path (stop rule 3 only) at least as demanding as the normal one.
+        int recoveryOn = int(next.slice(12, 13) + 0x00);
+        int needed = int(next.slice(13, 14) + 0x00);
+        int wait = int(next.slice(14, 16) + 0x00);
+        int stopRule = int(next.slice(16, 17) + 0x00);
+        int strongNeeded = int(next.slice(17, 18) + 0x00);
+        int strongWait = int(next.slice(18, 20) + 0x00);
+        if (recoveryOn == 0) {
+            require(next.slice(13, 16) == 0x000000);
+            require(next.slice(17, 20) == 0x000000);
+        } else {
+            require(recoveryOn == 1);
+            require(within(needed, 1, nextHelpers + 1));
+            require(wait >= 1);
+            if (stopRule == 3) {
+                require(within(strongNeeded, needed, nextHelpers + 1));
+                require(strongWait >= wait);
+            } else {
+                require(next.slice(17, 20) == 0x000000);
+            }
+        }
+
+        int governance = 0;
+        if (next.slice(4, 9) != rules.slice(4, 9)) {
+            governance = 1;
+        }
+        if (next.slice(12, 20) != rules.slice(12, 20)) {
+            recovery = 1;
+        }
+        int payments = 0;
+        if (assetIn > assetOut || bchOut < bchIn) {
+            payments = 1;
+        }
+
+        // The strictest rule among everything that changed, as the rules said before the vote.
+        int majority = voters / 2 + 1;
+        int need = 0;
+        if (membership == 1) {
+            int ruleM = int(rules.slice(4, 5) + 0x00);
+            require(ruleM == 1 || ruleM == 2);
+            if (ruleM == 1) { need = max(need, majority); } else { need = voters; }
+        }
+        if (spending == 1) {
+            int ruleS = int(rules.slice(5, 6) + 0x00);
+            require(ruleS == 1 || ruleS == 2);
+            if (ruleS == 1) { need = max(need, majority); } else { need = voters; }
+        }
+        if (recovery == 1) {
+            int ruleR = int(rules.slice(6, 7) + 0x00);
+            require(ruleR == 1 || ruleR == 2);
+            if (ruleR == 1) { need = max(need, majority); } else { need = voters; }
+        }
+        if (governance == 1) {
+            int ruleG = int(rules.slice(7, 8) + 0x00);
+            require(ruleG == 1 || ruleG == 2);
+            if (ruleG == 1) { need = max(need, majority); } else { need = voters; }
+        }
+        if (payments == 1) {
+            int ruleP = int(rules.slice(8, 9) + 0x00);
+            require(ruleP == 1 || ruleP == 2);
+            if (ruleP == 1) { need = max(need, majority); } else { need = voters; }
+        }
+        require(need > 0);
+
+        // Exactly enough voters sign, and every required member is among them.
+        int signers = 0;
+        int requiredSigned = 0;
+        int prev = 0;
+        bytes rest = approvals;
+        do {
+            if (rest.length > 0) {
+                int idx = int(rest.slice(0, 1) + 0x00);
+                require(idx > prev);
+                prev = idx;
+                bytes key = rest.slice(1, 34);
+                int roles = signerRoles(idx, key, lock, cardCategory, 2, 0);
+                int len = int(rest.slice(34, 35) + 0x00);
+                bytes s = rest.slice(35, 35 + len);
+                require(isVennSig(s));
+                require(checkSig(sig(s), pubkey(key)));
+                signers = signers + 1;
+                if ((roles / 4) % 2 == 1) {
+                    requiredSigned = requiredSigned + 1;
+                }
+                rest = rest.slice(35 + len, rest.length);
+            }
+        } while (rest.length > 0);
+        require(requiredSigned == required);
+        require(signers == max(need, required));
+    }
+
+    // Helpers ask to replace a card's key. Input 0 is the rules NFT (unchanged at output 0);
+    // inputs 1, 2, … are cards that come back at the same output index: the target with its
+    // recovery fields set, every other one unchanged and with no recovery of its own waiting.
+    // No money moves. The card is frozen until the request completes or is stopped.
+    function recoveryRequest(bytes approvals, int target, bytes20 newPkh, int strong) {
+        require(this.activeInputIndex == 0);
+        bytes cardCategory = vaultCategory + 0x01;
+        require(tx.inputs[0].tokenCategory == vaultCategory + 0x02);
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        bytes rules = tx.inputs[0].nftCommitment;
+        require(rules.length == 54);
+        require(rules.slice(12, 13) == 0x01);
+        int stopRule = int(rules.slice(16, 17) + 0x00);
+        require(strong == 0 || strong == 1);
+        if (strong == 1) {
+            require(stopRule == 3);
+        }
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == vaultCategory + 0x02);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].nftCommitment == rules);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+
+        require(target >= 1 && target < tx.inputs.length);
+        require(newPkh != 0x0000000000000000000000000000000000000000);
+        bytes pending = 0x01;
+        if (strong == 1 || stopRule == 2) {
+            pending = 0x02;
+        }
+        bytes wait = rules.slice(14, 16);
+        int needed = int(rules.slice(13, 14) + 0x00);
+        if (strong == 1) {
+            wait = rules.slice(18, 20);
+            needed = int(rules.slice(17, 18) + 0x00);
+        }
+        require(wait != 0x0000);
+
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                bytes inLock = tx.inputs[i].lockingBytecode;
+                require(inLock != money);
+                if (inLock == lock) {
+                    require(tx.inputs[i].tokenCategory == cardCategory);
+                    require(tx.outputs[i].lockingBytecode == lock);
+                    require(tx.outputs[i].tokenCategory == cardCategory);
+                    require(tx.outputs[i].tokenAmount == 0);
+                    require(tx.outputs[i].value >= tx.inputs[i].value);
+                    bytes card = tx.inputs[i].nftCommitment;
+                    require(card.length == 85);
+                    require(card.slice(62, 63) == 0x00);
+                    if (i == target) {
+                        require(newPkh != card.slice(0, 20));
+                        require(tx.outputs[i].nftCommitment == card.slice(0, 62) + pending + newPkh + wait);
+                    } else {
+                        require(card.slice(0, 20) != newPkh);
+                        require(tx.outputs[i].nftCommitment == card);
+                    }
+                }
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+        require(tx.inputs[target].lockingBytecode == lock);
+
+        int j = 1;
+        do {
+            if (j < tx.outputs.length) {
+                bytes outLock = tx.outputs[j].lockingBytecode;
+                require(outLock != money);
+                if (outLock == lock) {
+                    require(j < tx.inputs.length);
+                    require(tx.inputs[j].lockingBytecode == lock);
+                } else {
+                    bytes outCategory = tx.outputs[j].tokenCategory;
+                    if (outCategory.length > 0) {
+                        require(outCategory.slice(0, 32) != vaultCategory);
+                    }
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+
+        // Exactly the helpers the request needs, never the target itself.
+        require(needed >= 1);
+        int signers = 0;
+        int prev = 0;
+        bytes rest = approvals;
+        do {
+            if (rest.length > 0) {
+                int idx = int(rest.slice(0, 1) + 0x00);
+                require(idx > prev);
+                prev = idx;
+                bytes key = rest.slice(1, 34);
+                require(signerRoles(idx, key, lock, cardCategory, 8, target) > 0);
+                int len = int(rest.slice(34, 35) + 0x00);
+                bytes s = rest.slice(35, 35 + len);
+                require(isVennSig(s));
+                require(checkSig(sig(s), pubkey(key)));
+                signers = signers + 1;
+                rest = rest.slice(35 + len, rest.length);
+            }
+        } while (rest.length > 0);
+        require(signers == needed);
+    }
+
+    // After the wait, the new key takes over the card. Everything else on the card stays.
+    function recoveryComplete(pubkey newPk, bytes s) {
+        require(this.activeInputIndex == 0);
+        require(tx.inputs[0].tokenCategory == vaultCategory + 0x01);
+        bytes card = tx.inputs[0].nftCommitment;
+        require(card.length == 85);
+        require(card.slice(62, 63) != 0x00);
+        int wait = int(card.slice(83, 85) + 0x00);
+        require(wait >= 1);
+        require(this.age >= 4194304 + wait);
+        require(hash160(newPk) == card.slice(63, 83));
+        bytes lock = tx.inputs[0].lockingBytecode;
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == vaultCategory + 0x01);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        require(tx.outputs[0].nftCommitment == card.slice(63, 83) + card.slice(20, 62) + ZERO23);
+        aloneAtInputZero(lock);
+        nothingElseOut(lock, vaultCategory);
+        require(isVennSig(s));
+        require(checkSig(sig(s), newPk));
+    }
+
+    // The current key stops a request it is allowed to stop (stop rule A, or C's normal path).
+    function recoveryCancelByKey(pubkey pk, bytes s) {
+        require(this.activeInputIndex == 0);
+        require(tx.inputs[0].tokenCategory == vaultCategory + 0x01);
+        bytes card = tx.inputs[0].nftCommitment;
+        require(card.length == 85);
+        require(card.slice(62, 63) == 0x01);
+        require(hash160(pk) == card.slice(0, 20));
+        bytes lock = tx.inputs[0].lockingBytecode;
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == vaultCategory + 0x01);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        require(tx.outputs[0].nftCommitment == card.slice(0, 62) + ZERO23);
+        aloneAtInputZero(lock);
+        nothingElseOut(lock, vaultCategory);
+        require(isVennSig(s));
+        require(checkSig(sig(s), pk));
+    }
+
+    // A majority of voters stops a request (stop rules B and C). Same shape as a request:
+    // rules unchanged at output 0, cards back at the same index, only the target cleared.
+    function recoveryCancelByVote(bytes approvals, int target) {
+        require(this.activeInputIndex == 0);
+        bytes cardCategory = vaultCategory + 0x01;
+        require(tx.inputs[0].tokenCategory == vaultCategory + 0x02);
+        bytes lock = tx.inputs[0].lockingBytecode;
+        bytes money = moneyLockOf(lock);
+        bytes rules = tx.inputs[0].nftCommitment;
+        require(rules.length == 54);
+        int stopRule = int(rules.slice(16, 17) + 0x00);
+        require(stopRule == 2 || stopRule == 3);
+        int voters = int(rules.slice(1, 3) + 0x00);
+        require(tx.outputs[0].lockingBytecode == lock);
+        require(tx.outputs[0].tokenCategory == vaultCategory + 0x02);
+        require(tx.outputs[0].tokenAmount == 0);
+        require(tx.outputs[0].nftCommitment == rules);
+        require(tx.outputs[0].value >= tx.inputs[0].value);
+        require(target >= 1 && target < tx.inputs.length);
+
+        int i = 1;
+        do {
+            if (i < tx.inputs.length) {
+                bytes inLock = tx.inputs[i].lockingBytecode;
+                require(inLock != money);
+                if (inLock == lock) {
+                    require(tx.inputs[i].tokenCategory == cardCategory);
+                    require(tx.outputs[i].lockingBytecode == lock);
+                    require(tx.outputs[i].tokenCategory == cardCategory);
+                    require(tx.outputs[i].tokenAmount == 0);
+                    require(tx.outputs[i].value >= tx.inputs[i].value);
+                    bytes card = tx.inputs[i].nftCommitment;
+                    require(card.length == 85);
+                    if (i == target) {
+                        require(card.slice(62, 63) != 0x00);
+                        require(tx.outputs[i].nftCommitment == card.slice(0, 62) + ZERO23);
+                    } else {
+                        require(card.slice(62, 63) == 0x00);
+                        require(tx.outputs[i].nftCommitment == card);
+                    }
+                }
+            }
+            i = i + 1;
+        } while (i < tx.inputs.length);
+        require(tx.inputs[target].lockingBytecode == lock);
+
+        int j = 1;
+        do {
+            if (j < tx.outputs.length) {
+                bytes outLock = tx.outputs[j].lockingBytecode;
+                require(outLock != money);
+                if (outLock == lock) {
+                    require(j < tx.inputs.length);
+                    require(tx.inputs[j].lockingBytecode == lock);
+                } else {
+                    bytes outCategory = tx.outputs[j].tokenCategory;
+                    if (outCategory.length > 0) {
+                        require(outCategory.slice(0, 32) != vaultCategory);
+                    }
+                }
+            }
+            j = j + 1;
+        } while (j < tx.outputs.length);
+
+        // Exactly a majority of voters, never the target itself.
+        int signers = 0;
+        int prev = 0;
+        bytes rest = approvals;
+        do {
+            if (rest.length > 0) {
+                int idx = int(rest.slice(0, 1) + 0x00);
+                require(idx > prev);
+                prev = idx;
+                bytes key = rest.slice(1, 34);
+                require(signerRoles(idx, key, lock, cardCategory, 2, target) > 0);
+                int len = int(rest.slice(34, 35) + 0x00);
+                bytes s = rest.slice(35, 35 + len);
+                require(isVennSig(s));
+                require(checkSig(sig(s), pubkey(key)));
+                signers = signers + 1;
+                rest = rest.slice(35 + len, rest.length);
+            }
+        } while (rest.length > 0);
+        require(signers == voters / 2 + 1);
+    }
+}

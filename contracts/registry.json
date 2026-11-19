@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Venn",
+    "version": 2,
+    "sha256": "6d22393ba02f31db9ecf4324f00cc566fb5a3d8b34d65b10831b7505527b95e0",
+    "money": "b720fd7a021c9851a494f6e129c2dcfd45f764ca62a0f9f6bfb24c553fa90d56",
+    "options": [
+      "BCH or one token, held at a separate money address",
+      "budgets (refilling or fixed periods)",
+      "per-payment cap",
+      "votes: locked, majority or everyone per category",
+      "required members",
+      "recovery with stop rules A, B or C",
+      "up to 16 voters"
+    ],
+    "weaknesses": [
+      "Fixed-period budgets carry unused budget over.",
+      "Whoever controls enough votes can move everything.",
+      "With 'everyone', one lost key freezes that kind of change unless recovery replaces it.",
+      "A recovery request freezes the card until it completes or is stopped; that member cannot vote meanwhile.",
+      "Enough helpers working together can take over a card after the wait.",
+      "The contract cannot tell people apart: a vote that may add members can add someone's second key."
+    ]
+  },
+  {
+    "name": "Circle",
+    "version": 1,
+    "sha256": "6d083bf6f1adcb46f7aa7a74c6755cb59038ab08741c20f317677d8348bba635",
+    "money": "b720fd7a021c9851a494f6e129c2dcfd45f764ca62a0f9f6bfb24c553fa90d56",
+    "options": [
+      "one token, the same contribution from every member each round",
+      "payout order fixed at creation",
+      "pays out when everyone has paid, or after the round's deadline",
+      "2 to 16 members"
+    ],
+    "weaknesses": [
+      "The contract cannot make anyone pay. A member who stops paying after their turn keeps what they received.",
+      "After a deadline anyone can pay out the round, so late contributions miss that round.",
+      "Money left at the Circle after the last round goes to the last member in the order, whoever sent it."
+    ]
+  }
+]
