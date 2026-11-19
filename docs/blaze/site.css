@@ -25,6 +25,7 @@ img { display: block; max-width: 100%; height: auto; }
 
 .mast, .foot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .7rem 1.1rem; padding: 1.15rem 0; }
 .mast { border-bottom: 1px solid var(--line); }
+.blaze-vote { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .9rem; padding-top: .75rem; color: var(--muted); font-size: .875rem; }
 .mast nav { display: flex; flex-wrap: wrap; gap: .65rem 1.4rem; font-size: .9rem; }
 .mast a { text-decoration: none; }
 .mast a:hover { text-decoration: underline; }
