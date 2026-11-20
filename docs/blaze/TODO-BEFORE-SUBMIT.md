@@ -18,8 +18,8 @@ Everything not listed here is done and committed on the local branch `docs/blaze
 | 7a | **Make one small Mainnet payment yourself** on the deployed site (a few cents from your own WizardConnect wallet to yourself), then send the transaction ID so it goes into SUBMISSION.md and slide 5. All three reviewers asked for it: nothing has paid through the web wallet on Mainnet yet, and the agent may not spend Mainnet funds. | **You (Mainnet transaction)** | Proves the judge's exact path on the real network. |
 | 8 | Optional: record a 2–3 minute video with the [demo script](DEMO.md#demo-script-2-minutes-30-seconds) if the BUIDL form asks for one. Keep pairing codes off screen. | You or agent | The existing 68-second video shows the older prototype. |
 | 9 | ~~Build with XO~~ **Skipped by decision, 20 Nov.** | You | — |
-| 10 | **DoraHacks BUIDL.** Log in, check for an existing Venn draft (do not create a duplicate), fill it from [SUBMISSION.md](SUBMISSION.md), link it to BCH BLAZE 2026 and the Mainnet track, attach the icon, demo, deck and source links. | You (login), agent can fill once logged in | — |
-| 11 | **Press Submit**, then confirm the BUIDL shows as submitted to BCH BLAZE 2026. | **You (approval point)** | — |
+| 10 | ~~DoraHacks BUIDL.~~ **Done 20 Nov:** https://dorahacks.io/buidl/51333 (existing salemkode BUIDL, Mainnet Track, listed on the Builds grid) updated with the Venn icon, tagline, description, deck, source, wallet links and the voting address; checked logged out. Edits stay possible until the deadline. | — | — |
+| 11 | Check the BUIDL still shows on the [Builds grid](https://dorahacks.io/hackathon/bchblaze2026/build) under Mainnet Track before 22 Nov 14:00 UTC; if DoraHacks shows a separate final Submit for the hackathon, press it. | You | — |
 
 ## Fields that need your answer or an organizer's
 

@@ -15,7 +15,7 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 
 | | Link | Status |
 | --- | --- | --- |
-| DoraHacks BUIDL draft | *unknown* | DoraHacks requires your login; no draft was found or created from here. Field values are in [SUBMISSION.md](SUBMISSION.md). |
+| DoraHacks BUIDL | https://dorahacks.io/buidl/51333 | Owner salemkode, Mainnet Track, listed on the BCH BLAZE 2026 Builds grid. Updated 20 Nov: Venn app icon as the logo (1024 px), new tagline and description with the Mainnet judge path, labelled evidence, Google Slides and .pptx deck links, source, voting address and pre-existing-work disclosure; links: source, judge page, deck, web wallet. Checked logged out; every link opens. |
 | Hackathon page | https://dorahacks.io/hackathon/bchblaze2026/detail | — |
 
 ## Source
