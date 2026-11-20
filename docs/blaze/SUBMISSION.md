@@ -11,7 +11,7 @@ Prepared 20 November 2026 for the DoraHacks BUIDL form. The deadline is **22 Nov
 | EMBER2026 voting address | `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` |
 | Demo | https://venn.salemkode.com/blaze/ (judge page) · https://venn.salemkode.com/ (web wallet) |
 | Deck | Widget Factory copy: link pending, see [LINKS.md](LINKS.md) |
-| Source | https://github.com/salemkode/venn-blaze-2026 (needs the updated snapshot, see LINKS.md) |
+| Source | https://github.com/salemkode/venn-blaze-2026 (pinned revision: https://github.com/salemkode/venn-blaze-2026/tree/faa806c9c85d47dcdf22ce579188e32e648c7c85) |
 | Icon | [assets/images/icon.png](../../assets/images/icon.png) (1024×1024) |
 
 ## Short description

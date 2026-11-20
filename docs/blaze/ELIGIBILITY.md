@@ -10,7 +10,7 @@ Rules re-read on 20 November 2026 from the [DoraHacks details page](https://dora
 
 | Track | Verdict | What it still needs |
 | --- | --- | --- |
-| Mainnet | **Reachable before the deadline** | Your approvals: publish the updated source snapshot and redeploy the site, choose the voting address, share the deck read-only. Your confirmation of roll call and the Telegram check-in. |
+| Mainnet | **Reachable before the deadline** | Source published and site redeployed (20 Nov); voting address set. Still needed: the shared Widget Factory deck link, your confirmation of registration, roll call and the Telegram check-in, and ideally one small Mainnet payment of your own through the site. |
 | Community Choice | **Reachable**, follows Mainnet | Address chosen by the entrant: `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (token-aware, checksum verified); it is in the banner, the footer and SUBMISSION.md. |
 | Build with XO | **Skipped by decision** (20 Nov) | Would have needed the entrant's own feedback and the IP waiver. The template stays in the repository as part of the project. |
 | Media | Not recommended | No media piece exists. A product video is not what this track judges. |
@@ -23,7 +23,7 @@ What the rules require, and where Venn stands:
 | Requirement (DoraHacks) | Status | Evidence |
 | --- | --- | --- |
 | “At least one feature that involves sending Bitcoin Cash (BCH) mainnet transactions … possible USING the app for anyone (ie the judges) to simply & clearly make a useful BCH mainnet transaction” | Implemented in the web wallet, which now opens on Mainnet: a judge connects their own WizardConnect wallet and sends BCH. Verified on the production web export up to the Mainnet Send screen (pairing, balance, matching address); the same path completed a payment on Chipnet. No Mainnet payment has gone through the web wallet yet; one small owner payment on the deployed build is recommended. | [DEMO.md](DEMO.md#verified-on-20-november), Chipnet `7594e82e…` |
-| “A live, usable demo … judges can simply click a website link to open & experiment with” | Live at https://venn.salemkode.com/blaze/ since 19 Nov, but that is the old Chipnet build without the banner; the 20 Nov build awaits redeploy approval. | [LINKS.md](LINKS.md) |
+| “A live, usable demo … judges can simply click a website link to open & experiment with” | Live at https://venn.salemkode.com/blaze/ (wallet at the root) with the 20 Nov build and the banner. | [LINKS.md](LINKS.md) |
 | “Original or significantly improved during the hackathon” | The shared-money product, contracts, app and Mainnet/Chipnet runs were all built 14–20 Nov on top of a send/receive starter. | [SUBMISSION.md](SUBMISSION.md#built-during-the-event) |
 | Top-of-page banner on the home page: Widget Factory presentation, source repository, CashTokens address for EMBER2026 | Built on the landing page and the web wallet from `banner.json`. Deck link and voting address pending your decisions. | [banner.json](banner.json) |
 | Pre-existing projects: links to old and new repo plus a demo from before the hackathon | Old: xo-react-native-wallet @ b32a7fd (14 Nov 13:55 UTC) and its README screenshot (no hosted demo existed). New: venn-blaze-2026. | [SUBMISSION.md](SUBMISSION.md#pre-existing-work) |

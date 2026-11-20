@@ -17,7 +17,7 @@ export function bannerHtml(banner) {
   <style>
     .blaze-banner{background:#7a0f1d;color:#fff;font:500 13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;padding:6px 12px;display:flex;flex-wrap:wrap;gap:2px 14px;justify-content:center;align-items:center;text-align:center}
     .blaze-banner a{color:#fff;text-decoration:underline;text-underline-offset:2px}
-    .blaze-banner code{font:600 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}
+    .blaze-banner code{font:600 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;white-space:normal;background:none;color:#fff;padding:0;border:0}
     .blaze-banner strong{font-weight:700}
   </style>
   <strong>${escape(banner.event)}</strong>

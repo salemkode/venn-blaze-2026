@@ -7,7 +7,7 @@
 | Android app | Signed preview APK on the [judge source releases](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) (built 19 November, Chipnet only) |
 | Video | [68-second walkthrough](walkthrough.mp4) ([transcript](transcript.txt)). It shows the earlier BCH-denominated prototype; a new recording is on the [to-do list](TODO-BEFORE-SUBMIT.md). |
 
-The live site was deployed on 19 November from an earlier build. Until the 20 November build is deployed (an approval item), it opens on Chipnet and lacks the phone layout, the banner and the fixes described here.
+The live site runs the 20 November build (deployed 20 November, checked in phone Safari).
 
 ## Judge instructions (about two minutes)
 

@@ -2,7 +2,7 @@
 
 **Deadline: Sunday 22 November 2026, 14:00 UTC** (17:00 Aden, as DoraHacks shows it). Aim to submit by **Saturday 21 November, 20:00 UTC** to leave margin. The Final Check-In stream is **Saturday 21 November, 14:00 UTC**.
 
-Everything not listed here is done and committed on the local branch `docs/blaze-final-submission` (worktree `~/.t3/worktrees/venn/blaze-final`). Nothing has been pushed, deployed, shared or submitted.
+Everything not listed here is done and committed on the local branch `docs/blaze-final-submission` (worktree `~/.t3/worktrees/venn/blaze-final`). The source is published and the site is deployed (20 November); nothing has been shared on Google or submitted on DoraHacks.
 
 ## In order
 
@@ -10,11 +10,11 @@ Everything not listed here is done and committed on the local branch `docs/blaze
 | --- | --- | --- | --- |
 | 1 | **Confirm registration, roll call and Telegram.** Check that your DoraHacks account is registered for BCH BLAZE 2026, that you attended at least one preparation stream (roll call), and that you confirmed the project in the BCH BLAZE Telegram. | You | Required for the Mainnet track; without roll call the entry is judged in the low-priority queue. |
 | 2 | ~~Choose the EMBER2026 voting address.~~ **Done 20 Nov:** `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (checksum verified), now in both banners, the judge-page footer and SUBMISSION.md. | You | — |
-| 3 | **Approve publishing the source.** Push the prepared snapshot to the public repository `salemkode/venn-blaze-2026` (branch `hackathon`). It is ready at `/tmp/venn-snapshot` (tree of the task branch without `AGENTS.md`, `.github`, `.vscode`, `prototypes/`, agent plans). Decide whether `docs/live-mainnet-2026-11-19.md` may stay public: it shows your Cashonize wallet's before/after balances, and the giveback transactions pay your wallet. | **You (approval point)** | Judges need source at a revision that contains the presented work. The private `salemkode/venn` stays private. |
+| 3 | ~~Publish the source.~~ **Done 20 Nov:** https://github.com/salemkode/venn-blaze-2026 branch `hackathon` at `faa806c` (balances removed from the Mainnet run doc). | — | — |
 | 4 | **Do the Google Slides step.** Import `docs/blaze/venn-blaze-2026.pptx` into Google Slides ([steps](deck/GOOGLE-SLIDES.md)); needs a GPT model with the Google Drive connector or your signed-in browser. | GPT model or you | The rules require the Widget Factory deck. |
 | 5 | **Approve the deck's sharing:** “Anyone with the link: Viewer”. | **You (approval point)** | The banner and BUIDL must link a deck judges can open. |
 | 6 | Put the deck link and voting address in `docs/blaze/banner.json`, rebuild (`npm run build:blaze`), commit. | Agent | One file feeds both banners. |
-| 7 | **Approve redeploying** https://venn.salemkode.com with the 20 November build: `cd deploy && cf deploy ../dist` (Worker `venn-blaze`, dry-run passed). Then check from a fresh browser: banner links, phone frame, pairing, a nested-route reload. | **You (approval point)**, then agent | The live site is the 19 November build: no phone frame, no top banner, old activity bug. |
+| 7 | ~~Redeploy the site.~~ **Done 20 Nov:** https://venn.salemkode.com runs the 20 Nov build (version `5910b292`), checked in phone Safari: banner with your address, Mainnet by default, phone layout. | — | — |
 | 7a | **Make one small Mainnet payment yourself** on the deployed site (a few cents from your own WizardConnect wallet to yourself), then send the transaction ID so it goes into SUBMISSION.md and slide 5. All three reviewers asked for it: nothing has paid through the web wallet on Mainnet yet, and the agent may not spend Mainnet funds. | **You (Mainnet transaction)** | Proves the judge's exact path on the real network. |
 | 8 | Optional: record a 2–3 minute video with the [demo script](DEMO.md#demo-script-2-minutes-30-seconds) if the BUIDL form asks for one. Keep pairing codes off screen. | You or agent | The existing 68-second video shows the older prototype. |
 | 9 | ~~Build with XO~~ **Skipped by decision, 20 Nov.** | You | — |

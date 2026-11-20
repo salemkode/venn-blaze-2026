@@ -22,7 +22,7 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 
 | | Link | Status |
 | --- | --- | --- |
-| After (presented work) | https://github.com/salemkode/venn-blaze-2026 | Public, but its `hackathon` branch is a 19 Nov snapshot (`52b8aaf`) from before the final contracts, Mainnet run and today's fixes. Pending: push the task branch `docs/blaze-final-submission` as a new snapshot, then pin the commit link here. |
+| After (presented work) | https://github.com/salemkode/venn-blaze-2026 · pinned: https://github.com/salemkode/venn-blaze-2026/tree/faa806c9c85d47dcdf22ce579188e32e648c7c85 | Public. Published 20 Nov as `faa806c` on branch `hackathon` (snapshot of `ff3dca1`; checked signed out). |
 | Full history (private) | https://github.com/salemkode/venn | Private; `master` at `0f8152d`; this work is on the local branch `docs/blaze-final-submission`. |
 | Before: wallet starter at kickoff | https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f | Public. Last commit 14 Nov 13:55 UTC, before the 14:00 UTC kickoff. |
 | Before: wallet starter, 13 Nov | https://github.com/salemkode/xo-react-native-wallet/tree/ba90bd04f9f4db52ce30b2cef69f662efbb32482 | Public. |
@@ -32,7 +32,7 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 
 | | Link | Status |
 | --- | --- | --- |
-| After: judge page | https://venn.salemkode.com/blaze/ | Live (Worker `venn-blaze`, deployed 19 Nov 08:52 UTC from an earlier build). Pending: redeploy the 20 Nov build. |
+| After: judge page | https://venn.salemkode.com/blaze/ | Live: 20 Nov build (Worker `venn-blaze`, version `5910b292`), checked in Safari on an iOS 26 simulator. |
 | After: web wallet | https://venn.salemkode.com/ | Same. |
 | After: Android preview | https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview | Signed APK, 19 Nov, Chipnet only (built before Mainnet support). |
 | Before | https://github.com/salemkode/xo-react-native-wallet/blob/b32a7fd85674791e557c4bc339da29f3842cf68f/README.md | The starter's README and screenshot; no hosted demo existed before the event. |
@@ -49,7 +49,7 @@ Rendered at the top of the judge page and the web wallet from [banner.json](bann
 | Source | https://github.com/salemkode/venn-blaze-2026 |
 | Before the event: code | xo-react-native-wallet @ b32a7fd |
 | Before the event: demo | Its README at b32a7fd |
-| What’s new | https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event (404 until the snapshot is pushed; the web wallet's “See Venns running on Mainnet” link has the same dependency) |
+| What’s new | https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event |
 | EMBER2026 | `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (chosen by the entrant on 20 Nov; the judge page footer shows the same value) |
 
 To change any of these, edit `banner.json` and run `npm run build:blaze`; both pages pick it up.
