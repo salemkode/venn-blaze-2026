@@ -10,8 +10,8 @@
     "url": "https://github.com/salemkode/venn-blaze-2026"
   },
   "before": {
-    "label": "Before the event",
-    "summary": "RN + Libauth + XO template",
+    "label": "React Native app built on my open-source Libauth + XO template",
+    "prefix": "before the event",
     "source": "https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f",
     "libauth": "https://github.com/salemkode/react-native-libauth/tree/ccd225d749b55980612b44515bf47302e8b6b70c",
     "demo": "https://github.com/salemkode/xo-react-native-wallet/blob/b32a7fd85674791e557c4bc339da29f3842cf68f/README.md",

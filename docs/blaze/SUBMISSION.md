@@ -32,6 +32,8 @@ Venn is an alpha. The contracts have had internal reviews but no external audit,
 
 ## Pre-existing work
 
+**Venn is a React Native app built on my open-source Libauth + XO template** (before the event: react-native-libauth, xo-react-native-wallet).
+
 Venn was built on the author's earlier **React Native + Libauth + XO template**: two public repositories created on 13 November, before hacking began on 14 November at 14:00 UTC. [xo-react-native-wallet](https://github.com/salemkode/xo-react-native-wallet) is the XO React Native wallet template (send, receive, Chipnet/Mainnet switch, XO primitives), and [react-native-libauth](https://github.com/salemkode/react-native-libauth) is the native Libauth adapter it runs on. Everything listed under “Built during the event” was added on top of that template.
 
 | What | Before the event | Notes |

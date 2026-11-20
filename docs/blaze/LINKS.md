@@ -42,14 +42,14 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 
 Rendered at the top of the judge page and the web wallet from [banner.json](banner.json):
 
-> **BCH BLAZE 2026** · Deck · Source · What’s new · Before the event (RN + Libauth + XO template): XO wallet · Libauth adapter · demo · EMBER2026: `<address>`
+> **BCH BLAZE 2026** · Deck · Source · What’s new · React Native app built on my open-source Libauth + XO template (before the event: react-native-libauth, xo-react-native-wallet, demo) · EMBER2026: `<address>`
 
 | Banner item | Target |
 | --- | --- |
 | Deck | https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit?usp=sharing |
 | Source | https://github.com/salemkode/venn-blaze-2026 |
-| Before the event: XO wallet | xo-react-native-wallet @ b32a7fd |
-| Before the event: Libauth adapter | react-native-libauth @ ccd225d |
+| Before the event: react-native-libauth | react-native-libauth @ ccd225d |
+| Before the event: xo-react-native-wallet | xo-react-native-wallet @ b32a7fd |
 | Before the event: demo | Its README at b32a7fd |
 | What’s new | https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event |
 | EMBER2026 | `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9` (the entrant's BLAZE 2025 address, set 20 Nov; the judge page footer shows the same value) |

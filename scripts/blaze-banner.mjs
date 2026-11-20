@@ -22,7 +22,7 @@ export function bannerHtml(banner) {
   </style>
   <strong>${escape(banner.event)}</strong>
   <span>${link(banner.deck.url, banner.deck.label)} · ${link(banner.source.url, banner.source.label)} · ${link(banner.before.changes, 'What’s new')}</span>
-  <span>${escape(banner.before.label)} (${escape(banner.before.summary)}): ${link(banner.before.source, 'XO wallet')} · ${link(banner.before.libauth, 'Libauth adapter')} · ${link(banner.before.demo, 'demo')}</span>
+  <span>${escape(banner.before.label)} (${escape(banner.before.prefix)}: ${link(banner.before.libauth, 'react-native-libauth')}, ${link(banner.before.source, 'xo-react-native-wallet')}, ${link(banner.before.demo, 'demo')})</span>
   <span>${vote}</span>
 </aside>`;
 }
