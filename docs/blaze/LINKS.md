@@ -50,6 +50,6 @@ Rendered at the top of the judge page and the web wallet from [banner.json](bann
 | Before the event: code | xo-react-native-wallet @ b32a7fd |
 | Before the event: demo | Its README at b32a7fd |
 | What’s new | https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event |
-| EMBER2026 | `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (chosen by the entrant on 20 Nov; the judge page footer shows the same value) |
+| EMBER2026 | `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9` (the entrant's BLAZE 2025 address, set 20 Nov; the judge page footer shows the same value) |
 
 To change any of these, edit `banner.json` and run `npm run build:blaze`; both pages pick it up.

@@ -8,7 +8,7 @@ Prepared 20 November 2026 for the DoraHacks BUIDL form. The deadline is **22 Nov
 | Team | salemkode, solo entry (confirm against the DoraHacks registration) |
 | Tagline (≤ 80 characters) | Shared money with rules everyone signs, enforced by Bitcoin Cash. |
 | Track | Mainnet track (Community Choice follows automatically). No bounties. See [ELIGIBILITY.md](ELIGIBILITY.md). |
-| EMBER2026 voting address | `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` |
+| EMBER2026 voting address | `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9` |
 | Demo | https://venn.salemkode.com/blaze/ (judge page) · https://venn.salemkode.com/ (web wallet) |
 | Deck | Widget Factory copy (Google Slides): https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit?usp=sharing · [PowerPoint](venn-blaze-2026.pptx) · [PDF](venn-blaze-2026.pdf) |
 | Source | https://github.com/salemkode/venn-blaze-2026 (pinned revision: https://github.com/salemkode/venn-blaze-2026/tree/faa806c9c85d47dcdf22ce579188e32e648c7c85) |
@@ -79,4 +79,4 @@ Every transaction below was re-checked on 20 November (21 IDs) on two independen
 
 ## Banner
 
-The landing page and the web wallet carry a top-of-page banner built from [banner.json](banner.json): the deck, the source, the pre-event source and demo, a link to the "Built during the event" section above, and the EMBER2026 CashTokens address `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd`. The deck link is filled in once the Google Slides copy is shared.
+The landing page and the web wallet carry a top-of-page banner built from [banner.json](banner.json): the deck, the source, the pre-event source and demo, a link to the "Built during the event" section above, and the EMBER2026 CashTokens address `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9`. The deck link opens the Google Slides copy, shared as Anyone with the link: Viewer.

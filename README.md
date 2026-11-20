@@ -2,7 +2,7 @@
 
 # Venn
 
-Built by **salemkode** as a solo BCH BLAZE 2026 entry. [BUIDL](https://dorahacks.io/buidl/51333) · [Pitch deck](https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit?usp=sharing) · [Live demo](https://venn.salemkode.com/) · EMBER2026 voting address: `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd`
+Built by **salemkode** as a solo BCH BLAZE 2026 entry. [BUIDL](https://dorahacks.io/buidl/51333) · [Pitch deck](https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit?usp=sharing) · [Live demo](https://venn.salemkode.com/) · EMBER2026 voting address: `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9`
 
 **A Bitcoin Cash wallet for people who share a fund and want to agree on who can spend it.** A housemate can pay for groceries from their own allowance. A larger purchase needs a group vote. Before joining, each person sees both their spending rights and the power they give the other members. The shared fund is called a *Venn*.
 

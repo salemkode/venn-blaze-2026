@@ -9,7 +9,7 @@ Everything not listed here is done and committed on the local branch `docs/blaze
 | # | What | Who | Why it matters |
 | --- | --- | --- | --- |
 | 1 | **Confirm registration, roll call and Telegram.** Check that your DoraHacks account is registered for BCH BLAZE 2026, that you attended at least one preparation stream (roll call), and that you confirmed the project in the BCH BLAZE Telegram. | You | Required for the Mainnet track; without roll call the entry is judged in the low-priority queue. |
-| 2 | ~~Choose the EMBER2026 voting address.~~ **Done 20 Nov:** `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (checksum verified), now in both banners, the judge-page footer and SUBMISSION.md. | You | — |
+| 2 | ~~Choose the EMBER2026 voting address.~~ **Done 20 Nov:** `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9`, the address from your BLAZE 2025 entry (checksum verified), now in both banners, the judge-page footer and SUBMISSION.md. | You | — |
 | 3 | ~~Publish the source.~~ **Done 20 Nov:** https://github.com/salemkode/venn-blaze-2026 branch `hackathon` at `faa806c` (balances removed from the Mainnet run doc). | — | — |
 | 4 | ~~Google Slides import.~~ **Done 20 Nov** by Sol: https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit (private). | — | — |
 | 5 | ~~Share the deck.~~ **Done 20 Nov:** Anyone with the link, Viewer. | — | — |
