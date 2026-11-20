@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { styles as s } from '../ui/styles';
 import { colors } from '../ui/theme';
@@ -59,15 +60,19 @@ export default function Welcome({
         <Text accessibilityRole="header" style={s.title}>
           Connect a wallet
         </Text>
-        <View style={s.buttonGap}>
-          <PillButton
-            label="Change network"
-            testID="first-wallet-change-network"
-            secondary
-            disabled={busy}
-            onPress={() => router.push('/network')}
-          />
-        </View>
+        <Pressable
+          testID="first-wallet-change-network"
+          accessibilityRole="button"
+          accessibilityLabel={`Network: ${wallet.network === 'mainnet' ? 'Mainnet' : 'Chipnet'}. Change network`}
+          disabled={busy}
+          onPress={() => router.push('/network')}
+          style={({ pressed }) => [local.network, pressed && local.pressed]}
+        >
+          <View style={[local.dot, { backgroundColor: wallet.network === 'mainnet' ? colors.amber : colors.bch }]} />
+          <Text style={local.networkText}>{wallet.network === 'mainnet' ? 'Mainnet · real BCH' : 'Chipnet · test coins'}</Text>
+          <Text style={local.change}>Change</Text>
+          <ChevronRight size={14} color={colors.muted} />
+        </Pressable>
         <Connect
           network={wallet.network}
           onConnected={wallet.connect}
@@ -128,7 +133,7 @@ export default function Welcome({
         Welcome to Venn.
       </Text>
       <Text style={s.intro}>
-        A Bitcoin Cash wallet for money you share. Shared funds, called Venns, run on Chipnet with test money.
+        A Bitcoin Cash wallet for money you share. Shared funds, called Venns, run on Chipnet with test money and on Mainnet with MUSD.
       </Text>
       <PillButton
         label={busy ? 'Creating wallet…' : 'Create a new wallet'}
@@ -161,5 +166,23 @@ export default function Welcome({
 }
 
 const local = StyleSheet.create({
+  network: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    marginBottom: 14,
+    borderRadius: 999,
+    backgroundColor: colors.paper,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+  },
+  pressed: { opacity: 0.6 },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  networkText: { fontSize: 13, fontWeight: '600', color: colors.ink },
+  change: { fontSize: 13, color: colors.muted, marginLeft: 6 },
   explain: { color: colors.muted, fontSize: 13, lineHeight: 18, marginTop: 6, marginBottom: 18, marginHorizontal: 12 },
 });

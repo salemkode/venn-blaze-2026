@@ -7,7 +7,7 @@ import { Chip, Note, PillButton, SafeQR } from '../../ui/kit';
 import { styles as s, badgeDotStyle } from '../../ui/styles';
 import { colors as c } from '../../ui/theme';
 import { formatSats } from '../../ui/format';
-import { formatTestUsd, VENN_TEST_USD } from '../../venn/asset';
+import { feeUnit, formatAssetAmount, networkName } from '../../venn/asset';
 import { shareAddress } from '../../screens/Receive';
 import { open } from '../../navigation';
 
@@ -19,8 +19,10 @@ function KeySection({
   purpose,
   address,
   testID,
+  network,
   children,
 }: {
+  network: string;
   title: string;
   eyebrow: string;
   balance: string;
@@ -32,7 +34,7 @@ function KeySection({
   return (
     <View testID={testID} style={local.card}>
       <View style={s.inline}>
-        <View style={badgeDotStyle('chipnet')} />
+        <View style={badgeDotStyle(network)} />
         <Text style={local.eyebrow}>{eyebrow}</Text>
       </View>
       <View style={local.titleRow}>
@@ -73,7 +75,7 @@ export default function KeyPage() {
   if (!venns.available)
     return (
       <Page>
-        <Note>Venn keys exist only for wallets created on this device, on Chipnet. Switch to Chipnet or open a local wallet.</Note>
+        <Note>Venn keys exist only for wallets created on this device. Open a local wallet.</Note>
       </Page>
     );
   if (!venns.keyAddress || !venns.keyTokenAddress)
@@ -91,23 +93,25 @@ export default function KeyPage() {
     );
   const usd = (
     <KeySection
+      network={venns.network}
       key="usd"
       testID="key-usd"
-      title={VENN_TEST_USD.symbol}
-      eyebrow="Token-aware address · Chipnet"
-      balance={venns.keyTokens === null ? '—' : formatTestUsd(venns.keyTokens)}
-      purpose="Money for your Venns. Deposits into a Venn come from here. Send only Venn Test USD to this address."
+      title={venns.asset.symbol}
+      eyebrow={`Token-aware address · ${networkName(venns.network)}`}
+      balance={venns.keyTokens === null ? '—' : formatAssetAmount(venns.keyTokens)}
+      purpose={`Money for your Venns. Deposits into a Venn come from here. Send only ${venns.asset.symbol} to this address.`}
       address={venns.keyTokenAddress}
     />
   );
   const fees = (
     <KeySection
+      network={venns.network}
       key="fees"
       testID="key-fees"
       title="Network fees"
-      eyebrow="tBCH · Chipnet"
+      eyebrow={`${feeUnit(venns.network)} · ${networkName(venns.network)}`}
       balance={venns.keyBalance === null ? '—' : formatSats(venns.keyBalance)}
-      purpose="Chipnet tBCH that pays network fees when you create, deposit into or pay from a Venn."
+      purpose={`${feeUnit(venns.network)} that pays network fees when you create, deposit into or pay from a Venn.`}
       address={venns.keyAddress}
     >
       <PillButton
@@ -122,8 +126,8 @@ export default function KeyPage() {
   return (
     <Page>
       <Text style={local.intro}>
-        Your Venn key is a separate key in this wallet. It holds your Venn seats, Venn Test USD ready to deposit, and a
-        little tBCH for fees.
+        Your Venn key is a separate key in this wallet. It holds your Venn seats, {venns.asset.symbol} ready to deposit,
+        and a little {feeUnit(venns.network)} for fees.
       </Text>
       {feesFirst ? [fees, usd] : [usd, fees]}
       {venns.error ? <Note danger>{venns.error}</Note> : null}

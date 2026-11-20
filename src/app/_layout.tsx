@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppProvider, useApp } from '../state/AppState';
+import BlazeBanner from '../ui/BlazeBanner';
 import { colors } from '../ui/theme';
 
 function Navigation() {
@@ -21,7 +22,10 @@ function Navigation() {
         <Stack.Screen name="(wallet)/send" options={{ title: 'Send' }} />
         <Stack.Screen name="(wallet)/wallets" options={{ title: 'Wallets' }} />
         <Stack.Screen name="(wallet)/connect" options={{ title: 'Connect a wallet' }} />
-        <Stack.Screen name="(wallet)/create" options={{ title: 'Create a Venn' }} />
+        {/* Choosing a kind opens without a push: its first card grows from a dot to the screen. */}
+        <Stack.Screen name="(wallet)/create" options={({ route }) => (route.params as { preset?: string } | undefined)?.preset
+          ? { title: 'Create a Venn' }
+          : { title: 'Create a Venn', headerShown: false, animation: 'none', gestureEnabled: false }} />
         <Stack.Screen name="(wallet)/join" options={{ title: 'Join a Venn' }} />
         <Stack.Screen name="(wallet)/plan" options={{ title: 'Invite people' }} />
         <Stack.Screen name="(wallet)/fees" options={{
@@ -52,5 +56,13 @@ export default function RootLayout() {
       });
     }
   }, []);
-  return <AppProvider><StatusBar style="dark" /><Navigation /></AppProvider>;
+  if (Platform.OS !== 'web') return <AppProvider><StatusBar style="dark" /><Navigation /></AppProvider>;
+  return (
+    <AppProvider>
+      <View style={{ flex: 1 }}>
+        <BlazeBanner />
+        <View style={{ flex: 1 }}><Navigation /></View>
+      </View>
+    </AppProvider>
+  );
 }

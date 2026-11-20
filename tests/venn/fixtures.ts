@@ -93,6 +93,7 @@ export const makeVault = (o: {
   deposit?: bigint;
   asset?: string;
   extraMoney?: bigint[];
+  network?: 'chipnet' | 'mainnet';
 }) => {
   const asset = o.asset;
   const tokenCoin: Utxo | undefined = asset
@@ -101,7 +102,7 @@ export const makeVault = (o: {
   const { params, draft } = buildVennGenesis({
     utxos: [wallet()],
     publicKey: people.creator.publicKey,
-    network: 'chipnet',
+    network: o.network ?? 'chipnet',
     members: o.members,
     settings: settings(o.settings),
     asset: asset ? { category: asset, utxos: [tokenCoin!] } : undefined,

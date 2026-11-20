@@ -136,7 +136,29 @@ describe('proposal codes', () => {
     expect(decodeKeyCode(encodeKeyCode(newPhone.hex, 'New phone'))).toEqual({ publicKey: newPhone.hex, name: 'New phone' });
     expect(decodeKeyCode(newPhone.hex)).toEqual({ publicKey: newPhone.hex });
     const venn = { vaultCategory: 'ab'.repeat(32), assetCategory: 'cd'.repeat(32), name: 'Home' };
-    expect(decodeVennCode(encodeVennCode(venn))).toEqual(venn);
+    expect(decodeVennCode(encodeVennCode(venn))).toEqual({ network: 'chipnet', ...venn });
     expect(() => decodeProposal('venn:proposal:abc')).toThrow();
+  });
+});
+
+describe('codes carry their network', () => {
+  it('a Mainnet proposal names Mainnet and is refused by a Chipnet wallet', () => {
+    const v = makeVault({
+      network: 'mainnet',
+      members: [member(creator, VH | ROLE.REQUIRED), member(sara, VH)],
+      settings: { stopRule: STOP.BOTH, helpersNeeded: 1, waitUnits: 2 },
+    });
+    const to = p2pkhForPublicKey(shop.publicKey);
+    const built = buildVote(v.params, v.coins, { payments: [{ to, amount: 5_000n }] }, feeWallet(sara));
+    const proposal = decodeProposal(encodeProposal(proposalFor('vote', built.draft, 'Pay the shop', built.need, built.requiredPkhs)));
+    expect(proposal.network).toBe('mainnet');
+    expect(describeProposal(proposal, v.coins, names, money, 'mainnet').lines[0]).toMatch(/to bitcoincash:/);
+    expect(() => describeProposal(proposal, v.coins, names, money, 'chipnet')).toThrow(/for mainnet/);
+  });
+
+  it('a Venn code made before Mainnet support reads as Chipnet', () => {
+    const old = encodeVennCode({ vaultCategory: 'ab'.repeat(32), name: 'Home' });
+    expect(decodeVennCode(old).network).toBe('chipnet');
+    expect(decodeVennCode(encodeVennCode({ network: 'mainnet', vaultCategory: 'ab'.repeat(32), name: 'Home' })).network).toBe('mainnet');
   });
 });

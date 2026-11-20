@@ -8,7 +8,7 @@ import { binToHex, concat, equal, hexToBin } from '../core/bytes';
 import { hash160, sha256 } from '../core/crypto';
 import type { Draft, Utxo } from '../core/draft';
 import { decodeOutputs, decodeTransaction, encodeOutput, encodeTransaction, type Output } from '../core/tx';
-import { addressForLockingBytecode } from '../core/cashaddr';
+import { type Network, addressForLockingBytecode } from '../core/cashaddr';
 import { checkVennSignature } from './build';
 import type { VennCoins } from './coins';
 import { type VennFunction, type VennParams, moneyLocking, vennLocking } from './contract';
@@ -30,7 +30,7 @@ export type ProposalKind = 'vote' | 'recoveryRequest' | 'recoveryCancelByVote';
 const hex = z.string().regex(/^([0-9a-f]{2})*$/);
 const proposalSchema = z.object({
   v: z.literal(1),
-  network: z.literal('chipnet'),
+  network: z.enum(['chipnet', 'mainnet']),
   kind: z.enum(['vote', 'recoveryRequest', 'recoveryCancelByVote']),
   vaultCategory: z.string().regex(/^[0-9a-f]{64}$/),
   assetCategory: z.string().regex(/^[0-9a-f]{64}$/).optional(),
@@ -56,6 +56,8 @@ const keySchema = z.object({
 });
 
 const vennSchema = z.object({
+  /** Absent in codes made before Mainnet support: those are Chipnet Venns. */
+  network: z.enum(['chipnet', 'mainnet']).default('chipnet'),
   vaultCategory: z.string().regex(/^[0-9a-f]{64}$/),
   assetCategory: z.string().regex(/^[0-9a-f]{64}$/).optional(),
   name: z.string().min(1).max(40),
@@ -95,7 +97,7 @@ export const proposalFor = (
   if (!draft.venn || draft.venn.fn !== kind) throw new Error('Not a group decision');
   return proposalSchema.parse({
     v: 1,
-    network: 'chipnet',
+    network: draft.venn.params.network,
     kind,
     vaultCategory: draft.venn.params.vaultCategory,
     ...(draft.venn.params.assetCategory ? { assetCategory: draft.venn.params.assetCategory } : {}),
@@ -111,8 +113,8 @@ export const proposalFor = (
 /** The id every approval names: the hash of the unsigned transaction. */
 export const proposalId = (p: Proposal) => binToHex(sha256(hexToBin(p.tx)));
 
-export const paramsOf = (p: Pick<Proposal, 'vaultCategory' | 'assetCategory'>): VennParams => ({
-  network: 'chipnet',
+export const paramsOf = (p: Pick<Proposal, 'network' | 'vaultCategory' | 'assetCategory'>): VennParams => ({
+  network: p.network,
   vaultCategory: p.vaultCategory,
   ...(p.assetCategory ? { assetCategory: p.assetCategory } : {}),
 });
@@ -149,7 +151,7 @@ export const decodeKeyCode = (text: string) => {
 };
 
 /** A Venn's identity, so a new phone can follow it while its recovery completes. */
-export const encodeVennCode = (v: z.infer<typeof vennSchema>) => encode(VENN, vennSchema.parse(v));
+export const encodeVennCode = (v: z.input<typeof vennSchema>) => encode(VENN, vennSchema.parse(v));
 export const decodeVennCode = (text: string) => decode(VENN, vennSchema, text, 'Venn');
 
 /** Approves a proposal: the Venn key's signature over the transaction (ALL|UTXOS). */
@@ -197,8 +199,9 @@ export function describeProposal(
   coins: VennCoins,
   names: Record<string, string>,
   money: (amount: bigint) => string,
-  network: 'chipnet',
+  network: Network,
 ): Described {
+  if (p.network !== network) throw new Error(`This proposal is for ${p.network}, and this wallet is on ${network}.`);
   const draft = draftOf(p);
   const params = paramsOf(p);
   const lock = vennLocking(params);

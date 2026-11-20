@@ -5,18 +5,30 @@ import type { Network } from './cashaddr';
 import { hash256, sha256 } from './crypto';
 import { type Capability, decodeTransaction } from './tx';
 
-/** This release is Chipnet only. Mainnet stays disabled until the contract is independently audited. */
+/**
+ * Fulcrum servers per network. Mainnet servers are run by four different operators; every
+ * broadcast goes to all of them (see venn/chain.ts), so one server that does not relay cannot
+ * strand a transaction.
+ */
 export const SERVERS: Partial<Record<Network, string[]>> = {
   chipnet: ['wss://chipnet.bch.ninja:50004', 'wss://chipnet.imaginary.cash:50004'],
+  mainnet: [
+    'wss://bch.imaginary.cash:50004',
+    'wss://fulcrum.greyh.at:50004',
+    'wss://blackie.c3-soft.com:50004',
+    'wss://bch.soul-dev.com:50004',
+  ],
 };
 
 /**
- * Header hash that proves the server follows Chipnet (not testnet3/testnet4). Read from two
- * independent Chipnet servers on 2026-11-16; the same servers match the BCHN Chipnet anchor
- * at height 121957.
+ * Header hash that proves the server follows the right chain. Chipnet (not testnet3/testnet4):
+ * read from two independent Chipnet servers on 2026-11-16; the same servers match the BCHN Chipnet
+ * anchor at height 121957. Mainnet: block 900000, identical on all four mainnet servers above on
+ * 2026-11-19.
  */
 export const CHECKPOINTS: Partial<Record<Network, { height: number; hash: string }>> = {
   chipnet: { height: 300000, hash: '00000000142fbee39fa4ba154cd61677beb9d446cfd43fe80fda4e1579f5d06a' },
+  mainnet: { height: 900000, hash: '000000000000000000ff9445c5039fd67d02e901b3cefe8bd55c1d6afb5fe1cf' },
 };
 
 export const scriptHash = (lockingBytecode: Bytes): string => binToHex(reverse(sha256(lockingBytecode)));

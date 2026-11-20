@@ -1,0 +1,20 @@
+{
+  "network": "chipnet",
+  "action": "pay",
+  "invitationIdentifier": "ea3c8fec1b8eabfbf830c3ab5863a26f",
+  "templateIdentifier": "bc704aef04f952d1de1b27c52fb2e0e086c30c91c174b43b02062814b3f2a74b",
+  "txid": "a05e6cea2dc60a35b694d271bff2a06737afe23751bde096dce18255e0f60e9f",
+  "source": "8b5f1cc7998d33f52c388281f587813459b24222bab3fef2c798efc883c96c5f:0",
+  "allowanceAddress": "bchtest:r0qf28rshxfcg5q9t07hasw83ns4d24lpkryz8wrcfzfax45pth75lzcsnp2c",
+  "recipient": "bchtest:zzsk9k5x0r08ue3mcmv2p753xy8upwctpgqcezrdt9",
+  "category": "4edbcfe9ff206905ed6aea18213a47f0f49172f72345b188acf199f41da7dc30",
+  "amountCents": "1500",
+  "feeSats": 1000,
+  "payoutCarrierSats": 1000,
+  "totalSatsOutOfAllowance": 2000,
+  "remainingCents": "96000",
+  "remainingReserveSats": 6000,
+  "refundHeight": 337798,
+  "paymentIntervalBlocks": 2,
+  "parentInvitation": "580f75a088c0339f7e95ceecb9f580e8"
+}

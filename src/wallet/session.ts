@@ -40,6 +40,17 @@ export async function openSession(id: string, secret: string, network: Network):
     });
   } catch (error) {
     link.close();
-    throw error;
+    throw explainOpenError(error, link.connection.walletName, network);
   }
+}
+
+/** The XO library's network-mismatch text names a different app; say which network each side is on. */
+export function explainOpenError(error: unknown, walletName: string, network: Network): unknown {
+  if ((error as { code?: string } | null)?.code !== 'wrong-network') return error;
+  const label = (net: Network) => (net === 'mainnet' ? 'Mainnet' : 'Chipnet');
+  const other: Network = network === 'mainnet' ? 'chipnet' : 'mainnet';
+  return new Error(
+    `${walletName} is connected on ${label(other)}, but Venn is on ${label(network)}. ` +
+      `Switch Venn back to ${label(other)}, or connect a wallet that is on ${label(network)}.`,
+  );
 }

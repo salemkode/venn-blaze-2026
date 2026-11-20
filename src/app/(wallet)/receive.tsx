@@ -6,7 +6,7 @@ import { useApp } from '../../state/AppState';
 import Receive, { type ReceiveAsset } from '../../screens/Receive';
 import { open } from '../../navigation';
 
-/** `?asset=usd|bch` picks the starting asset; without it Venn Test USD leads when available. */
+/** `?asset=usd|bch` picks the starting asset; without it the Venn asset (Venn Test USD or MUSD) leads when available. */
 export default function ReceivePage() {
   const { wallet, venns } = useApp();
   const param = z.object({ asset: z.enum(['usd', 'bch']) }).safeParse(useLocalSearchParams());

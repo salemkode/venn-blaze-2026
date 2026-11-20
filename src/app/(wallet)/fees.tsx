@@ -7,6 +7,7 @@ import BrandMark from '../../ui/BrandMark';
 import { Note, PillButton } from '../../ui/kit';
 import { colors } from '../../ui/theme';
 import { groupSats } from '../../ui/format';
+import { feeUnit, networkName } from '../../venn/asset';
 
 const grouped = groupSats;
 
@@ -24,10 +25,10 @@ export default function Fees() {
           <X size={18} color={colors.muted} />
         </Pressable>
       </View>
-      <View style={s.card} accessible accessibilityLabel={`Fee balance on your Venn key: ${balance}, Chipnet`}>
+      <View style={s.card} accessible accessibilityLabel={`Fee balance on your Venn key: ${balance}, ${networkName(venns.network)}`}>
         <View style={s.topLine}>
-          <Text style={s.cardLabel}>tBCH on your Venn key</Text>
-          <View style={s.network}><View style={s.dot} /><Text style={s.networkText}>Chipnet</Text></View>
+          <Text style={s.cardLabel}>{feeUnit(venns.network)} on your Venn key</Text>
+          <View style={s.network}><View style={s.dot} /><Text style={s.networkText}>{networkName(venns.network)}</Text></View>
         </View>
         <View style={s.balanceLine}>
           <Text adjustsFontSizeToFit numberOfLines={1} style={s.amount}>
@@ -37,10 +38,10 @@ export default function Fees() {
         </View>
       </View>
       <Text style={s.explanation}>
-        Pays the network costs when you create, fund or pay from a Venn. It is separate from your Venn Test USD.
+        Pays the network costs when you create, fund or pay from a Venn. It is separate from your {venns.asset.symbol}.
       </Text>
       {venns.error ? <Note danger>{venns.error}</Note> : null}
-      <PillButton label="Top up with tBCH" icon={ArrowDownLeft} disabled={!venns.available || !venns.keyAddress}
+      <PillButton label={`Top up with ${feeUnit(venns.network)}`} icon={ArrowDownLeft} disabled={!venns.available || !venns.keyAddress}
         onPress={() => router.replace({ pathname: '/(wallet)/key', params: { funding: 'fees' } })} />
       <Pressable accessibilityRole="button" disabled={loading || !venns.available}
         accessibilityState={{ disabled: loading || !venns.available }} style={s.refresh} onPress={() => void venns.reload()}>

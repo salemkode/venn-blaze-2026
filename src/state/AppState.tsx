@@ -8,7 +8,7 @@ function useAppState() {
   const wallet = useWallet();
   const localKeys = Platform.OS !== 'web';
   const venns = useVenns(wallet.wallet?.id ?? null, wallet.network, wallet.phase === 'ready' && localKeys && !wallet.wallet?.connected);
-  const history = useHistory(wallet.address, wallet.network);
+  const history = useHistory(wallet.address, wallet.network, wallet.branches);
   return { wallet, venns, history, localKeys };
 }
 const AppContext = createContext<ReturnType<typeof useAppState> | null>(null);

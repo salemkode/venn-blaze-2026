@@ -45,6 +45,21 @@ export function connectionName(c: Connection) {
 export const connectionNetwork = (c: Connection) =>
   c.paths.find(p => p.name === 'receive')!.xpub.startsWith('xpub') ? 'mainnet' : 'chipnet';
 
+/**
+ * The network to open on. A choice made in Settings wins. Without one, Venn starts on Mainnet,
+ * except that a wallet paired before Mainnet became the default stays on its own network.
+ */
+export function startingNetwork(chosen: 'chipnet' | 'mainnet' | null, secret: string | null) {
+  if (chosen) return chosen;
+  let connection: Connection | null = null;
+  try {
+    connection = secret ? decodeConnection(secret) : null;
+  } catch {
+    connection = null;
+  }
+  return connection ? connectionNetwork(connection) : 'mainnet';
+}
+
 /** WizardConnect's JSON form for bytes and big integers, the same as libauth's. */
 export function toRelayJson(value: unknown): unknown {
   if (value instanceof Uint8Array)

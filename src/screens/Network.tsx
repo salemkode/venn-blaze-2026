@@ -1,17 +1,16 @@
-import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { Check } from 'lucide-react-native';
 import { SettingsGroup, SettingsRow, settingsStyle } from '../ui/SettingsList';
+import { confirmAction } from '../ui/confirm';
 import { colors } from '../ui/theme';
 import type { WalletState } from '../wallet/useWallet';
 
 const OPTIONS = {
-  chipnet: { label: 'Chipnet', detail: 'Test network · free test coins · Venns run here' },
-  mainnet: { label: 'Mainnet', detail: 'Real BCH · ordinary payments only, no Venns' },
+  chipnet: { label: 'Chipnet', detail: 'Test network · free test coins · Venns hold Venn Test USD' },
+  mainnet: { label: 'Mainnet', detail: 'Real BCH · Venns hold MUSD' },
 } as const;
 
 export default function Network({ wallet }: { wallet: WalletState }) {
-  const [confirming, setConfirming] = useState(false);
   const locked = Boolean(wallet.busy || wallet.pending);
   return (
     <View testID="network-settings">
@@ -29,42 +28,33 @@ export default function Network({ wallet }: { wallet: WalletState }) {
             checked={wallet.network === network}
             disabled={locked}
             onPress={() => {
-              if (network === 'mainnet') {
-                setConfirming(wallet.network !== network);
-                return;
-              }
-              setConfirming(false);
-              if (wallet.network !== network) void wallet.changeNetwork(network);
+              if (wallet.network === network) return;
+              if (network === 'chipnet') return wallet.changeNetwork(network);
+              confirmAction({
+                title: 'Use real Bitcoin Cash?',
+                message:
+                  'Mainnet uses real BCH, and payments can’t be undone. Chipnet test coins can’t move to Mainnet. Venns on Mainnet hold real money in contracts that have had internal reviews but no external audit, so keep amounts small.',
+                cancel: 'Stay on Chipnet',
+                action: 'Switch to Mainnet',
+                onConfirm: () => wallet.changeNetwork(network),
+              });
             }}
           />
         ))}
       </SettingsGroup>
-      {confirming ? (
-        <>
-          <Text accessibilityLiveRegion="polite" style={settingsStyle.introduction}>
-            Mainnet uses real Bitcoin Cash. Payments can’t be undone and Chipnet test coins can’t move to Mainnet.
-          </Text>
-          <SettingsGroup>
-            <SettingsRow testID="network-mainnet-confirm" label="Switch to Mainnet" disabled={locked} onPress={() => {
-              setConfirming(false);
-              void wallet.changeNetwork('mainnet');
-            }} />
-            <SettingsRow testID="network-mainnet-cancel" label="Stay on Chipnet" onPress={() => setConfirming(false)} />
-          </SettingsGroup>
-        </>
-      ) : null}
       {wallet.pending ? (
         <Text style={[settingsStyle.introduction, settingsStyle.danger]}>
           Check the pending payment before changing networks.
         </Text>
       ) : null}
       <Text accessibilityRole="header" style={local.heading}>
-        Why Venns are Chipnet-only
+        Venns on each network
       </Text>
       <Text style={settingsStyle.introduction}>
-        The Venn contract has not had an independent security review yet. Until it does, Venns hold Venn Test USD on
-        Chipnet, which has no real value. On Mainnet you can hold and send real BCH; switch back to Chipnet to use
-        Venns.
+        On Chipnet, Venns hold Venn Test USD, which has no real value: the place to try things. On Mainnet they hold
+        MUSD (Moria USD) and pay fees in real BCH. Moria stopped minting MUSD in April 2026, so its dollar value depends
+        on what others will pay for it. The Venn contracts have had two internal reviews, not an external audit, so
+        keep Mainnet amounts small. Each network keeps its own Venns.
       </Text>
     </View>
   );

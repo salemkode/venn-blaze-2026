@@ -1,5 +1,6 @@
-// Chain reads and writes for Venns, through the Chipnet servers in core/electrum.
+// Chain reads and writes for Venns and Circles, through the servers in core/electrum (Chipnet or Mainnet).
 import { type Bytes, binToHex, equal, hexToBin } from '../core/bytes';
+import type { Network } from '../core/cashaddr';
 import { ElectrumClient, SERVERS, scriptHash as scriptHashOf } from '../core/electrum';
 import { decodeTransaction, encodeTransaction, txidOf, type Transaction } from '../core/tx';
 import { p2pkhForPublicKey } from '../core/draft';
@@ -10,34 +11,39 @@ import { vennCoins } from './coins';
 import { type VennParams, moneyLocking, vennLocking } from './contract';
 import { officialCheck } from './verify';
 
-let client: ElectrumClient | null = null;
-export const chain = () => (client ??= new ElectrumClient('chipnet'));
+const clients: Partial<Record<Network, ElectrumClient>> = {};
+/** One shared client per network. Every caller names the network: nothing defaults to one. */
+export const chain = (network: Network) => (clients[network] ??= new ElectrumClient(network));
 
 /** The time a new Venn transaction may claim: just before the chain's median time. */
-export const chainNow = async () => BigInt((await chain().medianTimePast(await chain().tipHeight())) - 1);
+export const chainNow = async (network: Network) =>
+  BigInt((await chain(network).medianTimePast(await chain(network).tipHeight())) - 1);
 
-export const keyCoins = (publicKey: Bytes) => chain().utxos(p2pkhForPublicKey(publicKey));
+export const keyCoins = (publicKey: Bytes, network: Network) => chain(network).utxos(p2pkhForPublicKey(publicKey));
 
 export async function readVenn(params: VennParams) {
-  const [cards, money] = await Promise.all([chain().utxos(vennLocking(params)), chain().utxos(moneyLocking(params))]);
+  const net = chain(params.network);
+  const [cards, money] = await Promise.all([net.utxos(vennLocking(params)), net.utxos(moneyLocking(params))]);
   const utxos = [...cards, ...money];
-  const genesis = decodeTransaction(hexToBin(await chain().transactionHex(await genesisTxid(params))));
+  const genesis = decodeTransaction(hexToBin(await net.transactionHex(await genesisTxid(params))));
   const official = officialCheck({ params, genesis, utxos });
   return { official, coins: vennCoins(params, utxos), genesis };
 }
 
 const genesisCache = new Map<string, string>();
 async function genesisTxid(params: VennParams) {
-  const hit = genesisCache.get(params.vaultCategory);
+  const cacheKey = `${params.network}:${params.vaultCategory}`;
+  const hit = genesisCache.get(cacheKey);
   if (hit) return hit;
+  const net = chain(params.network);
   // The rules NFT's first transaction is the genesis: find it in the Venn address history.
-  const history: { tx_hash: string }[] = await chain().request('blockchain.scripthash.get_history', [
+  const history: { tx_hash: string }[] = await net.request('blockchain.scripthash.get_history', [
     scriptHashOf(vennLocking(params)),
   ]);
   for (const h of history) {
-    const tx = decodeTransaction(hexToBin(await chain().transactionHex(h.tx_hash)));
+    const tx = decodeTransaction(hexToBin(await net.transactionHex(h.tx_hash)));
     if (tx.inputs[0]?.txid === params.vaultCategory && tx.inputs[0].vout === 0) {
-      genesisCache.set(params.vaultCategory, h.tx_hash);
+      genesisCache.set(cacheKey, h.tx_hash);
       return h.tx_hash;
     }
   }
@@ -46,25 +52,25 @@ async function genesisTxid(params: VennParams) {
 
 /** Reads a Circle: its state and money, and whether its creation makes it official. */
 export async function readCircle(params: CircleParams) {
-  const [state, money] = await Promise.all([
-    chain().utxos(circleLocking(params)),
-    chain().utxos(circleMoneyLocking(params)),
-  ]);
-  const genesis = decodeTransaction(hexToBin(await chain().transactionHex(await circleGenesisTxid(params))));
+  const net = chain(params.network);
+  const [state, money] = await Promise.all([net.utxos(circleLocking(params)), net.utxos(circleMoneyLocking(params))]);
+  const genesis = decodeTransaction(hexToBin(await net.transactionHex(await circleGenesisTxid(params))));
   const coins = circleCoins(params, [...state, ...money]);
   return { official: circleOfficial(params, genesis, coins), coins, genesis };
 }
 
 async function circleGenesisTxid(params: CircleParams) {
-  const hit = genesisCache.get(params.circleCategory);
+  const cacheKey = `${params.network}:${params.circleCategory}`;
+  const hit = genesisCache.get(cacheKey);
   if (hit) return hit;
-  const history: { tx_hash: string }[] = await chain().request('blockchain.scripthash.get_history', [
+  const net = chain(params.network);
+  const history: { tx_hash: string }[] = await net.request('blockchain.scripthash.get_history', [
     scriptHashOf(circleLocking(params)),
   ]);
   for (const h of history) {
-    const tx = decodeTransaction(hexToBin(await chain().transactionHex(h.tx_hash)));
+    const tx = decodeTransaction(hexToBin(await net.transactionHex(h.tx_hash)));
     if (tx.inputs[0]?.txid === params.circleCategory && tx.inputs[0].vout === 0) {
-      genesisCache.set(params.circleCategory, h.tx_hash);
+      genesisCache.set(cacheKey, h.tx_hash);
       return h.tx_hash;
     }
   }
@@ -75,15 +81,16 @@ async function circleGenesisTxid(params: CircleParams) {
  * Venns and Circles this key was given a seat in: creation transactions that paid it and
  * carry a marker.
  */
-export async function findVenns(publicKey: Bytes, network: 'chipnet') {
+export async function findVenns(publicKey: Bytes, network: Network) {
   const locking = p2pkhForPublicKey(publicKey);
-  const history: { tx_hash: string }[] = await chain().request('blockchain.scripthash.get_history', [
+  const net = chain(network);
+  const history: { tx_hash: string }[] = await net.request('blockchain.scripthash.get_history', [
     scriptHashOf(locking),
   ]);
   const found: { params: VennParams; plan?: string; txid: string; genesis: Transaction }[] = [];
   const circles: { params: CircleParams; plan?: string; txid: string }[] = [];
   for (const h of history) {
-    const tx = decodeTransaction(hexToBin(await chain().transactionHex(h.tx_hash)));
+    const tx = decodeTransaction(hexToBin(await net.transactionHex(h.tx_hash)));
     const circle = readCircleGenesis(tx, network);
     if (circle && equal(tx.outputs[0].lockingBytecode, circleLocking(circle.params))) {
       circles.push({ ...circle, txid: h.tx_hash });
@@ -126,22 +133,22 @@ export function readMarker(tx: Transaction) {
 
 /**
  * Broadcasts once; an unclear answer is reported, never retried. After the primary server
- * accepts it, the same bytes also go to every other Chipnet server: on 19 November one server
- * kept a long unconfirmed chain to itself, and nothing confirmed until another node saw it.
- * Sending identical bytes again is safe (same txid, no new spend) and its outcome is ignored.
+ * accepts it, the same bytes also go to every other server of that network: on 19 November one
+ * Chipnet server kept a long unconfirmed chain to itself, and nothing confirmed until another node
+ * saw it. Sending identical bytes again is safe (same txid, no new spend) and its outcome is ignored.
  */
-export async function broadcast(tx: Transaction) {
+export async function broadcast(tx: Transaction, network: Network) {
   const raw = binToHex(encodeTransaction(tx));
   const txid = txidOf(tx);
-  const primary = chain();
+  const primary = chain(network);
   const result = await primary.broadcast(raw, txid);
   // Every other server, whichever one the client actually used (it may have failed over).
-  for (const url of SERVERS.chipnet ?? []) if (url !== primary.server) relay(url, raw, txid);
+  for (const url of SERVERS[network] ?? []) if (url !== primary.server) relay(network, url, raw, txid);
   return result;
 }
 
-const relay = (url: string, raw: string, txid: string) => {
-  const extra = new ElectrumClient('chipnet', 10_000, url);
+const relay = (network: Network, url: string, raw: string, txid: string) => {
+  const extra = new ElectrumClient(network, 10_000, url);
   extra
     .broadcast(raw, txid)
     .catch(() => undefined)

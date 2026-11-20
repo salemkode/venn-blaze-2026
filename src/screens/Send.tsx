@@ -72,9 +72,11 @@ export function SendScreen({
   return (
     <View testID="send-screen">
       <Text testID="send-scope" style={local.scope}>
-        {network === 'chipnet'
-          ? 'Sends tBCH from your wallet. Venn Test USD is paid from a Venn’s page on the Venns tab.'
-          : 'Sends BCH from your wallet.'}
+        {approver
+          ? `Sends ${unit} from ${approver}, which approves each payment.`
+          : network === 'chipnet'
+            ? 'Sends tBCH from your wallet. Venn Test USD is paid from a Venn’s page on the Venns tab.'
+            : 'Sends BCH from your wallet.'}
       </Text>
       <View style={s.recipientField}>
         <Text style={s.recipientLabel}>To · {config.label} address</Text>

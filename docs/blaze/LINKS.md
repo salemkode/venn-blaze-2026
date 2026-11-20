@@ -1,0 +1,55 @@
+# Venn · submission links
+
+Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BEFORE-SUBMIT.md](TODO-BEFORE-SUBMIT.md).
+
+## Deck
+
+| | Link | Status |
+| --- | --- | --- |
+| Widget Factory copy (Google Slides, read-only share) | *pending* | Needs the Google step: import [venn-blaze-2026.pptx](venn-blaze-2026.pptx) into Google Drive as Slides (a copy derived from the official template), then share “anyone with the link can view”. See [deck/GOOGLE-SLIDES.md](deck/GOOGLE-SLIDES.md). |
+| PowerPoint and PDF | [venn-blaze-2026.pptx](venn-blaze-2026.pptx) · [venn-blaze-2026.pdf](venn-blaze-2026.pdf) | Built from a copy of the official template; also served at `/blaze/venn-blaze-2026.pdf` after the next deploy. |
+| Official template (never edited) | https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit | — |
+| Earlier Google Slides draft | https://docs.google.com/presentation/d/1QlhgJcfTJWVvpg-cUVZjoKbgj-s2yUZquwFevxeT9qc/edit | Private; content from 18 Nov is out of date. Do not submit. |
+
+## BUIDL
+
+| | Link | Status |
+| --- | --- | --- |
+| DoraHacks BUIDL draft | *unknown* | DoraHacks requires your login; no draft was found or created from here. Field values are in [SUBMISSION.md](SUBMISSION.md). |
+| Hackathon page | https://dorahacks.io/hackathon/bchblaze2026/detail | — |
+
+## Source
+
+| | Link | Status |
+| --- | --- | --- |
+| After (presented work) | https://github.com/salemkode/venn-blaze-2026 | Public, but its `hackathon` branch is a 19 Nov snapshot (`52b8aaf`) from before the final contracts, Mainnet run and today's fixes. Pending: push the task branch `docs/blaze-final-submission` as a new snapshot, then pin the commit link here. |
+| Full history (private) | https://github.com/salemkode/venn | Private; `master` at `0f8152d`; this work is on the local branch `docs/blaze-final-submission`. |
+| Before: wallet starter at kickoff | https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f | Public. Last commit 14 Nov 13:55 UTC, before the 14:00 UTC kickoff. |
+| Before: wallet starter, 13 Nov | https://github.com/salemkode/xo-react-native-wallet/tree/ba90bd04f9f4db52ce30b2cef69f662efbb32482 | Public. |
+| Before: native libauth adapter | https://github.com/salemkode/react-native-libauth | Public. Last pre-event push 14 Nov 13:53 UTC. |
+
+## Demo
+
+| | Link | Status |
+| --- | --- | --- |
+| After: judge page | https://venn.salemkode.com/blaze/ | Live (Worker `venn-blaze`, deployed 19 Nov 08:52 UTC from an earlier build). Pending: redeploy the 20 Nov build. |
+| After: web wallet | https://venn.salemkode.com/ | Same. |
+| After: Android preview | https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview | Signed APK, 19 Nov, Chipnet only (built before Mainnet support). |
+| Before | https://github.com/salemkode/xo-react-native-wallet/blob/b32a7fd85674791e557c4bc339da29f3842cf68f/README.md | The starter's README and screenshot; no hosted demo existed before the event. |
+
+## Banner contents
+
+Rendered at the top of the judge page and the web wallet from [banner.json](banner.json):
+
+> **BCH BLAZE 2026** · Deck · Source · What’s new · Before the event: code · demo · EMBER2026: `<address>`
+
+| Banner item | Target |
+| --- | --- |
+| Deck | The Google Slides share link once it exists; until then `/blaze/venn-blaze-2026.pdf` |
+| Source | https://github.com/salemkode/venn-blaze-2026 |
+| Before the event: code | xo-react-native-wallet @ b32a7fd |
+| Before the event: demo | Its README at b32a7fd |
+| What’s new | https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event (404 until the snapshot is pushed; the web wallet's “See Venns running on Mainnet” link has the same dependency) |
+| EMBER2026 | `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (chosen by the entrant on 20 Nov; the judge page footer shows the same value) |
+
+To change any of these, edit `banner.json` and run `npm run build:blaze`; both pages pick it up.

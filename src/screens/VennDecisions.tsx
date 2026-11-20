@@ -10,7 +10,7 @@ import { Chip, DetailRow, Field, Note, PillButton, SafeQR } from '../ui/kit';
 import { Choice, Toggle } from '../ui/Choice';
 import { confirmAction } from '../ui/confirm';
 import { formatSats } from '../ui/format';
-import { VENN_TEST_USD, parseTestUsd, tokenRecipient } from '../venn/asset';
+import { parseAssetAmount, tokenRecipient, vennAsset } from '../venn/asset';
 import type { MemberSpec, VoteChange } from '../venn/build';
 import { BUDGET, ROLE, RULE, STOP, type RulesState } from '../venn/layout';
 import { DAY } from '../venn/presets';
@@ -18,7 +18,6 @@ import { decodeKeyCode, pkhOfKey } from '../venn/proposal';
 import { money } from '../venn/summary';
 import type { ProposalView, VennView, VennsState } from '../venn/useVenns';
 
-const unit = VENN_TEST_USD.symbol;
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const shareText = (message: string) => {
   Share.share({ message }).catch(() => undefined);
@@ -204,6 +203,8 @@ function ProposalCard({ p, view, venns }: { p: ProposalView; view: VennView; ven
 
 /** The form for a new proposal. */
 function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; onDone(): void }) {
+  const network = view.params.network;
+  const unit = vennAsset(network).symbol;
   const coins = view.coins!;
   const rules = coins.rules.state;
   const cards = coins.cards;
@@ -224,14 +225,14 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
 
   const build = (): { change: VoteChange; title: string } => {
     const daily = (text: string) => {
-      const units = parseTestUsd(text);
+      const units = parseAssetAmount(text, network);
       if (units <= 0n) throw new Error('Enter an amount above zero.');
       return units;
     };
     const whoName = nameOf(who, cards.findIndex(c => c.state.pkh === who));
     if (kind === 'pay') {
       const units = daily(amount);
-      return { change: { payments: [{ to: tokenRecipient(to), amount: units }] }, title: `Pay ${money(units, unit)}` };
+      return { change: { payments: [{ to: tokenRecipient(to, network), amount: units }] }, title: `Pay ${money(units, unit)}` };
     }
     if (kind === 'add') {
       const { publicKey } = decodeKeyCode(keyCode);
@@ -245,7 +246,7 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
     if (kind === 'remove') return { change: { remove: [who] }, title: `Remove ${whoName}` };
     if (kind === 'budget') {
       const card = cards.find(c => c.state.pkh === who)!.state;
-      if (!amount.trim() || parseTestUsd(amount) === 0n)
+      if (!amount.trim() || parseAssetAmount(amount, network) === 0n)
         return {
           change: { update: [{ pkh: who, roles: card.roles & ~ROLE.SPEND, budgetMode: BUDGET.NONE, budget: 0n, period: 0n, cap: 0n }] },
           title: `Remove ${whoName}’s budget`,

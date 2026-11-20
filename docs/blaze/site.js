@@ -2,42 +2,54 @@
   const budget = document.querySelector('[data-budget]');
 
   if (budget) {
-    const allowance = 50_000;
-    const format = new Intl.NumberFormat('en-US');
+    const allowance = 5000; // cents: $50.00 a day
+    const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+    const show = cents => money.format(cents / 100);
     const amount = budget.querySelector('input');
     const outcome = budget.querySelector('[data-outcome]');
     const verdict = budget.querySelector('[data-verdict]');
     const remaining = budget.querySelector('[data-remaining]');
+    const left = budget.querySelector('[data-left]');
+    const bar = budget.querySelector('[data-bar]');
     const presets = budget.querySelectorAll('[data-amount]');
 
+    function setYou(cents) {
+      left.textContent = show(cents);
+      bar.style.setProperty('--fill', String(cents / allowance));
+    }
+
     function showPayment() {
-      const payment = amount.valueAsNumber;
-      const valid = amount.validity.valid && Number.isInteger(payment);
-      const approved = valid && payment <= allowance;
+      const cents = Math.round(amount.valueAsNumber * 100);
+      const valid = amount.validity.valid && Number.isFinite(cents) && cents > 0;
 
       for (const preset of presets) {
-        preset.setAttribute('aria-pressed', String(Number(preset.dataset.amount) === payment));
+        preset.setAttribute('aria-pressed', String(Math.round(Number(preset.dataset.amount) * 100) === cents));
       }
 
       if (!valid) {
         outcome.dataset.state = 'invalid';
-        verdict.textContent = 'Enter a whole amount';
-        remaining.textContent = 'Choose between 1 and 1,000,000 sat.';
-      } else if (approved) {
+        verdict.textContent = 'Enter an amount.';
+        remaining.textContent = 'Try something between $0.01 and $10,000.';
+        setYou(allowance);
+      } else if (cents <= allowance) {
         outcome.dataset.state = 'approved';
-        verdict.textContent = 'Fits the budget';
-        remaining.textContent = format.format(allowance - payment) + ' sat would remain.';
+        verdict.textContent = 'Paid.';
+        remaining.textContent = cents === allowance
+          ? 'That uses your whole budget for today. Sam and Lee still have $50.00.'
+          : 'You have ' + show(allowance - cents) + ' left today. Sam and Lee still have $50.00.';
+        setYou(allowance - cents);
       } else {
         outcome.dataset.state = 'rejected';
-        verdict.textContent = 'Over the budget';
-        remaining.textContent = format.format(payment - allowance) + ' sat above the allowance. The balance stays at 50,000 sat.';
+        verdict.textContent = 'Not sent.';
+        remaining.textContent = 'That is ' + show(cents - allowance) + ' over your budget, so nothing leaves the fund. Ask the group to approve it.';
+        setYou(allowance);
       }
     }
 
     amount.addEventListener('input', showPayment);
     for (const preset of presets) {
       preset.addEventListener('click', () => {
-        amount.value = preset.dataset.amount;
+        amount.value = Number(preset.dataset.amount).toFixed(2);
         showPayment();
       });
     }

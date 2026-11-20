@@ -1,5 +1,5 @@
 // Approving a proposal someone shared: read exactly what the transaction does, checked
-// against the Venn's coins on Chipnet, then sign it with your Venn key. And following a Venn
+// against the Venn's coins on its network, then sign it with your Venn key. And following a Venn
 // from its code on a new phone that is taking a seat back.
 import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';

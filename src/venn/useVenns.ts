@@ -8,7 +8,7 @@ import { hash160 } from '../core/crypto';
 import { NeedsPreparation, p2pkhForPublicKey, signPersonal } from '../core/draft';
 import { addressForLockingBytecode } from '../core/cashaddr';
 import type { Transaction } from '../core/tx';
-import { requireTestUsd, tokenRecipient, VENN_FEE_ALLOCATION, VENN_TEST_USD } from './asset';
+import { requireVennAsset, tokenRecipient, VENN_FEE_ALLOCATION, vennAsset } from './asset';
 import { availableBudget } from './budget';
 import {
   COIN_VALUE,
@@ -116,8 +116,8 @@ export interface ProposalView {
 const moneyOf = (params: VennParams, coins: VennCoins | null) =>
   (coins?.money ?? []).reduce((sum, u) => sum + (params.assetCategory ? u.token?.amount ?? 0n : u.value), 0n);
 
-const circleParamsOf = (c: SavedCircle): CircleParams => ({
-  network: 'chipnet',
+const circleParamsOf = (c: SavedCircle, network: Network): CircleParams => ({
+  network,
   circleCategory: c.category,
   assetCategory: c.assetCategory,
   contribution: BigInt(c.contribution),
@@ -139,7 +139,10 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [error, setError] = useState('');
   const revision = useRef(0);
-  const available = enabled && network === 'chipnet' && Boolean(walletId);
+  const available = enabled && Boolean(walletId);
+  const asset = vennAsset(network);
+  /** Each network keeps its own list of Venns, Circles, plans and proposals on this device. */
+  const bookId = walletId ? (network === 'mainnet' ? `${walletId}:mainnet` : walletId) : null;
 
   const load = useCallback(async () => {
     if (!available || !walletId) return;
@@ -154,15 +157,15 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       const record = await readVennPending();
       if (current !== revision.current) return;
       setPending(record?.txid ?? null);
-      const own = await keyCoins(key);
+      const own = await keyCoins(key, network);
       if (current !== revision.current) return;
       setKeyTokens(own.reduce((total, u) => total + (
-        u.token?.category === VENN_TEST_USD.category && !u.token.nft ? u.token.amount : 0n
+        u.token?.category === asset.category && !u.token.nft ? u.token.amount : 0n
       ), 0n));
       setKeyBalance(own.filter(u => !u.token).reduce((a, u) => a + u.value, 0n));
       // New seats show up as Venn and Circle creations that paid this key.
-      const found = await findVenns(key, 'chipnet');
-      let book = await readBook(walletId);
+      const found = await findVenns(key, network);
+      let book = await readBook(bookId!);
       const known = new Set(book.venns.map(v => v.category));
       const fresh = found.venns.filter(f => !known.has(f.params.vaultCategory));
       const knownCircles = new Set(book.circles.map(c => c.category));
@@ -171,7 +174,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
         const planOf = (b: typeof book, fp?: string) =>
           [...b.preparing.map(p => p.invite), ...b.joining.map(j => j.invite)].find(i => fingerprint(i) === fp);
         const seatOf = (b: typeof book, fp?: string) => b.joining.find(j => j.fingerprint === fp)?.seat;
-        book = await updateBook(walletId, b => ({
+        book = await updateBook(bookId!, b => ({
           ...b,
           venns: [
             ...b.venns,
@@ -212,11 +215,11 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
           joining: b.joining.filter(j => ![...fresh, ...freshCircles].some(f => f.plan === j.fingerprint)),
         }));
       }
-      const now = await chainNow();
+      const now = await chainNow(network);
       const views = await Promise.all(
         book.venns.map(async (saved): Promise<VennView> => {
           const params: VennParams = {
-            network: 'chipnet',
+            network,
             vaultCategory: saved.category,
             ...(saved.assetCategory ? { assetCategory: saved.assetCategory } : {}),
           };
@@ -240,7 +243,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       );
       const circleViews = await Promise.all(
         book.circles.map(async (saved): Promise<CircleView> => {
-          const params = circleParamsOf(saved);
+          const params = circleParamsOf(saved, network);
           const { official, coins } = await readCircle(params);
           const state = coins?.state.state ?? null;
           return {
@@ -272,7 +275,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       setError((e as Error).message);
       setStatus('error');
     }
-  }, [available, walletId, network]);
+  }, [available, walletId, network, asset, bookId]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset the external wallet subscription before starting its async load.
@@ -294,35 +297,35 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   };
   const feeSource = async () => {
     const key = await myKey();
-    return { key, fee: { utxos: await keyCoins(key.publicKey), publicKey: key.publicKey } };
+    return { key, fee: { utxos: await keyCoins(key.publicKey, network), publicKey: key.publicKey } };
   };
   const usable = (view: VennView) => {
-    requireTestUsd(view.params);
+    requireVennAsset(view.params);
     if (view.official.status !== 'official' || !view.coins) throw new Error('This Venn is not official, so it cannot be used.');
     return view.coins;
   };
 
   /** Saves a plan being prepared and returns its invitation code. */
   const savePlan = async (invite: Invite) => {
-    requireTestUsd(invite);
-    await updateBook(walletId!, b => ({ ...b, preparing: [...b.preparing, { invite, acceptances: [] }] }));
+    requireVennAsset(invite);
+    await updateBook(bookId!, b => ({ ...b, preparing: [...b.preparing, { invite, acceptances: [] }] }));
     await load();
     return encodeInvite(invite);
   };
 
   const dropPlan = async (invite: Invite) => {
     const fp = fingerprint(invite);
-    await updateBook(walletId!, b => ({ ...b, preparing: b.preparing.filter(p => fingerprint(p.invite) !== fp) }));
+    await updateBook(bookId!, b => ({ ...b, preparing: b.preparing.filter(p => fingerprint(p.invite) !== fp) }));
     await load();
   };
 
   /** Adds someone's acceptance to the plan it belongs to. */
   const addAcceptance = async (code: string) => {
-    const book = await readBook(walletId!);
+    const book = await readBook(bookId!);
     for (const p of book.preparing) {
       try {
         const a = decodeAcceptance(code, p.invite);
-        await updateBook(walletId!, b => ({
+        await updateBook(bookId!, b => ({
           ...b,
           preparing: b.preparing.map(q =>
             fingerprint(q.invite) === a.fingerprint
@@ -343,15 +346,15 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   const openInvite = (code: string) => {
     const invite = decodeInvite(code);
     if (invite.network !== network) throw new Error(`This invitation is for ${invite.network}.`);
-    requireTestUsd(invite);
+    requireVennAsset(invite);
     return invite;
   };
 
   /** Accepts a seat and returns the code to send back to the creator. */
   const acceptInvite = async (invite: Invite, seat: number) => {
-    requireTestUsd(invite);
+    requireVennAsset(invite);
     const code = encodeAcceptance(accept(invite, seat, await myKey()));
-    await updateBook(walletId!, b => ({
+    await updateBook(bookId!, b => ({
       ...b,
       joining: [
         ...b.joining.filter(j => j.fingerprint !== fingerprint(invite)),
@@ -363,13 +366,13 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   /** Builds the exact deposit and sponsor allocation for review after every seat accepts. */
   const prepareCreate = async (invite: Invite, deposit: bigint) => {
-    requireTestUsd(invite);
+    requireVennAsset(invite);
     const key = await myKey();
-    const book = await readBook(walletId!);
+    const book = await readBook(bookId!);
     const plan = book.preparing.find(p => fingerprint(p.invite) === fingerprint(invite));
     if (!plan) throw new Error('This plan is no longer on this wallet.');
     const members = membersFor(invite, binToHex(key.publicKey), plan.acceptances);
-    const utxos = await keyCoins(key.publicKey);
+    const utxos = await keyCoins(key.publicKey, network);
     const names = Object.fromEntries(
       members.map((member, index) => [binToHex(hash160(hexToBin(member.publicKey))), invite.seats[index].name]),
     );
@@ -381,12 +384,12 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
         const c = buildCircleGenesis({
           utxos,
           publicKey: key.publicKey,
-          network: 'chipnet',
-          assetCategory: VENN_TEST_USD.category,
+          network,
+          assetCategory: asset.category,
           members: order,
           contribution: BigInt(invite.circle.contribution),
           period: BigInt(invite.circle.period),
-          start: await chainNow(),
+          start: await chainNow(network),
           gas: VENN_FEE_ALLOCATION,
           plan: fingerprint(invite),
         });
@@ -395,10 +398,10 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
         const v = buildVennGenesis({
           utxos,
           publicKey: key.publicKey,
-          network: 'chipnet',
+          network,
           members,
           settings: invite.settings as never,
-          asset: { category: VENN_TEST_USD.category, utxos },
+          asset: { category: asset.category, utxos },
           deposit,
           gas: VENN_FEE_ALLOCATION,
           plan: fingerprint(invite),
@@ -411,7 +414,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       return {
         kind: 'feePreparation' as const, walletId, invite,
         tx: signPersonal(draft, key.privateKey, key.publicKey),
-        address: vennKeyAddress(key.publicKey, 'chipnet'),
+        address: vennKeyAddress(key.publicKey, network),
         amountSatoshis: draft.tx.outputs[0].value,
         totalSatoshis: draft.sources[0].value,
         fee: draft.fee,
@@ -436,7 +439,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     if (!available || !walletId || prepared.walletId !== walletId || AppState.currentState !== 'active')
       throw new Error('Open the same wallet and review the transaction again.');
     try {
-      return await sendVennTransaction(prepared.tx, prepared.leadLock);
+      return await sendVennTransaction(prepared.tx, network, prepared.leadLock);
     } finally {
       const record = await readVennPending();
       setPending(record?.txid ?? null);
@@ -445,8 +448,8 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   const create = async (prepared: Awaited<ReturnType<typeof prepareCreate>>) => {
     const { invite } = prepared;
-    requireTestUsd(invite);
-    const book = await readBook(walletId!);
+    requireVennAsset(invite);
+    const book = await readBook(bookId!);
     if (!book.preparing.some(p => fingerprint(p.invite) === fingerprint(invite)))
       throw new Error('This plan is no longer on this wallet.');
     await send(prepared);
@@ -456,7 +459,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     }
     if (prepared.kind === 'circle') {
       const { circle, names } = prepared;
-      await updateBook(walletId!, b => ({
+      await updateBook(bookId!, b => ({
         ...b,
         circles: [
           ...b.circles.filter(c => c.category !== circle.circleCategory),
@@ -478,13 +481,13 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       return;
     }
     const { params, names } = prepared;
-    await updateBook(walletId!, b => ({
+    await updateBook(bookId!, b => ({
       ...b,
       venns: [
         ...b.venns.filter(v => v.category !== params.vaultCategory),
         {
           category: params.vaultCategory,
-          assetCategory: VENN_TEST_USD.category,
+          assetCategory: asset.category,
           name: invite.name,
           type: invite.type,
           names,
@@ -503,7 +506,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     const coins = usable(view);
     if (view.seat < 0) throw new Error('You have no seat in this Venn.');
     const { key, fee } = await feeSource();
-    const draft = buildBudgetSpend(view.params, coins, view.seat, await chainNow(), tokenRecipient(to), amount, fee);
+    const draft = buildBudgetSpend(view.params, coins, view.seat, await chainNow(network), tokenRecipient(to, network), amount, fee);
     const tx = finalizeSpend(
       draft,
       binToHex(key.publicKey),
@@ -540,7 +543,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       ? [{ publicKey: binToHex(key.publicKey), signature: binToHex(signVenn(built.draft, key.privateKey)) }]
       : [];
     const code = encodeProposal(proposal);
-    await updateBook(walletId!, b => ({
+    await updateBook(bookId!, b => ({
       ...b,
       proposals: [
         ...b.proposals.filter(p => p.id !== id),
@@ -580,13 +583,13 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   /** Reads a proposal against the Venn's current coins, for someone deciding whether to approve. */
   const readProposal = async (code: string) => {
     const proposal = decodeProposal(code);
-    const book = await readBook(walletId!);
+    const book = await readBook(bookId!);
     const saved = book.venns.find(v => v.category === proposal.vaultCategory && v.version === 2);
     if (!saved) throw new Error('This proposal is for a Venn this wallet is not in.');
     const { official, coins } = await readVenn(draftOf(proposal).venn!.params);
     if (official.status !== 'official' || !coins) throw new Error('That Venn is not official.');
-    const unit = (amount: bigint) => `${amount} ${proposal.assetCategory ? 'cents of Venn Test USD' : 'satoshis'}`;
-    const described = describeProposal(proposal, coins, saved.names, unit, 'chipnet');
+    const unit = (amount: bigint) => `${amount} ${proposal.assetCategory ? `cents of ${asset.symbol}` : 'satoshis'}`;
+    const described = describeProposal(proposal, coins, saved.names, unit, network);
     const key = await vennPublicKey(walletId!, network);
     const mine = pkhOfKey(key);
     return { proposal, saved, described, canSign: described.signers.includes(mine), id: proposalId(proposal) };
@@ -598,9 +601,9 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     const draft = draftOf(proposal);
     const approval = approvalFor(proposal, binToHex(key.publicKey), signVenn(draft, key.privateKey));
     const id = proposalId(proposal);
-    const book = await readBook(walletId!);
+    const book = await readBook(bookId!);
     if (book.proposals.some(p => p.id === id)) {
-      await updateBook(walletId!, b => ({
+      await updateBook(bookId!, b => ({
         ...b,
         proposals: b.proposals.map(p =>
           p.id === id
@@ -616,12 +619,12 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   /** Adds an approval code to the proposal it belongs to; returns the approver's name. */
   const addApproval = async (code: string) => {
     const approval = decodeApproval(code);
-    const book = await readBook(walletId!);
+    const book = await readBook(bookId!);
     const saved = book.proposals.find(p => p.id === approval.id);
     if (!saved) throw new Error('This approval is for a proposal this wallet did not make.');
     const proposal = decodeProposal(saved.code);
     if (!checkApproval(proposal, approval)) throw new Error('This approval is not signed correctly for this proposal.');
-    await updateBook(walletId!, b => ({
+    await updateBook(bookId!, b => ({
       ...b,
       proposals: b.proposals.map(p =>
         p.id === approval.id
@@ -636,7 +639,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   /** With enough approvals, signs the fee and builds the final transaction for review. */
   const prepareProposal = async (id: string) => {
-    const book = await readBook(walletId!);
+    const book = await readBook(bookId!);
     const saved = book.proposals.find(p => p.id === id);
     if (!saved) throw new Error('This proposal is no longer on this wallet.');
     const proposal = decodeProposal(saved.code);
@@ -655,13 +658,13 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   const sendProposal = async (prepared: Awaited<ReturnType<typeof prepareProposal>>) => {
     const txid = await send(prepared);
-    await updateBook(walletId!, b => ({ ...b, proposals: b.proposals.filter(p => p.id !== prepared.id) }));
+    await updateBook(bookId!, b => ({ ...b, proposals: b.proposals.filter(p => p.id !== prepared.id) }));
     await load();
     return txid;
   };
 
   const dropProposal = async (id: string) => {
-    await updateBook(walletId!, b => ({ ...b, proposals: b.proposals.filter(p => p.id !== id) }));
+    await updateBook(bookId!, b => ({ ...b, proposals: b.proposals.filter(p => p.id !== id) }));
     await load();
   };
 
@@ -688,7 +691,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     const coins = usable(view);
     if (view.incoming < 0) throw new Error('No recovery is waiting for this wallet’s key.');
     const card = coins.cards[view.incoming];
-    const client = chain();
+    const client = chain(network);
     const elapsed = await client.lockElapsed(card.height, await client.tipHeight());
     const { key, fee } = await feeSource();
     const draft = buildRecoveryComplete(view.params, coins, card.state.pkh, elapsed, fee);
@@ -703,6 +706,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   /** A Venn's code, for a member's new phone to follow while its recovery completes. */
   const vennCode = (view: VennView) =>
     encodeVennCode({
+      network,
       vaultCategory: view.params.vaultCategory,
       ...(view.params.assetCategory ? { assetCategory: view.params.assetCategory } : {}),
       name: view.saved.name,
@@ -711,11 +715,12 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   /** Follows a Venn from its code (a new phone waiting to take over its seat). */
   const followVenn = async (code: string) => {
     const v = decodeVennCode(code);
-    requireTestUsd({ network: 'chipnet', assetCategory: v.assetCategory });
-    const params: VennParams = { network: 'chipnet', vaultCategory: v.vaultCategory, ...(v.assetCategory ? { assetCategory: v.assetCategory } : {}) };
+    if (v.network !== network) throw new Error(`This Venn is on ${v.network}, and this wallet is on ${network}.`);
+    requireVennAsset({ network, assetCategory: v.assetCategory });
+    const params: VennParams = { network, vaultCategory: v.vaultCategory, ...(v.assetCategory ? { assetCategory: v.assetCategory } : {}) };
     const { official } = await readVenn(params);
     if (official.status !== 'official') throw new Error(`That Venn is not official: ${official.reason}.`);
-    await updateBook(walletId!, b => ({
+    await updateBook(bookId!, b => ({
       ...b,
       venns: b.venns.some(x => x.category === v.vaultCategory)
         ? b.venns
@@ -746,12 +751,12 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   const preparePayout = async (view: CircleView) => {
     const coins = usableCircle(view);
     const { key, fee } = await feeSource();
-    const draft = buildPayout(view.params, coins, await chainNow(), fee);
+    const draft = buildPayout(view.params, coins, await chainNow(network), fee);
     const tx = finalizeCircle(draft, signFeeInputs(draft, key.privateKey, key.publicKey));
     const to = view.params.members[coins.state.state.round];
     return {
       tx, walletId, fee: draft.fee, amount: view.pot, recipient: to,
-      address: addressForLockingBytecode(payoutLocking(to), 'chipnet', true),
+      address: addressForLockingBytecode(payoutLocking(to), network, true),
       leadLock: draft.sources[0].lockingBytecode,
     };
   };
@@ -765,7 +770,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     const to = view.params.members[view.params.members.length - 1];
     return {
       tx, walletId, fee: draft.fee, amount: view.pot, recipient: to,
-      address: addressForLockingBytecode(payoutLocking(to), 'chipnet', true),
+      address: addressForLockingBytecode(payoutLocking(to), network, true),
       leadLock: draft.sources[0].lockingBytecode,
     };
   };
@@ -776,7 +781,9 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     keyAddress,
     keyBalance,
     keyTokens,
-    keyTokenAddress: publicKey ? addressForLockingBytecode(p2pkhForPublicKey(hexToBin(publicKey)), 'chipnet', true) : '',
+    keyTokenAddress: publicKey ? addressForLockingBytecode(p2pkhForPublicKey(hexToBin(publicKey)), network, true) : '',
+    network,
+    asset,
     keyCode: publicKey ? encodeKeyCode(publicKey) : '',
     pending,
     checkPending,

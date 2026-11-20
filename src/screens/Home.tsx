@@ -11,7 +11,7 @@ import { activeWallet, behind } from '../wallet/registry';
 import type { HistoryState } from '../wallet/useHistory';
 import type { WalletState } from '../wallet/useWallet';
 import type { VennsState } from '../venn/useVenns';
-import { formatTestUsd, VENN_TEST_USD } from '../venn/asset';
+import { formatAssetAmount, networkName } from '../venn/asset';
 
 export default function Home({
   wallet,
@@ -105,7 +105,7 @@ export default function Home({
       {venns.available ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${VENN_TEST_USD.symbol} on your Venn key, ${venns.keyTokens === null ? 'balance loading' : formatTestUsd(venns.keyTokens)}`}
+          accessibilityLabel={`${venns.asset.symbol} on your Venn key, ${venns.keyTokens === null ? 'balance loading' : formatAssetAmount(venns.keyTokens)}`}
           accessibilityHint="Opens your Venn key with its addresses and fee balance."
           testID="home-venn-usd"
           onPress={() => open('key')}
@@ -115,10 +115,10 @@ export default function Home({
             <CircleDollarSign size={22} color={c.tokenInk} strokeWidth={2} />
           </View>
           <View style={s.fill}>
-            <Text style={s.cardTitle}>{VENN_TEST_USD.symbol}</Text>
-            <Text style={s.subtitle}>On your Venn key · Chipnet</Text>
+            <Text style={s.cardTitle}>{venns.asset.symbol}</Text>
+            <Text style={s.subtitle}>On your Venn key · {networkName(venns.network)}</Text>
           </View>
-          <Text style={s.assetAmount}>{venns.keyTokens === null ? '—' : formatTestUsd(venns.keyTokens)}</Text>
+          <Text style={s.assetAmount}>{venns.keyTokens === null ? '—' : formatAssetAmount(venns.keyTokens)}</Text>
           <ChevronRight size={18} color={c.faint} />
         </Pressable>
       ) : null}

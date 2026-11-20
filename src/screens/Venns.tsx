@@ -1,7 +1,7 @@
 // The Venn screens: the list on the Venns tab, a plan waiting for acceptances, joining with an
 // invitation, and a Venn's own page with paying from your budget.
 import React, { useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { BadgeCheck, ChevronRight, Fuel, Share2, ShieldAlert, Users } from 'lucide-react-native';
 import { formatBch } from 'react-native-xo/core';
 import { colors as c } from '../ui/theme';
@@ -10,12 +10,16 @@ import { DetailRow, Field, Note, PillButton, SafeQR } from '../ui/kit';
 import { confirmAction } from '../ui/confirm';
 import { formatSats } from '../ui/format';
 import {
-  formatTestUsd,
-  isTestUsd,
-  parseTestUsd,
+  feeUnit,
+  formatAssetAmount,
+  isVennAsset,
+  MUSD,
+  networkName,
+  parseAssetAmount,
   tokenRecipient,
   VENN_FEE_ALLOCATION,
   VENN_TEST_USD,
+  vennAsset,
 } from '../venn/asset';
 import { type Invite, encodeInvite, fingerprint } from '../venn/invite';
 import { BUDGET, ROLE } from '../venn/layout';
@@ -35,13 +39,13 @@ const seatsOf = (invite: Invite): Seat[] =>
     cap: BigInt(seat.cap),
   }));
 
-const unitFor = (asset: { network: string; assetCategory?: string }) =>
-  isTestUsd(asset) ? VENN_TEST_USD.symbol : asset.assetCategory ? 'base units' : 'tBCH';
+const unitFor = (asset: { network: 'chipnet' | 'mainnet'; assetCategory?: string }) =>
+  isVennAsset(asset) ? vennAsset(asset.network).symbol : asset.assetCategory ? 'base units' : feeUnit(asset.network);
 
 const sats = formatSats;
 
 const amountOnly = (amount: bigint, unit: string) =>
-  unit === VENN_TEST_USD.symbol ? formatTestUsd(amount) : unit === 'base units' ? amount.toString() : formatBch(amount);
+  unit === VENN_TEST_USD.symbol || unit === MUSD.symbol ? formatAssetAmount(amount) : unit === 'base units' ? amount.toString() : formatBch(amount);
 
 const lower = (text: string) => text[0].toLowerCase() + text.slice(1);
 
@@ -145,7 +149,7 @@ function FeeBalanceRow({ venns, disabled = false }: { venns: VennsState; disable
     <View style={v.feeSurface}>
       <SettingsRow
         label="Fee balance"
-        detail="tBCH on your Venn key for network costs"
+        detail={`${feeUnit(venns.network)} on your Venn key for network costs`}
         icon={Fuel}
         value={venns.keyBalance === null ? 'Unavailable' : sats(venns.keyBalance)}
         onPress={() => openRoute('fees')}
@@ -164,11 +168,38 @@ const waitingText = (seats: number, accepted: number[]) => {
   return remaining === others ? `Waiting for all ${others} to accept` : `Waiting for ${remaining} of ${others} to accept`;
 };
 
+// Where a browser visitor goes to see Venns working: the signed Android preview, and the
+// 19 November Mainnet run (creation, budget payment, vote and Circle with MUSD).
+const ANDROID_PREVIEW = 'https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview';
+const MAINNET_EVIDENCE = 'https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/live-mainnet-2026-11-19.md';
+
 /** The Venns tab. */
 export function VennList({ venns, open }: { venns: VennsState; open(sheet: string, options?: any): void }) {
   if (!venns.available)
-    return (
-      <Note>Venns run on Chipnet while they are being tested, and need a wallet whose phrase is on this device.</Note>
+    return Platform.OS === 'web' ? (
+      <View testID="venn-list">
+        <View style={v.emptyCard}>
+          <View style={s.vennMark}>
+            <Users size={20} color={c.paper} />
+          </View>
+          <Text accessibilityRole="header" style={v.emptyTitle}>
+            Venns live in the Venn app
+          </Text>
+          <Text style={[s.body, v.centered]}>
+            A Venn is money a group holds together: everyone spends alone from their own budget, and bigger payments
+            need a vote. Each member signs with a key on their own phone, so Venns run in the iOS and Android app.
+          </Text>
+          <Text style={[s.subtitle, v.centered]}>
+            Here you can send and receive BCH with a connected wallet, which keeps its keys.
+          </Text>
+        </View>
+        <View style={v.emptyActions}>
+          <PillButton label="Get the Android preview (Chipnet)" onPress={() => Linking.openURL(ANDROID_PREVIEW)} />
+          <PillButton label="See Venns running on Mainnet" secondary onPress={() => Linking.openURL(MAINNET_EVIDENCE)} />
+        </View>
+      </View>
+    ) : (
+      <Note>Venns need a wallet whose phrase is on this device.</Note>
     );
   const empty = venns.venns.length === 0 && venns.circles.length === 0 && venns.preparing.length === 0;
   if (empty)
@@ -185,7 +216,11 @@ export function VennList({ venns, open }: { venns: VennsState; open(sheet: strin
             A Venn is money a group holds together. Everyone sees who can spend alone, how much, and what needs a
             vote before they join.
           </Text>
-          <Text style={[s.subtitle, v.centered]}>Venns run on Chipnet with Venn Test USD while they are tested.</Text>
+          <Text style={[s.subtitle, v.centered]}>
+            {venns.network === 'mainnet'
+              ? `Venns on Mainnet hold ${MUSD.symbol} and real BCH. The contracts have had internal reviews, not an external audit: keep amounts small.`
+              : `Venns on Chipnet hold ${VENN_TEST_USD.symbol}, a test token with no value.`}
+          </Text>
         </View>
         {venns.status === 'loading' ? <Text style={s.caption}>Checking for Venns…</Text> : null}
         {venns.status === 'error' ? <Note danger>{venns.error}</Note> : null}
@@ -307,19 +342,21 @@ export function PlanScreen({
   const acceptedCount = waiting.filter(w => w.status === 'Accepted').length;
   const stillWaiting = waiting.filter(w => w.status === 'Waiting');
   const ready = stillWaiting.length === 0;
-  const supported = isTestUsd(invite);
+  const supported = isVennAsset(invite);
+  const NET = networkName(venns.network);
+  const FEE = feeUnit(venns.network);
   let depositUnits = 0n;
   let depositError = '';
   if (deposit.trim()) {
     try {
-      depositUnits = parseTestUsd(deposit);
+      depositUnits = parseAssetAmount(deposit, venns.network);
     } catch (e) {
       depositError = errorText(e);
     }
   }
   if (!depositError && deposit.trim() && depositUnits <= 0n) depositError = 'Enter a deposit above zero.';
   if (!depositError && venns.keyTokens !== null && depositUnits > venns.keyTokens)
-    depositError = `Your Venn key holds only ${money(venns.keyTokens, VENN_TEST_USD.symbol)}. Add more to it first.`;
+    depositError = `Your Venn key holds only ${money(venns.keyTokens, unit)}. Add more to it first.`;
   const act = async (task: () => Promise<unknown>) => {
     setBusy(true);
     setNotice(null);
@@ -428,7 +465,7 @@ export function PlanScreen({
 
       <Step n={3} title={invite.type === 'circle' ? 'Start the Circle' : 'Fund the Venn'} status={ready ? undefined : 'Locked'}>
         {!supported ? (
-          <Note>This older plan uses a different asset. Create a Venn Test USD plan to continue.</Note>
+          <Note>This plan uses a different asset. Create a {venns.asset.symbol} plan to continue.</Note>
         ) : !ready ? (
           <Text style={s.body}>
             Locked until everyone accepts, because the Venn is created with every member’s key. Still waiting for{' '}
@@ -436,7 +473,7 @@ export function PlanScreen({
           </Text>
         ) : venns.pending ? (
           <>
-            <Text style={s.body}>A Venn transaction is waiting for Chipnet. Check it before funding.</Text>
+            <Text style={s.body}>A Venn transaction is waiting for {NET}. Check it before funding.</Text>
             <PillButton label="Check pending transaction" disabled={busy} onPress={() => act(venns.checkPending)} />
           </>
         ) : prepared ? (
@@ -446,7 +483,7 @@ export function PlanScreen({
             </Text>
             {preparingFeeCoin ? (
               <Text style={[s.body, v.reviewIntro]}>
-                Your Venn key needs a separate tBCH coin to pay for the deposit. This moves tBCH from
+                Your Venn key needs a separate {FEE} coin to pay for the deposit. This moves {FEE} from
                 your Venn key back to itself.
               </Text>
             ) : null}
@@ -460,28 +497,28 @@ export function PlanScreen({
                 </>
               ) : prepared.kind === 'circle' ? (
                 <>
-                  <DetailRow label="Each round, everyone pays" value={money(prepared.circle.contribution, VENN_TEST_USD.symbol)} />
+                  <DetailRow label="Each round, everyone pays" value={money(prepared.circle.contribution, unit)} />
                   <DetailRow label="Network fee" value={sats(prepared.fee)} />
                   <DetailRow label="Member fees and contract coin" value={sats(prepared.spentSats - prepared.fee)} />
                   <DetailRow total label="Total" value={sats(prepared.spentSats)} />
                 </>
               ) : (
                 <>
-                  <DetailRow label="Deposit" value={money(prepared.deposit, VENN_TEST_USD.symbol)} />
+                  <DetailRow label="Deposit" value={money(prepared.deposit, unit)} />
                   <DetailRow label="Network fee" value={sats(prepared.fee)} />
                   <DetailRow label="Member fees and contract coins" value={sats(prepared.spentSats - prepared.fee)} />
                   <DetailRow
                     total
                     label="Total"
-                    value={`${money(prepared.deposit, VENN_TEST_USD.symbol)} + ${sats(prepared.spentSats)}`}
+                    value={`${money(prepared.deposit, unit)} + ${sats(prepared.spentSats)}`}
                   />
                 </>
               )}
-              <DetailRow label="Network" value="Chipnet" />
+              <DetailRow label="Network" value={NET} />
             </View>
             {prepared.kind === 'deposit' ? (
               <Text style={v.hint}>
-                The sats are tBCH from your fee balance: the network fee, {sats(VENN_FEE_ALLOCATION)} for each
+                The sats are {FEE} from your fee balance: the network fee, {sats(VENN_FEE_ALLOCATION)} for each
                 invited member’s own fees, and the small coins the contract keeps.
               </Text>
             ) : null}
@@ -505,11 +542,11 @@ export function PlanScreen({
         ) : invite.type === 'circle' ? (
           <View>
             <Text style={s.body}>
-              Starting the Circle creates its contract on Chipnet. No money moves yet: the first round begins now, and
+              Starting the Circle creates its contract on {NET}. No money moves yet: the first round begins now, and
               everyone pays their contribution from the Circle’s page.
             </Text>
             <Text style={v.hint}>
-              You pay the network fee in tBCH and give each member {sats(VENN_FEE_ALLOCATION)} for their own fees. Your fee
+              You pay the network fee in {FEE} and give each member {sats(VENN_FEE_ALLOCATION)} for their own fees. Your fee
               balance is {venns.keyBalance === null ? 'unavailable' : sats(venns.keyBalance)}.
             </Text>
             <View style={v.actions}>
@@ -524,9 +561,9 @@ export function PlanScreen({
         ) : (
           <View>
             <Field
-              label="First deposit · Venn Test USD"
+              label={`First deposit · ${unit}`}
               hint={`Your Venn key holds ${
-                venns.keyTokens === null ? '…' : money(venns.keyTokens, VENN_TEST_USD.symbol)
+                venns.keyTokens === null ? '…' : money(venns.keyTokens, unit)
               }.`}
               error={depositError}
               value={deposit}
@@ -534,7 +571,7 @@ export function PlanScreen({
               keyboardType="decimal-pad"
             />
             <Text style={v.hint}>
-              You also pay the contract’s network costs in tBCH and give each invited member{' '}
+              You also pay the contract’s network costs in {FEE} and give each invited member{' '}
               {sats(VENN_FEE_ALLOCATION)} for their own fees. Your fee balance is{' '}
               {venns.keyBalance === null ? 'unavailable' : sats(venns.keyBalance)}.
             </Text>
@@ -558,6 +595,7 @@ export function PlanScreen({
           contribution={BigInt(invite.circle.contribution)}
           period={BigInt(invite.circle.period)}
           order={(invite.turns ?? []).map(n => invite.seats[n]?.name ?? `Seat ${n + 1}`)}
+          unit={unitFor(invite)}
         />
       ) : (
         <Summary seats={seats} settings={invite.settings as unknown as Settings} unit={unit} />
@@ -696,6 +734,7 @@ export function JoinScreen({ venns, onDone }: { venns: VennsState; onDone?(): vo
           contribution={BigInt(circle.contribution)}
           period={BigInt(circle.period)}
           order={(invite.turns ?? []).map(n => invite.seats[n]?.name ?? `Seat ${n + 1}`)}
+          unit={unitFor(invite)}
         />
       ) : (
         <>
@@ -783,15 +822,17 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
   const seats: Seat[] = cards.map((card, n) => ({ ...card.state, name: nameOf(card.state.pkh, n) }));
   const mine = view.seat >= 0 ? seats[view.seat] : undefined;
   const official = view.official.status === 'official';
-  const supported = isTestUsd(view.params);
+  const supported = isVennAsset(view.params);
   const unit = unitFor(view.params);
+  const NET = networkName(view.params.network);
+  const FEE = feeUnit(view.params.network);
   const rules = view.coins?.rules.state;
 
   let units = 0n;
   let amountError = '';
   if (amount.trim()) {
     try {
-      units = parseTestUsd(amount);
+      units = parseAssetAmount(amount, view.params.network);
     } catch (e) {
       amountError = errorText(e);
     }
@@ -802,7 +843,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
   let toError = '';
   if (toTouched && to.trim()) {
     try {
-      tokenRecipient(to);
+      tokenRecipient(to, view.params.network);
     } catch (e) {
       toError = errorText(e);
     }
@@ -825,7 +866,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
       <View style={s.reviewHero}>
         <Text style={s.reviewAmount}>
           {supported
-            ? formatTestUsd(view.balance)
+            ? formatAssetAmount(view.balance)
             : view.params.assetCategory
               ? view.balance.toString()
               : formatBch(view.balance)}
@@ -865,7 +906,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
             onPress={() =>
               run(async () => {
                 await venns.checkPending();
-                setNotice({ text: 'The transaction is visible on Chipnet.' });
+                setNotice({ text: `The transaction is visible on ${NET}.` });
               })
             }
           />
@@ -888,11 +929,11 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
                 label="Total"
                 value={`${money(prepared.amount, unit)} + ${sats(prepared.fee + prepared.carrierSats)}`}
               />
-              <DetailRow label="Network" value="Chipnet" />
+              <DetailRow label="Network" value={NET} />
             </View>
             <Text style={v.hint}>
-              Paid from your allowance in {view.saved.name}. The network fee and token output are tBCH from
-              your fee balance; the token output is the small amount of tBCH that travels with the {unit} to the
+              Paid from your allowance in {view.saved.name}. The network fee and token output are {FEE} from
+              your fee balance; the token output is the small amount of {FEE} that travels with the {unit} to the
               recipient.
             </Text>
             <View style={v.actions}>
@@ -910,7 +951,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
                     setTo('');
                     setAmount('');
                     setToTouched(false);
-                    setNotice({ text: 'Payment sent on Chipnet.' });
+                    setNotice({ text: `Payment sent on ${NET}.` });
                   } catch (e) {
                     setNotice({ text: errorText(e), danger: true });
                     setPrepared(null);
@@ -928,8 +969,8 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
             <FeeBalanceRow venns={venns} disabled={busy} />
             {venns.error ? <Note danger>{venns.error}</Note> : null}
             <Field
-              label="Recipient · token-aware Chipnet address"
-              hint="Starts with bchtest:z or bchtest:r."
+              label={`Recipient · token-aware ${NET} address`}
+              hint={view.params.network === 'mainnet' ? 'Starts with bitcoincash:z or bitcoincash:r.' : 'Starts with bchtest:z or bchtest:r.'}
               error={toError}
               value={to}
               onChangeText={text => {
@@ -941,7 +982,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
               autoCorrect={false}
             />
             <Field
-              label="Amount · Venn Test USD"
+              label={`Amount · ${unit}`}
               hint={`Up to ${money(view.available, unit)} right now.`}
               error={amountError}
               value={amount}
@@ -990,9 +1031,9 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
       {supported && receiving && !paying ? (
         <View style={v.block}>
           <Text style={s.body}>
-            Anyone can add {unit} to {view.saved.name} on Chipnet by sending to this token-aware address.
+            Anyone can add {unit} to {view.saved.name} on {NET} by sending to this token-aware address.
           </Text>
-          <CodeCard value={view.address} label={`${unit} · Chipnet`} full />
+          <CodeCard value={view.address} label={`${unit} · ${NET}`} full />
           <PillButton label="Share address" icon={Share2} secondary onPress={() => shareText(view.address)} />
         </View>
       ) : null}
@@ -1018,7 +1059,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
             </View>
           </React.Fragment>
         ))}
-        {seats.length === 0 ? <Text style={[s.body, v.member]}>Members appear once the Venn is read from Chipnet.</Text> : null}
+        {seats.length === 0 ? <Text style={[s.body, v.member]}>Members appear once the Venn is read from {NET}.</Text> : null}
       </View>
 
       {view.saved.turns ? (

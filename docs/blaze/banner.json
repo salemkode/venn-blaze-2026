@@ -1,0 +1,19 @@
+{
+  "event": "BCH BLAZE 2026",
+  "deck": {
+    "label": "Deck",
+    "url": "/blaze/venn-blaze-2026.pdf",
+    "note": "Replace url with the read-only Google Slides link of the Widget Factory copy once it is shared."
+  },
+  "source": {
+    "label": "Source",
+    "url": "https://github.com/salemkode/venn-blaze-2026"
+  },
+  "before": {
+    "label": "Before the event",
+    "source": "https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f",
+    "demo": "https://github.com/salemkode/xo-react-native-wallet/blob/b32a7fd85674791e557c4bc339da29f3842cf68f/README.md",
+    "changes": "https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event"
+  },
+  "votingAddress": "bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd"
+}

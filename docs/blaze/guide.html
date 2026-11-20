@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Venn — BLAZE publishing guide</title>
+  <link rel="stylesheet" href="site.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast wrap">
+    <a class="brand" href="landing.html"><span class="venn-mark" aria-hidden="true"></span>Venn</a>
+    <nav aria-label="Resources"><a href="DEMO.md">Demo script</a><a href="SUBMISSION.md">Submission brief</a></nav>
+  </header>
+  <main id="main" class="wrap guide">
+    <p class="eyebrow">BCH BLAZE 2026</p>
+    <h1>From demo<br>to <em>submission.</em></h1>
+    <p class="intro">Submissions close and judging begins on Sunday, 22 November at 14:00 UTC / 17:00 Aden. Confirm the entry window on DoraHacks.</p>
+    <p><a href="https://bchblaze.com/schedule/">Organizer schedule</a> · <a href="https://dorahacks.io/hackathon/bchblaze2026/detail">DoraHacks event</a></p>
+    <section aria-labelledby="checklist-title" data-checklist>
+      <div class="checklist-head">
+        <h2 id="checklist-title">Publishing checklist</h2>
+        <div><label for="progress" data-count>0 of 6 complete</label><progress id="progress" value="0" max="6">0 of 6</progress></div>
+      </div>
+      <div class="checklist">
+        <article><input id="track" type="checkbox"><div><label for="track">Confirm registration and track</label><p>Check team registration, roll call and Telegram check-in. Ask whether an ordinary Mainnet wallet send qualifies when the shared product runs on Chipnet.</p></div></article>
+        <article><input id="native" type="checkbox"><div><label for="native">Rehearse iOS and Android</label><p>Use two owned test wallets. Capture the preset and a confirmed Chipnet creation and spend, or label the offline proof explicitly. <a href="DEMO.md#native-chipnet-rehearsal">Native rehearsal steps</a></p></div></article>
+        <article><input id="web" type="checkbox"><div><label for="web">Test the deployed web wallet</label><p>Use a fresh session, pair a compatible wallet on Chipnet, and verify balance, receive, and payment review. Refresh a nested route. <a href="DEMO.md#web-wallet">Web check</a></p></div></article>
+        <article><input id="landing" type="checkbox"><div><label for="landing">Publish the judge site and verify links</label><p>Build with <code>npm run build:blaze</code>. Serve <code>dist/</code> at the site root. Open <code>/blaze/</code>, try both payment examples, and follow the wallet, video and deck links. <a href="landing.html">Open local landing page</a></p></div></article>
+        <article><input id="access" type="checkbox"><div><label for="access">Verify judge access to source, slides and video</label><p>The source and editable deck require access. Open the intended links as a judge would, and verify the footage avoids recovery phrases and pairing links. <a href="https://docs.google.com/presentation/d/1QlhgJcfTJWVvpg-cUVZjoKbgj-s2yUZquwFevxeT9qc/edit">Google Slides draft</a></p></div></article>
+        <article><input id="entry" type="checkbox"><div><label for="entry">Review and submit the BUIDL entry</label><p>Add the verified links, team details, track, and Chipnet evidence if collected. Confirm any bounty entries against their official requirements. <a href="SUBMISSION.md">Source and entry copy</a></p></div></article>
+      </div>
+      <p class="caption">Progress is saved in this browser when local storage is available.</p>
+    </section>
+  </main>
+  <footer class="wrap foot"><span>Venn · Submission workspace</span><a href="landing.html">Open product landing page</a></footer>
+</body>
+</html>

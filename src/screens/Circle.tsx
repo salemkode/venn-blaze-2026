@@ -7,19 +7,18 @@ import { styles as s } from '../ui/styles';
 import { colors as c } from '../ui/theme';
 import { DetailRow, Note, PillButton } from '../ui/kit';
 import { formatSats } from '../ui/format';
-import { VENN_TEST_USD } from '../venn/asset';
+import { vennAsset } from '../venn/asset';
 import { hasPaid } from '../venn/circle';
 import { TYPES } from '../venn/presets';
 import { money } from '../venn/summary';
 import type { CircleView, VennsState } from '../venn/useVenns';
 
-const unit = VENN_TEST_USD.symbol;
 const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const days = (seconds: bigint) => Number(seconds / 86_400n);
 const when = (time: bigint) => new Date(Number(time) * 1000).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
 /** The terms everyone accepts: contribution, round length and turn order. */
-export function CircleTerms({ contribution, period, order }: { contribution: bigint; period: bigint; order: string[] }) {
+export function CircleTerms({ contribution, period, order, unit }: { contribution: bigint; period: bigint; order: string[]; unit: string }) {
   return (
     <View style={[s.detailCard, k.card]}>
       <Text style={s.body}>
@@ -39,6 +38,7 @@ export function CircleTerms({ contribution, period, order }: { contribution: big
 
 /** A Circle in the Venns list. */
 export function CircleRow({ view, onPress }: { view: CircleView; onPress(): void }) {
+  const unit = vennAsset(view.params.network).symbol;
   const n = view.params.members.length;
   const round = view.state?.round ?? 0;
   return (
@@ -67,6 +67,7 @@ export function CircleRow({ view, onPress }: { view: CircleView; onPress(): void
 
 /** A Circle's own page. */
 export function CircleScreen({ view, venns }: { view: CircleView; venns: VennsState }) {
+  const unit = vennAsset(view.params.network).symbol;
   const [prepared, setPrepared] = useState<{ title: string; rows: [string, string][]; send(): Promise<unknown> } | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ text: string; danger?: boolean } | null>(null);
@@ -273,6 +274,7 @@ export function CircleScreen({ view, venns }: { view: CircleView; venns: VennsSt
         contribution={view.params.contribution}
         period={view.params.period}
         order={view.params.members.map((pkh, i) => nameOf(pkh, i))}
+        unit={unit}
       />
       <Text style={[s.caption, k.title]}>Contributions are paid to</Text>
       <Text selectable style={s.caption}>

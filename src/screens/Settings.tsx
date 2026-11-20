@@ -39,7 +39,7 @@ export default function Settings({ wallet }: { wallet: WalletState }) {
         <SettingsRow
           label="Network"
           value={chipnet ? 'Chipnet' : 'Mainnet'}
-          detail={chipnet ? 'Test coins · Venns available' : 'Real BCH · Venns stay on Chipnet'}
+          detail={chipnet ? 'Test coins · Venns hold Venn Test USD' : 'Real BCH · Venns hold MUSD'}
           icon={Globe2}
           onPress={() => open('network')}
           testID="settings-network"
@@ -79,7 +79,7 @@ export default function Settings({ wallet }: { wallet: WalletState }) {
       ) : null}
       <View style={settingsStyle.footer}>
         <Text style={settingsStyle.footerText}>Experimental · contract not security audited</Text>
-        <Text style={settingsStyle.footerText}>Venns use Venn Test USD on Chipnet</Text>
+        <Text style={settingsStyle.footerText}>Venns use Venn Test USD on Chipnet and MUSD on Mainnet</Text>
       </View>
     </View>
   );

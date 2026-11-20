@@ -3,77 +3,193 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Venn is a Bitcoin Cash wallet for shared expenses. Agree on a budget, accept a seat, and pay from your share.">
-  <title>Venn — Shared Bitcoin Cash</title>
+  <meta name="description" content="Venn is a wallet for money you share with housemates, a partner or friends. Everyone spends from their own budget, and bigger payments need the group.">
+  <meta name="color-scheme" content="light dark">
+  <title>Venn: shared money, fair for everyone</title>
+  <link rel="icon" href="images/venn-icon.png">
   <link rel="stylesheet" href="site.css">
   <script src="site.js" defer></script>
 </head>
-<body>
+<body class="home">
   <a class="skip" href="#main">Skip to content</a>
-  <header class="mast wrap">
-    <a class="brand" href="#main"><span class="venn-mark" aria-hidden="true"></span>Venn</a>
-    <nav aria-label="Resources"><!-- hosted-wallet --><a href="walkthrough.mp4">Watch demo (1:08)</a><a href="venn-blaze-2026.pptx">Pitch deck</a><a href="https://github.com/salemkode/venn-blaze-2026">Source</a></nav>
+  <header class="top wrap">
+    <a class="brand" href="#main"><img src="images/venn-icon.png" width="32" height="32" alt="">Venn</a>
+    <nav aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#kinds">Kinds of Venn</a>
+      <a href="#questions">Questions</a>
+      <!-- hosted-wallet -->
+    </nav>
+    <a class="btn btn-dark btn-small" href="walkthrough.mp4">Watch the demo</a>
   </header>
-  <aside class="wrap blaze-vote" aria-label="BLAZE Community Choice">
-    <span>EMBER2026 voting on Bitcoin Cash Mainnet</span>
-    <a href="bitcoincash:zp78fvdgqy4lm5a3hjst9yvuc5lax7g60gzdmqypaj"><code>bitcoincash:zp78fvdgqy4lm5a3hjst9yvuc5lax7g60gzdmqypaj</code></a>
-  </aside>
+
   <main id="main">
     <section class="hero wrap" aria-labelledby="hero-title">
-      <div>
-        <p class="eyebrow">Bitcoin Cash · Chipnet alpha</p>
-        <h1 id="hero-title">The grocery<br>money is <em>ours.</em></h1>
-        <p class="intro">Venn lets housemates agree on spending rules, sign for their own seats, and pay from a shared Bitcoin Cash fund.</p>
-        <a class="button" href="#budget">Try a payment <span aria-hidden="true">↓</span></a>
+      <div class="hero-copy">
+        <h1 id="hero-title">Shared money, fair for&nbsp;everyone.</h1>
+        <p class="lead">Venn is a wallet for housemates, partners and friends. Each person spends from their own budget. Bigger payments need the group.</p>
+        <div class="actions">
+          <a class="btn btn-dark" href="walkthrough.mp4">Watch the demo</a>
+          <a class="btn btn-quiet" href="#try">Try a payment</a>
+        </div>
       </div>
-      <article class="receipt" id="budget" aria-labelledby="budget-title" data-budget>
-        <div class="receipt-head"><span class="eyebrow">Interactive example</span><span class="tag">Test BCH</span></div>
-        <h2 id="budget-title">The grocery fund</h2>
-        <dl class="receipt-lines">
-          <div><dt>Member’s allowance</dt><dd>50,000 sat</dd></div>
-          <div class="amount-row"><dt><label for="expense">Payment amount</label></dt><dd><input id="expense" type="number" min="1" max="1000000" step="1" value="20000" inputmode="numeric" aria-describedby="payment-hint"> sat</dd></div>
-        </dl>
-        <p class="sr-only" id="payment-hint">Enter a whole number from 1 to 1,000,000 satoshis. A satoshi is the smallest unit of BCH.</p>
-        <div class="presets" aria-label="Example amounts">
-          <button type="button" data-amount="20000" aria-pressed="true">20,000 sat</button>
-          <button type="button" data-amount="50000" aria-pressed="false">Exact limit</button>
-          <button type="button" data-amount="50001" aria-pressed="false">1 sat over</button>
+
+      <article class="fund" id="try" aria-labelledby="fund-title" data-budget>
+        <header class="fund-head">
+          <h2 id="fund-title">Grocery fund</h2>
+          <p>Each person can spend up to $50 a day.</p>
+        </header>
+        <ul class="people" aria-label="Budgets left today">
+          <li>
+            <span class="who">You</span>
+            <span class="left" data-left>$50.00</span>
+            <span class="bar"><span data-bar style="--fill: 1"></span></span>
+          </li>
+          <li>
+            <span class="who">Sam</span>
+            <span class="left">$50.00</span>
+            <span class="bar"><span style="--fill: 1"></span></span>
+          </li>
+          <li>
+            <span class="who">Lee</span>
+            <span class="left">$50.00</span>
+            <span class="bar"><span style="--fill: 1"></span></span>
+          </li>
+        </ul>
+        <div class="pay">
+          <label for="expense">You pay the shop</label>
+          <div class="amount"><span aria-hidden="true">$</span><input id="expense" type="number" min="0.01" max="10000" step="0.01" value="20.00" inputmode="decimal" aria-describedby="fund-result"></div>
         </div>
-        <div class="receipt-outcome" role="status" data-outcome data-state="approved">
-          <strong data-verdict>Fits the budget</strong>
-          <span data-remaining>30,000 sat would remain.</span>
+        <div class="chips" role="group" aria-label="Try an amount">
+          <button type="button" data-amount="20" aria-pressed="true">$20</button>
+          <button type="button" data-amount="50" aria-pressed="false">$50</button>
+          <button type="button" data-amount="50.01" aria-pressed="false">$50.01</button>
         </div>
-        <p class="caption">Each example starts with a fresh allowance. This is a simulation.</p>
+        <p class="result" id="fund-result" role="status" data-outcome data-state="approved">
+          <strong data-verdict>Paid.</strong>
+          <span data-remaining>You have $30.00 left today. Sam and Lee still have $50.00.</span>
+        </p>
       </article>
     </section>
-    <section class="rule-band" id="rules">
-      <div class="wrap rules">
+
+    <section class="how" id="how" aria-labelledby="how-title">
+      <div class="wrap how-grid">
         <div>
-          <p class="eyebrow">A shared fund, step by step</p>
-          <h2>Everyone gets to read the rules.</h2>
+          <h2 id="how-title">Set it up once. Everyone knows the deal.</h2>
           <ol class="steps">
-            <li><div><h3>Pick rules together</h3><p>Start with Shared for individual budgets, or Pot when every payment needs a vote. A Shared member can spend their available budget at once. Pot payments can wait when voters are away.</p></div></li>
-            <li><div><h3>Accept a seat</h3><p>Review the plan and sign your seat with your own key. Once every member has accepted, the creator can fund the Venn.</p></div></li>
-            <li><div><h3>Pay within your allowance</h3><p>Review the recipient, amount, and fee. A CashScript contract checks the payment and the updated allowance stored in a member CashToken.</p></div></li>
+            <li>
+              <h3>Agree on the rules</h3>
+              <p>Choose who is in, how much each person can spend in a day, and which payments need a vote.</p>
+            </li>
+            <li>
+              <h3>Everyone says yes</h3>
+              <p>Each person reads the rules, including the downside, and accepts their seat. Nothing starts until everyone has.</p>
+            </li>
+            <li>
+              <h3>Spend from your share</h3>
+              <p>Pay for groceries from your own budget. It refills over the day. Anything bigger waits for the group to approve it.</p>
+            </li>
           </ol>
         </div>
-        <figure class="native-shot">
-          <img src="images/create-a-venn-ios.png" width="302" height="656" alt="Venn on iOS showing spending presets with their trade-offs" loading="lazy">
-          <figcaption>Venn for iOS · Preset picker</figcaption>
-        </figure>
+        <div class="phones">
+          <figure class="phone phone-back">
+            <img src="images/review-plan.jpg" width="603" height="1311" alt="Venn showing the plan for a Venn called Weekend trip, with the people involved and a note that it starts only after Sam accepts" loading="lazy">
+          </figure>
+          <figure class="phone phone-front">
+            <img src="images/join-seat.jpg" width="603" height="790" alt="Joining a Shared Venn in the app: its weakness is shown first, then each seat with its daily budget" loading="lazy">
+          </figure>
+        </div>
       </div>
     </section>
-    <section class="wrap platform-section" id="platforms">
-      <p class="eyebrow">Source alpha</p>
-      <h2>Try Venn on your platform.</h2>
-      <div class="platforms">
-        <article><h3>Android</h3><p>Install the standalone preview to try planning, seat acceptance, and shared spending on Chipnet.</p><a href="https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview">Download Android APK</a></article>
-        <article><h3>iOS</h3><p>Use a development build for the same Chipnet Venn flow, with keys stored on the device.</p><code>npm run ios</code></article>
-        <article><h3>Web</h3><p>Pair a compatible wallet via WizardConnect for ordinary Mainnet BCH payments. Use the native alpha to try shared Venns on Chipnet.</p><code>npm run web</code></article>
+
+    <section class="kinds wrap" id="kinds" aria-labelledby="kinds-title">
+      <h2 id="kinds-title">Pick the kind that fits your group.</h2>
+      <p class="section-lead">Every kind tells you its catch before you join.</p>
+      <div class="kind-grid">
+        <article class="kind kind-shared">
+          <h3>Shared</h3>
+          <p class="for">For a home, a couple or a team.</p>
+          <p>Everyone spends alone from their own budget, which refills every day. Bigger payments need a majority.</p>
+          <p class="catch"><strong>The catch:</strong> anyone can spend their whole budget at once, and a majority can outvote you.</p>
+        </article>
+        <article class="kind kind-personal">
+          <h3>Personal</h3>
+          <p class="for">Your money, with friends as backup.</p>
+          <p>You get a daily budget. Bigger payments need your OK plus one friend’s, and friends can get you back in if you lose your phone.</p>
+          <p class="catch"><strong>The catch:</strong> enough of those friends together could take over your place after a waiting period.</p>
+        </article>
+        <article class="kind kind-pot">
+          <h3>Pot</h3>
+          <p class="for">Save together for a trip, a gift or a project.</p>
+          <p>Nobody spends alone. Every payment needs a majority vote.</p>
+          <p class="catch"><strong>The catch:</strong> money stays put until enough people vote.</p>
+        </article>
+        <article class="kind kind-circle">
+          <h3>Circle</h3>
+          <p class="for">A savings circle, or jam’eya.</p>
+          <p>Everyone pays in the same amount each round, and the whole pot goes to whoever’s turn it is.</p>
+          <p class="catch"><strong>The catch:</strong> nobody can be forced to pay in, though every missed payment is visible to everyone.</p>
+        </article>
       </div>
-      <p class="platform-note">Run these commands from the source checkout after <code>npm ci</code>. Native builds also require <code>npm run setup:native</code> and local platform tooling. To check the signed payments yourself, run <code>npm run demo:blaze</code>. <a href="https://github.com/salemkode/venn-blaze-2026#readme">Venn source and setup</a> · <a href="transcript.txt">Demo transcript</a></p>
+    </section>
+
+    <section class="trust wrap" aria-labelledby="trust-title">
+      <div class="trust-panel">
+        <h2 id="trust-title">The rules hold, even if someone doesn’t.</h2>
+        <div class="promises">
+          <div>
+            <h3>No one holds the money for you</h3>
+            <p>A Venn lives on Bitcoin Cash. Nobody can spend past the rules you all agreed to: not the person who set it up, and not us.</p>
+          </div>
+          <div>
+            <h3>Overspending simply fails</h3>
+            <p>Try to pay more than your budget and the payment is refused. Your budget stays exactly where it was.</p>
+          </div>
+          <div>
+            <h3>Lose your phone, not your share</h3>
+            <p>Your group can move your seat to a new phone after a waiting period, so a lost device doesn’t lock you out.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="questions wrap" id="questions" aria-labelledby="questions-title">
+      <h2 id="questions-title">Questions people ask</h2>
+      <div class="faq">
+        <details>
+          <summary>Do I need to understand crypto?</summary>
+          <p>Not much. Venn shows names, budgets and amounts. The one new idea is a small network fee on each payment, paid from your fee balance in the app.</p>
+        </details>
+        <details>
+          <summary>Can the person who created the Venn take the money?</summary>
+          <p>No. They write the plan, but once everyone accepts, they follow the same rules as you. A plan that changes after you accept has to be accepted again.</p>
+        </details>
+        <details>
+          <summary>What if someone wants to spend more than their budget?</summary>
+          <p>They ask the group. In a Shared Venn the payment goes through once a majority approves it. Until then, nothing moves.</p>
+        </details>
+        <details>
+          <summary>Can I use it with real money?</summary>
+          <p>Yes, but keep amounts small. On Bitcoin Cash’s main network, Venns hold MUSD, a dollar token whose value depends on what others will pay for it. The contracts have had internal reviews but no outside audit yet. To practise first, switch to the test network, where test dollars have no value.</p>
+        </details>
+        <details>
+          <summary>Which phones does it work on?</summary>
+          <p>Venn is built for iPhone and Android. A web version can connect to a wallet you already use for everyday payments. Shared funds are on the phone apps.</p>
+        </details>
+      </div>
     </section>
   </main>
-  <footer class="wrap foot"><span>Venn · Built by salemkode</span><a href="https://bchblaze.com/">Built for BCH BLAZE 2026</a></footer>
+
+  <footer class="foot wrap">
+    <p><img src="images/venn-icon.png" width="24" height="24" alt=""><span>Venn, made by salemkode for <a href="https://bchblaze.com/">BCH BLAZE 2026</a>.</span></p>
+    <nav aria-label="More">
+      <a href="transcript.txt">Demo transcript</a>
+      <a href="venn-blaze-2026.pptx">Pitch deck</a>
+      <a href="https://github.com/salemkode/venn#readme">Source code</a>
+      <a href="https://github.com/salemkode/venn-blaze-2026">BLAZE judge source</a>
+      <a href="https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview">Android preview</a>
+    </nav>
+    <p class="blaze-vote">EMBER2026 voting on Bitcoin Cash Mainnet: <a href="bitcoincash:zp78fvdgqy4lm5a3hjst9yvuc5lax7g60gzdmqypaj"><code>bitcoincash:zp78fvdgqy4lm5a3hjst9yvuc5lax7g60gzdmqypaj</code></a></p>
+  </footer>
 </body>
 </html>

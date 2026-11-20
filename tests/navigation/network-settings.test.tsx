@@ -3,10 +3,11 @@ import { create, type ReactTestRenderer } from 'react-test-renderer';
 import { beforeEach, expect, it, vi } from 'vitest';
 import NetworkPage from '../../src/app/(wallet)/network';
 
-const state = vi.hoisted(() => ({ pending: false, changeNetwork: vi.fn() }));
+const state = vi.hoisted(() => ({ pending: false, changeNetwork: vi.fn(), confirm: vi.fn() }));
 vi.mock('react-native', () => ({ View: 'view', Text: 'text', Pressable: 'button' }));
 vi.mock('lucide-react-native', () => ({ Check: () => null, ChevronRight: () => null }));
 vi.mock('../../src/ui/Page', () => ({ default: ({ children }) => children }));
+vi.mock('../../src/ui/confirm', () => ({ confirmAction: state.confirm }));
 vi.mock('../../src/state/AppState', () => ({ useApp: () => ({ wallet: {
   network: 'chipnet', pending: state.pending ? {} : null, changeNetwork: state.changeNetwork,
 } }) }));
@@ -15,6 +16,7 @@ beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
   state.pending = false;
   state.changeNetwork.mockClear();
+  state.confirm.mockClear();
 });
 
 it('requires explicit confirmation before switching to Mainnet', async () => {
@@ -22,10 +24,8 @@ it('requires explicit confirmation before switching to Mainnet', async () => {
   await act(async () => { view = create(<NetworkPage />); });
   await act(async () => view.root.findByProps({ testID: 'network-mainnet' }).props.onPress());
   expect(state.changeNetwork).not.toHaveBeenCalled();
-  await act(async () => view.root.findByProps({ testID: 'network-mainnet-cancel' }).props.onPress());
-  expect(state.changeNetwork).not.toHaveBeenCalled();
-  await act(async () => view.root.findByProps({ testID: 'network-mainnet' }).props.onPress());
-  await act(async () => view.root.findByProps({ testID: 'network-mainnet-confirm' }).props.onPress());
+  expect(state.confirm).toHaveBeenCalledOnce();
+  await act(async () => state.confirm.mock.calls[0][0].onConfirm());
   expect(state.changeNetwork).toHaveBeenCalledWith('mainnet');
   await act(async () => view.unmount());
 });

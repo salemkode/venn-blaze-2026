@@ -4,12 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import type { PaymentReview } from 'react-native-xo';
 import type { Connection } from './connection';
-import { connectionNetwork } from './connection';
+import { connectionNetwork, decodeConnection, startingNetwork } from './connection';
+import type { Branch } from './history';
 import {
   type Network,
   type PendingPayment,
   clearPending,
-  readNetwork,
+  readChosenNetwork,
   readPending,
   saveNetwork,
   savePending,
@@ -31,13 +32,14 @@ export interface Balance {
 export function useWallet() {
   const [phase, setPhase] = useState<Phase>('loading');
   const [registry, setRegistry] = useState<Registry | null>(null);
-  const [network, setNetwork] = useState<Network>('chipnet');
+  const [network, setNetwork] = useState<Network>('mainnet');
   const [address, setAddress] = useState('');
   const [balance, setBalance] = useState<Balance | null>(null);
   const [pending, setPendingState] = useState<PendingPayment | null>(null);
   const [busy, setBusy] = useState<string | null>('opening');
   const [notice, setNotice] = useState('');
   const [signer, setSigner] = useState<string | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const session = useRef<Session | null>(null);
   const pendingRef = useRef<PendingPayment | null>(null);
   const generation = useRef(0);
@@ -75,6 +77,7 @@ export function useWallet() {
     session.current?.close();
     session.current = null;
     setSigner(null);
+    setBranches([]);
     setBalance(null);
     setAddress('');
     if (!list) {
@@ -90,6 +93,8 @@ export function useWallet() {
     if (saved && saved.walletId === id && saved.network === net) wallet.restorePending(saved.record);
     session.current = wallet;
     setSigner(wallet.signer);
+    // A connected wallet's change lands on other addresses; activity needs every branch.
+    setBranches(decodeConnection(secret)?.paths ?? []);
     setAddress(wallet.address);
     setPhase('ready');
     const snapshot = await wallet.refresh();
@@ -101,7 +106,8 @@ export function useWallet() {
       run('opening', async () => {
         setPhase('loading');
         try {
-          const [net, saved, list] = await Promise.all([readNetwork(), readPending(), readRegistry()]);
+          const [chosen, saved, list] = await Promise.all([readChosenNetwork(), readPending(), readRegistry()]);
+          const net = startingNetwork(chosen, list ? await readSecret(list.activeId) : null);
           setPending(saved);
           // A payment that still needs checking opens the wallet and network that made it.
           let current = list;
@@ -272,6 +278,7 @@ export function useWallet() {
     wallet: registry ? activeWallet(registry) : null,
     network,
     address,
+    branches,
     balance,
     pending,
     busy,

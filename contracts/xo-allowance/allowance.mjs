@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
 import {readFile, mkdir, mkdtemp, open, rm, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
+import {inspect} from 'node:util';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {
@@ -19,8 +20,7 @@ const network = 'chipnet';
 const fee = 1_000n;
 const carrier = 1_000n;
 const journalDirectory = fileURLToPath(new URL('../../artifacts/', import.meta.url));
-// Template v3: one capped payment per interval of blocks. (v2, behind the first Chipnet evidence, is
-// archived in evidence/ and no longer used.)
+// Template v3: one capped payment per interval of blocks, and a timelocked sponsor refund.
 const template = parseTemplate(JSON.parse(await readFile(new URL('./venn-merchant-allowance.xo.json', import.meta.url), 'utf8')));
 
 function positiveInteger(value, label, maximum = Number.MAX_SAFE_INTEGER) {
@@ -221,7 +221,25 @@ async function submit(engine, prepared, output, approvedTxid) {
     await directory.close();
   }
 
-  const result = await engine.executeAction(prepared.invitationIdentifier, {broadcastTransaction: true});
+  let result;
+  try {
+    result = await engine.executeAction(prepared.invitationIdentifier, {broadcastTransaction: true});
+  } catch (error) {
+    // The node judged the transaction and refused it because a timelock has not passed on its chain
+    // yet: the payment interval (non-BIP68-final) or the refund height (bad-txns-nonfinal). Nothing
+    // was accepted, so the pending record goes and the same review can be approved again later. Any
+    // other failure keeps the record: check the txid on Chipnet first.
+    const early = inspect(error, {depth: 6}).match(/non-BIP68-final|bad-txns-nonfinal/)?.[0];
+    if (early) {
+      await rm(journalPath);
+      const wait = early === 'non-BIP68-final'
+        ? `the envelope is not ${prepared.review.paymentIntervalBlocks} blocks old on the node yet`
+        : `the node has not reached block ${prepared.review.refundHeight} yet`;
+      throw new Error(`Chipnet refused ${approvedTxid} as too early (${early}): ${wait}. `
+        + 'Nothing was sent; approve the same txid again later.');
+    }
+    throw error;
+  }
   assert.equal(result.builtTransaction.transactionHash, approvedTxid);
   const serialized = serializeInvitation(result.storedInvitation.invitation);
   validateInvitation(deserializeInvitation(serialized), prepared.template, network);

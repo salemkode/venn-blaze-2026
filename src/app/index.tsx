@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Redirect } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useApp } from '../state/AppState';
 import { readIntroSeen, rememberIntroSeen } from '../wallet/prefs';
@@ -27,6 +27,7 @@ export default function Entry() {
         <Text accessibilityRole="header" style={styles.title}>Unable to open wallet</Text>
         <Note danger>{wallet.notice}</Note>
         <PillButton label="Try again" testID="entry-retry" onPress={wallet.boot} />
+        <PillButton label="Change network" secondary testID="entry-network" onPress={() => router.push('/network')} />
       </Page>
     );
   if (!seen) return <Onboarding busy={Boolean(wallet.busy)} network={wallet.network} localKeys={localKeys} onCreate={() => { rememberIntroSeen(); wallet.create(); }} onRestore={() => leave('restore')} onConnect={() => leave('connect')} />;

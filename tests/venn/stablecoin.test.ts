@@ -3,25 +3,41 @@ import { addressForLockingBytecode } from '../../src/core/cashaddr';
 import { signPersonal, p2pkhForPublicKey } from '../../src/core/draft';
 import { utxoFrom, vmVerify } from '../helpers';
 import { people, wallet } from './fixtures';
-import { VENN_FEE_ALLOCATION, VENN_TEST_USD, formatTestUsd, parseTestUsd, requireTestUsd, tokenRecipient } from '../../src/venn/asset';
+import { MUSD, VENN_FEE_ALLOCATION, VENN_TEST_USD, formatAssetAmount, parseAssetAmount, requireVennAsset, tokenRecipient, vennAsset } from '../../src/venn/asset';
 import { buildBudgetSpend, buildVennFeePreparation, buildVennGenesis, finalizeSpend, signFeeInputs, signVenn } from '../../src/venn/build';
 import { readMarker } from '../../src/venn/chain';
 import { vennCoins } from '../../src/venn/coins';
+import { vennAddress } from '../../src/venn/contract';
 import { accept, decodeAcceptance, fingerprint, inviteFor, membersFor, encodeAcceptance } from '../../src/venn/invite';
 import { presetPlan } from '../../src/venn/presets';
 
-it('uses exact cents for the MUSD-style test currency', () => {
-  expect(parseTestUsd('20.01')).toBe(2_001n);
-  expect(formatTestUsd(2_001n)).toBe('20.01');
-  expect(() => parseTestUsd('20.001')).toThrow();
-  expect(() => parseTestUsd('2e1')).toThrow();
+it('uses exact cents for both Venn assets', () => {
+  for (const network of ['chipnet', 'mainnet'] as const) {
+    expect(parseAssetAmount('20.01', network)).toBe(2_001n);
+    expect(() => parseAssetAmount('20.001', network)).toThrow(vennAsset(network).symbol);
+    expect(() => parseAssetAmount('2e1', network)).toThrow();
+  }
+  expect(formatAssetAmount(2_001n)).toBe('20.01');
+  expect(formatAssetAmount(5n)).toBe('0.05');
 });
 
-it('requires a token-aware Chipnet destination', () => {
+it('uses Venn Test USD on Chipnet and MUSD on Mainnet', () => {
+  expect(vennAsset('chipnet')).toBe(VENN_TEST_USD);
+  expect(vennAsset('mainnet')).toBe(MUSD);
+  expect(MUSD.category).toBe('b38a33f750f84c5c169a6f23cb873e6e79605021585d4f3408789689ed87f366');
+  expect(() => requireVennAsset({ network: 'mainnet', assetCategory: MUSD.category })).not.toThrow();
+  expect(() => requireVennAsset({ network: 'mainnet', assetCategory: VENN_TEST_USD.category })).toThrow(/MUSD on Mainnet/);
+  expect(() => requireVennAsset({ network: 'chipnet', assetCategory: MUSD.category })).toThrow(/Venn Test USD on Chipnet/);
+});
+
+it('requires a token-aware destination on the Venn’s own network', () => {
   const locking = p2pkhForPublicKey(people.shop.publicKey);
-  expect(tokenRecipient(addressForLockingBytecode(locking, 'chipnet', true))).toEqual(locking);
-  expect(() => tokenRecipient(addressForLockingBytecode(locking, 'chipnet'))).toThrow(/token-aware/);
-  expect(() => tokenRecipient(addressForLockingBytecode(locking, 'mainnet', true))).toThrow(/Chipnet/);
+  expect(tokenRecipient(addressForLockingBytecode(locking, 'chipnet', true), 'chipnet')).toEqual(locking);
+  expect(tokenRecipient(addressForLockingBytecode(locking, 'mainnet', true), 'mainnet')).toEqual(locking);
+  expect(() => tokenRecipient(addressForLockingBytecode(locking, 'chipnet'), 'chipnet')).toThrow(/token-aware/);
+  expect(() => tokenRecipient(addressForLockingBytecode(locking, 'mainnet'), 'mainnet')).toThrow(/token-aware/);
+  expect(() => tokenRecipient(addressForLockingBytecode(locking, 'mainnet', true), 'chipnet')).toThrow(/Chipnet/);
+  expect(() => tokenRecipient(addressForLockingBytecode(locking, 'chipnet', true), 'mainnet')).toThrow(/Mainnet/);
 });
 
 it('requires the supported category and commits it to every seat acceptance', () => {
@@ -29,25 +45,26 @@ it('requires the supported category and commits it to every seat acceptance', ()
   const stable = inviteFor(plan, 'chipnet', VENN_TEST_USD.category);
   const legacy = inviteFor(plan, 'chipnet');
   expect(stable.assetCategory).toBe(VENN_TEST_USD.category);
-  expect(() => requireTestUsd(stable)).not.toThrow();
-  expect(() => requireTestUsd(legacy)).toThrow();
-  expect(() => requireTestUsd({ ...stable, network: 'mainnet' })).toThrow();
+  expect(() => requireVennAsset(stable)).not.toThrow();
+  expect(() => requireVennAsset(legacy)).toThrow();
+  expect(() => requireVennAsset({ ...stable, network: 'mainnet' })).toThrow();
   expect(fingerprint(stable)).not.toBe(fingerprint(legacy));
   expect(() => decodeAcceptance(encodeAcceptance(accept(stable, 1, people.ali)), legacy)).toThrow(/different plan/);
 });
 
-it('funds two consecutive test-dollar payments from the initial fee allocation', () => {
+for (const asset of [VENN_TEST_USD, MUSD])
+ it(`funds two consecutive ${asset.symbol} payments on ${asset.network} from the initial fee allocation`, () => {
   const plan = presetPlan('shared', { name: 'Sara', publicKey: people.creator.hex }, [{ name: 'Ali', publicKey: '' }], 5_000n);
-  const invite = inviteFor(plan, 'chipnet', VENN_TEST_USD.category);
-  const token = { ...wallet(people.creator, 10_000n, 2, 1), token: { category: VENN_TEST_USD.category, amount: 10_000n } };
+  const invite = inviteFor(plan, asset.network, asset.category);
+  const token = { ...wallet(people.creator, 10_000n, 2, 1), token: { category: asset.category, amount: 10_000n } };
   const { params, draft } = buildVennGenesis({
     utxos: [wallet(people.creator), token],
     publicKey: people.creator.publicKey,
-    network: 'chipnet',
+    network: asset.network,
     settings: plan.settings,
     members: membersFor(invite, people.creator.hex, [accept(invite, 1, people.ali)]),
     plan: fingerprint(invite),
-    asset: { category: VENN_TEST_USD.category, utxos: [token] },
+    asset: { category: asset.category, utxos: [token] },
     deposit: 10_000n,
     gas: VENN_FEE_ALLOCATION,
   });
@@ -56,8 +73,10 @@ it('funds two consecutive test-dollar payments from the initial fee allocation',
   expect(readMarker(genesis)).toEqual({
     category: params.vaultCategory,
     plan: fingerprint(invite),
-    assetCategory: VENN_TEST_USD.category,
+    assetCategory: asset.category,
   });
+  // The Venn's money address uses the network's own prefix.
+  expect(vennAddress(params, true).startsWith(asset.network === 'mainnet' ? 'bitcoincash:r' : 'bchtest:r')).toBe(true);
   const funded = genesis.outputs.map((_, i) => utxoFrom(genesis, i));
   const coins = vennCoins(params, funded)!;
   const fee = { utxos: funded, publicKey: people.ali.publicKey };
@@ -66,8 +85,8 @@ it('funds two consecutive test-dollar payments from the initial fee allocation',
   const payment = finalizeSpend(spend, people.ali.hex, signVenn(spend, people.ali.privateKey),
     signFeeInputs(spend, people.ali.privateKey, people.ali.publicKey));
   expect(vmVerify(payment, spend.sources)).toBe(true);
-  expect(payment.outputs[1].token).toEqual({ category: VENN_TEST_USD.category, amount: 2_000n });
-  expect(payment.outputs[2].token).toEqual({ category: VENN_TEST_USD.category, amount: 8_000n });
+  expect(payment.outputs[1].token).toEqual({ category: asset.category, amount: 2_000n });
+  expect(payment.outputs[2].token).toEqual({ category: asset.category, amount: 8_000n });
   expect(() => buildBudgetSpend(params, coins, 1, 1_800_000_000n, recipient, 5_001n, fee)).toThrow(/more than/);
   const successor = [
     ...funded.filter(coin => !payment.inputs.some(input => input.txid === coin.txid && input.vout === coin.vout)),

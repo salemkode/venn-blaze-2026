@@ -1,7 +1,7 @@
 // Plain-language summary of a Venn's rules, each line with its weakness. The same text is
 // shown before creating, before joining and on the Venn itself.
 import { formatBch } from 'react-native-xo/core';
-import { formatTestUsd, VENN_TEST_USD } from './asset';
+import { formatAssetAmount, MUSD, VENN_TEST_USD } from './asset';
 import { voteNeed } from './budget';
 import { BUDGET, ROLE, RULE, STOP } from './layout';
 import { WEAKNESS, unitsToDays } from './presets';
@@ -44,7 +44,7 @@ const days = (period: bigint) => {
 };
 
 export const money = (amount: bigint, unit = 'BCH') =>
-  `${unit === VENN_TEST_USD.symbol ? formatTestUsd(amount) : unit === 'base units' ? amount.toString() : formatBch(amount)} ${unit}`;
+  `${unit === VENN_TEST_USD.symbol || unit === MUSD.symbol ? formatAssetAmount(amount) : unit === 'base units' ? amount.toString() : formatBch(amount)} ${unit}`;
 
 export function roleNames(roles: number) {
   return [

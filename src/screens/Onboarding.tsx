@@ -22,6 +22,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { ArrowRight, BadgeCheck, Check, KeyRound, Lock, Store } from 'lucide-react-native';
 import BrandMark, { MarkLens } from '../ui/BrandMark';
 import { APP_NAME, MARK, brand, markCentres } from '../ui/brand';
+import { colors } from '../ui/theme';
 
 // Actors are drawn on a 320 stage, scaled down on short screens.
 const STAGE = 320;
@@ -37,8 +38,8 @@ const BADGE_AT = markCentres(MARK.offset * K + MARK.radius * K);
 const SMALL = 0.55;
 const VAULT_X = -96;
 
-// Copy matches this build: Venns run on Chipnet with test money; budgets, votes, recovery
-// and Circles all work in the app.
+// Copy matches this build: Venns run on Chipnet with test money and on Mainnet with MUSD;
+// budgets, votes, recovery and Circles all work in the app.
 export const SCENES: { key: string; title?: string; body: string; note?: string }[] = [
   {
     key: 'circle',
@@ -48,7 +49,7 @@ export const SCENES: { key: string; title?: string; body: string; note?: string 
     key: 'vault',
     title: 'A Venn is a contract.',
     body: 'Shared money sits in a Bitcoin Cash contract. The network enforces its rules, so no company, not even us, can override them.',
-    note: 'Chipnet · Venn Test USD, test money only',
+    note: 'Chipnet: Venn Test USD, test money · Mainnet: MUSD, real money',
   },
   {
     key: 'budget',
@@ -543,11 +544,11 @@ export default function Onboarding({
         ) : last ? (
           <Rise delay={250} reduce={reduce}>
             <View style={s.network}>
-              <View style={s.networkDot} />
+              <View style={[s.networkDot, network === 'mainnet' && { backgroundColor: colors.amber }]} />
               <Text style={s.networkText}>
                 {network === 'chipnet'
-                  ? 'Starts on Chipnet · test coins, no real money'
-                  : 'Mainnet · real BCH · Venns stay on Chipnet'}
+                  ? 'Chipnet · test coins, no real money'
+                  : 'Mainnet · real BCH · Venns hold MUSD'}
               </Text>
             </View>
             {localKeys ? (

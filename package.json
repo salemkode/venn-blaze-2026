@@ -61,7 +61,7 @@
     "ios": "expo run:ios --port 8097",
     "android": "expo run:android --port 8097",
     "web": "expo start --web --port 8099",
-    "build:web": "expo export --platform web",
+    "build:web": "expo export --platform web && node scripts/web-phone-frame.mjs dist",
     "build:landing": "node scripts/build-landing.mjs",
     "build:blaze": "npm run build:web && node scripts/build-landing.mjs --with-wallet",
     "demo:blaze": "vitest run tests/venn/plan.test.ts tests/venn/spend.test.ts --reporter=verbose --hideSkippedTests -t \"an acceptance signs this plan and this seat only|waits for everyone, then creates a Venn|member spends within budget|over budget fails\"",

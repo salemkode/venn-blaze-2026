@@ -1,0 +1,9 @@
+{
+  "merchant": "bchtest:qzsk9k5x0r08ue3mcmv2p753xy8upwctpg8j2udt5k",
+  "sponsor": "bchtest:qqrn7f2kss9pqj9uy93rd6ldukr5cqeeksfls3v0pf",
+  "cap": 3000,
+  "interval": 2,
+  "height": 330000,
+  "category": "c89c5fa91c2588cfcc5faef4a62fcb286b4b83ee30a54e7596b2ffaeaf0ee2f7",
+  "genesisTxid": "f9fc8bab1479ac006f7d9c05645f81d30176098e4c89c44781576501f1b6517a"
+}

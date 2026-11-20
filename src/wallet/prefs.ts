@@ -7,8 +7,14 @@ export type Network = 'chipnet' | 'mainnet';
 
 const KEYS = { network: 'venn.network', intro: 'venn.intro', pending: 'venn.pending' };
 
+/** Venn starts on Mainnet; only an explicit choice keeps a wallet on Chipnet. */
 export async function readNetwork(): Promise<Network> {
-  return (await AsyncStorage.getItem(KEYS.network)) === 'mainnet' ? 'mainnet' : 'chipnet';
+  return (await AsyncStorage.getItem(KEYS.network)) === 'chipnet' ? 'chipnet' : 'mainnet';
+}
+/** The network the person picked in Settings, or null if they never chose one. */
+export async function readChosenNetwork(): Promise<Network | null> {
+  const value = await AsyncStorage.getItem(KEYS.network);
+  return value === 'chipnet' || value === 'mainnet' ? value : null;
 }
 export const saveNetwork = (network: Network) => AsyncStorage.setItem(KEYS.network, network);
 

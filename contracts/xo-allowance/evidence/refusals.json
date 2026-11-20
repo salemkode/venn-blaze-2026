@@ -1,0 +1,24 @@
+{
+  "note": "Transactions Chipnet refused before their timelock passed. Both public Electrum servers (chipnet.bch.ninja, chipnet.imaginary.cash) returned the same answer. Nothing here was accepted; each payment was later accepted with identical bytes.",
+  "refusals": [
+    {
+      "txid": "8b5f1cc7998d33f52c388281f587813459b24222bab3fef2c798efc883c96c5f",
+      "what": "First payment, sent while its envelope (genesis 2f609c88…) was unconfirmed",
+      "answer": "non-BIP68-final (code 64)",
+      "laterAccepted": true
+    },
+    {
+      "txid": "a05e6cea2dc60a35b694d271bff2a06737afe23751bde096dce18255e0f60e9f",
+      "what": "Follow-up payment, sent while the first payment was unconfirmed",
+      "answer": "non-BIP68-final (code 64)",
+      "laterAccepted": true
+    },
+    {
+      "txid": "2841033a65dcfc15263816492d6d37df645ee30d97ac1a8ae203c76feaf0fceb",
+      "what": "Refund of the main envelope (locktime 337798) while the servers reported tips 337835-337843",
+      "answer": "bad-txns-nonfinal, non-final transaction (code 64)",
+      "laterAccepted": false
+    }
+  ],
+  "chipnetLockBehaviour": "On 19 November 2026 Chipnet produced about one block a minute, and its nodes applied height-based locks as if each block were ten minutes of median time past. A plain P2PKH self-payment showed the same: sequence 1 on a coin from block 337802 was refused until tip 337811 (about ten minutes later), and absolute locktime 331500 was accepted while 333000 was refused at tip about 337840. The payments therefore waited about ten minutes per interval block, and the main envelope's refund at height 337798 stays refused until the nodes reach it; the refund path was shown on a second envelope with refund height 330000."
+}

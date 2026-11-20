@@ -76,6 +76,18 @@ sent after the last round goes to the last member.
 ## Evidence and what remains
 
 `npm test` runs every contract path on libauth's BCH 2026 VM (standard and consensus rules), including
-crafted transactions for each review finding. Live Chipnet broadcasts of v2 and Circle have not been made:
-the test treasury funds only registered recipients, and Venn is not registered. The contracts have had an
-internal review by two independent reviewers, not an external audit.
+crafted transactions for each review finding. Both contracts ran live on Chipnet
+([run](live-chipnet-2026-11-19.md), every path including recovery) and on Mainnet with MUSD
+([run](live-mainnet-2026-11-19.md): creation, a budget payment, a payment vote and a two-round Circle).
+The bytecode is the same on both networks. The contracts have had an internal review by two
+independent reviewers, not an external audit.
+
+## Networks and assets
+
+| Network | Asset | Fees |
+| --- | --- | --- |
+| Chipnet | Venn Test USD (`4514d338…`), no value | tBCH |
+| Mainnet | MUSD, Moria USD (`b38a33f7…`). Moria stopped minting MUSD in April 2026; it trades on Cauldron | BCH |
+
+Each network keeps its own Venns on a device, and proposal, Venn and pending records name their
+network, so a code or transaction from one network is refused on the other.

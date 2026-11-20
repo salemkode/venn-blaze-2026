@@ -13,7 +13,7 @@ export default function CreatePage() {
   const { preset } = useLocalSearchParams<{ preset?: string }>();
   const type = preset === 'personal' || preset === 'shared' || preset === 'pot' || preset === 'circle' ? preset : null;
 
-  if (!venns.publicKey) return <Page><Note>A local Chipnet wallet is required.</Note></Page>;
+  if (!venns.publicKey) return <Page><Note>A wallet created on this device is required.</Note></Page>;
   if (!type) return <>
     <Stack.Screen options={{ headerShown: false }} />
     <VennPresetPicker

@@ -1,0 +1,112 @@
+{
+  "requests": [
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "Widget Factory",
+          "matchCase": true
+        },
+        "replaceText": "Venn"
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "Team Cypherpunk: Bob, Charlie & Harry",
+          "matchCase": true
+        },
+        "replaceText": "Shared money, rules everyone signs · salemkode, solo entry"
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "widget.cash",
+          "matchCase": true
+        },
+        "replaceText": "venn.salemkode.com/blaze"
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "Automatically create BCH widgets in seconds",
+          "matchCase": true
+        },
+        "replaceText": "Money you share, where everyone spends alone from a budget they agreed to and bigger payments need the group. Bitcoin Cash enforces the rules, not us."
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "https://github.com/widgetcash/factory",
+          "matchCase": true
+        },
+        "replaceText": "venn.salemkode.com/blaze"
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "The Story of Widget Factory",
+          "matchCase": true
+        },
+        "replaceText": "The Story of Venn"
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "The BCH BLAZE team were making slides for project presentations and suddenly it hit us! What if people’s widgets could be produced in a factory instead of by hand?",
+          "matchCase": true
+        },
+        "replaceText": "Sara, Sam and Lee share a flat. One of them always fronts the groceries and chases the others. A joint card means trusting whoever holds it; a 2-of-3 multisig means three phones for a $20 shop."
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "Bob suggested his garage as our workshop & it went from there. We’re amazed by the quantity of widgets we can produce now!",
+          "matchCase": true
+        },
+        "replaceText": "With Venn they agree once: $50 a day each, anything bigger needs 2 of 3, and a lost phone can be replaced after a waiting period. Each person reads every rule, including its catch, and signs for their own seat."
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "Benefits of Widget Factory",
+          "matchCase": true
+        },
+        "replaceText": "Benefits of Venn"
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "Widget factory lets anyone pay in BCH for widgets!",
+          "matchCase": true
+        },
+        "replaceText": "A CashScript covenant holds each Venn. CashTokens carry its state: a rules NFT plus one card per member with their key, roles and remaining budget."
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "And users can escrow their widget investment funds as part of the widget marketplace.",
+          "matchCase": true
+        },
+        "replaceText": "A payment must rewrite that card in the same transaction, so the BCH VM itself refuses overspending."
+      }
+    },
+    {
+      "replaceAllText": {
+        "containsText": {
+          "text": "The Vision for Widget Factory",
+          "matchCase": true
+        },
+        "replaceText": "The Vision for Venn"
+      }
+    }
+  ]
+}

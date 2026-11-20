@@ -60,3 +60,6 @@ modules/**/.cxx/
 
 # Device-controller recordings and agent state
 .argent/
+
+# Cloudflare build output (cf deploy)
+.cloudflare/

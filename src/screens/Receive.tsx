@@ -1,11 +1,11 @@
 import React from 'react';
-import { Linking, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { Share as ShareIcon } from 'lucide-react-native';
 import { NETWORKS } from 'react-native-xo';
 import { colors as c } from '../ui/theme';
 import { styles as s, badgeDotStyle } from '../ui/styles';
 import { Note, PillButton, SafeQR } from '../ui/kit';
-import { VENN_TEST_USD } from '../venn/asset';
+import { vennAsset } from '../venn/asset';
 
 const FAUCET = 'https://tbch.googol.cash/';
 
@@ -84,8 +84,8 @@ function AssetSwitch({
 }
 
 /**
- * Receive Venn Test USD on the Venn key's token-aware address, or tBCH/BCH on
- * the wallet's own address. Venn Test USD exists only for local Chipnet wallets.
+ * Receive the Venn asset (Venn Test USD on Chipnet, MUSD on Mainnet) on the Venn key's token-aware
+ * address, or tBCH/BCH on the wallet's own address. Venn keys exist only for local wallets.
  */
 export default function Receive({
   network,
@@ -110,6 +110,7 @@ export default function Receive({
 }) {
   const testnet = network === 'chipnet';
   const unit = bchUnit(network);
+  const usd = vennAsset(testnet ? 'chipnet' : 'mainnet').symbol;
   const shown: ReceiveAsset = usdSupported ? asset : 'bch';
   const address = shown === 'usd' ? usdAddress : walletAddress;
   return (
@@ -118,7 +119,7 @@ export default function Receive({
         <AssetSwitch
           value={shown}
           options={[
-            { value: 'usd', label: VENN_TEST_USD.symbol },
+            { value: 'usd', label: usd },
             { value: 'bch', label: unit },
           ]}
           onChange={onAssetChange}
@@ -128,11 +129,11 @@ export default function Receive({
         <>
           <AddressCard
             address={address}
-            asset={shown === 'usd' ? VENN_TEST_USD.symbol : unit}
+            asset={shown === 'usd' ? usd : unit}
             network={network}
             purpose={
               shown === 'usd'
-                ? 'This address is on your Venn key. Venn Test USD sent here funds your Venns.'
+                ? `This address is on your Venn key. ${usd} sent here funds your Venns.`
                 : `This is your wallet address. ${unit} sent here adds to your wallet balance.`
             }
           />
@@ -149,7 +150,7 @@ export default function Receive({
           ) : null}
           <Text style={s.caption}>
             {shown === 'usd'
-              ? 'Send only Venn Test USD on Chipnet to this address. Venn ignores other tokens.'
+              ? `Send only ${usd} on ${testnet ? 'Chipnet' : 'Mainnet'} to this address. Venn ignores other tokens.`
               : testnet
                 ? 'Chipnet only · test funds, no real value'
                 : 'Mainnet · real BCH'}
@@ -163,8 +164,8 @@ export default function Receive({
       ) : (
         <Text style={s.caption}>{shown === 'usd' ? 'Loading your Venn key address…' : 'Loading your address…'}</Text>
       )}
-      {!usdSupported && testnet ? (
-        <Text style={s.caption}>Venn Test USD is available with a wallet created on this device.</Text>
+      {!usdSupported ? (
+        <Text style={s.caption}>{usd} is available with a wallet created on this device.</Text>
       ) : null}
     </View>
   );
@@ -200,5 +201,6 @@ const local = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 6,
   },
-  address: { marginTop: 16 },
+  // A CashAddress has no spaces; browsers will not wrap it unless told to.
+  address: { marginTop: 16, ...(Platform.OS === 'web' ? ({ wordBreak: 'break-all' } as object) : null) },
 });
