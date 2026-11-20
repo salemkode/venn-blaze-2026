@@ -228,15 +228,18 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
           const seat = coins?.cards.findIndex(c => c.state.pkh === pkh) ?? -1;
           const card = seat >= 0 ? coins!.cards[seat].state : null;
           const incoming = coins?.cards.findIndex(c => c.state.recovery !== 0 && c.state.newPkh === pkh) ?? -1;
+          const balance = moneyOf(params, coins);
+          const budget = card && card.recovery === 0 ? availableBudget(card, now).available : 0n;
           return {
             saved,
             params,
             address,
             official,
             coins,
-            balance: moneyOf(params, coins),
+            balance,
             seat,
-            available: card && card.recovery === 0 ? availableBudget(card, now).available : 0n,
+            // A budget can be larger than what the Venn holds; nobody can spend more than is there.
+            available: budget < balance ? budget : balance,
             incoming,
           };
         }),

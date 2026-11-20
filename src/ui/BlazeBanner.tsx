@@ -28,7 +28,9 @@ export default function BlazeBanner() {
         {' · '}
         <A href={banner.before.changes}>What’s new</A>
         {'  '}
-        {banner.before.label}: <A href={banner.before.source}>code</A>
+        {banner.before.label} ({banner.before.summary}): <A href={banner.before.source}>XO wallet</A>
+        {' · '}
+        <A href={banner.before.libauth}>Libauth adapter</A>
         {' · '}
         <A href={banner.before.demo}>demo</A>
         {'  '}

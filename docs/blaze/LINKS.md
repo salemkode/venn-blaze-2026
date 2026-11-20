@@ -24,30 +24,32 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 | --- | --- | --- |
 | After (presented work) | https://github.com/salemkode/venn-blaze-2026 · pinned: https://github.com/salemkode/venn-blaze-2026/tree/faa806c9c85d47dcdf22ce579188e32e648c7c85 | Public. Published 20 Nov as `faa806c` on branch `hackathon` (snapshot of `ff3dca1`; checked signed out). |
 | Full history (private) | https://github.com/salemkode/venn | Private; `master` at `0f8152d`; this work is on the local branch `docs/blaze-final-submission`. |
-| Before: wallet starter at kickoff | https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f | Public. Last commit 14 Nov 13:55 UTC, before the 14:00 UTC kickoff. |
-| Before: wallet starter, 13 Nov | https://github.com/salemkode/xo-react-native-wallet/tree/ba90bd04f9f4db52ce30b2cef69f662efbb32482 | Public. |
-| Before: native libauth adapter | https://github.com/salemkode/react-native-libauth | Public. Last pre-event push 14 Nov 13:53 UTC. |
+| Before: XO React Native wallet template at kickoff | https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f | Public. Last commit 14 Nov 13:55 UTC, before the 14:00 UTC kickoff. |
+| Before: XO React Native wallet template, 13 Nov | https://github.com/salemkode/xo-react-native-wallet/tree/ba90bd04f9f4db52ce30b2cef69f662efbb32482 | Public. |
+| Before: native Libauth adapter the template runs on | https://github.com/salemkode/react-native-libauth/tree/ccd225d749b55980612b44515bf47302e8b6b70c | Public. Created 13 Nov; last pre-event commit 14 Nov 13:52 UTC. |
 
 ## Demo
 
 | | Link | Status |
 | --- | --- | --- |
-| After: judge page | https://venn.salemkode.com/blaze/ | Live: 20 Nov build (Worker `venn-blaze`, version `5910b292`), checked in Safari on an iOS 26 simulator. |
+| After: judge page | https://venn.salemkode.com/blaze/ | Live: 21 Nov build from master `a2786c5` (Worker `venn-blaze`, version `4beca696`); checked at desktop and phone widths. |
 | After: web wallet | https://venn.salemkode.com/ | Same. |
-| After: Android preview | https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview | Signed APK, 19 Nov, Chipnet only (built before Mainnet support). |
+| After: Android preview | https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview | Signed APK 0.2.0 (versionCode 2), built 20 Nov from master, opens on Mainnet; same signing certificate as 0.1.0 (SHA-256 `27de31f2…`), so it updates in place. Downloaded, checksum verified and installed on an Android 16 emulator. |
+| After: iPhone build | https://appdrop.app/d/8g7cx3rw6x | AppDrop link, 0.2.0 (build 2), published 20 Nov; each recipient's iPhone signs it with their own Apple ID. |
 | Before | https://github.com/salemkode/xo-react-native-wallet/blob/b32a7fd85674791e557c4bc339da29f3842cf68f/README.md | The starter's README and screenshot; no hosted demo existed before the event. |
 
 ## Banner contents
 
 Rendered at the top of the judge page and the web wallet from [banner.json](banner.json):
 
-> **BCH BLAZE 2026** · Deck · Source · What’s new · Before the event: code · demo · EMBER2026: `<address>`
+> **BCH BLAZE 2026** · Deck · Source · What’s new · Before the event (RN + Libauth + XO template): XO wallet · Libauth adapter · demo · EMBER2026: `<address>`
 
 | Banner item | Target |
 | --- | --- |
 | Deck | https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit?usp=sharing |
 | Source | https://github.com/salemkode/venn-blaze-2026 |
-| Before the event: code | xo-react-native-wallet @ b32a7fd |
+| Before the event: XO wallet | xo-react-native-wallet @ b32a7fd |
+| Before the event: Libauth adapter | react-native-libauth @ ccd225d |
 | Before the event: demo | Its README at b32a7fd |
 | What’s new | https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/blaze/SUBMISSION.md#built-during-the-event |
 | EMBER2026 | `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9` (the entrant's BLAZE 2025 address, set 20 Nov; the judge page footer shows the same value) |

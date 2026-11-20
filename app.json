@@ -2,14 +2,15 @@
   "expo": {
     "name": "Venn",
     "slug": "venn",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "venn",
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "com.salemkode.venn",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +18,8 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.salemkode.venn"
+      "package": "com.salemkode.venn",
+      "versionCode": 2
     },
     "web": {
       "output": "single",

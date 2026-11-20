@@ -81,7 +81,7 @@ export function ApproveScreen({ venns, onDone }: { venns: VennsState; onDone(): 
       <Text accessibilityRole="header" style={a.title}>
         {read.proposal.title}
       </Text>
-      <Text style={s.body}>In {read.saved.name}. Checked against the Venn on Chipnet just now.</Text>
+      <Text style={s.body}>In {read.saved.name}. Checked against the Venn on {read.proposal.network === 'mainnet' ? 'Mainnet' : 'Chipnet'} just now.</Text>
       <View style={[s.detailCard, a.lines]}>
         {read.described.lines.map((line, n) => (
           <Text key={n} style={s.body}>
@@ -92,7 +92,7 @@ export function ApproveScreen({ venns, onDone }: { venns: VennsState; onDone(): 
       <View style={s.detailCard}>
         <DetailRow first label="Approvals needed" value={String(read.proposal.need)} />
         <DetailRow label="Network fee (paid by the proposer)" value={formatSats(read.described.fee)} />
-        <DetailRow label="Network" value="Chipnet" />
+        <DetailRow label="Network" value={read.proposal.network === 'mainnet' ? 'Mainnet' : 'Chipnet'} />
       </View>
       {read.canSign ? (
         <Text style={a.hint}>Approving signs this exact transaction and nothing else. It cannot be changed afterwards.</Text>

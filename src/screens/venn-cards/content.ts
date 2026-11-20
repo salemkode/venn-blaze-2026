@@ -31,7 +31,7 @@ export const KINDS: Kind[] = [
     colors: { surface: '#0B0B0D', ink: '#FFFFFF', secondary: '#BEC2C3', accent: '#19D39B', light: true },
     parts: [
       { label: 'What it is', title: 'Your own money, with a safety net.', body: 'You hold it. Two friends you trust stand behind you, not beside you.' },
-      { label: 'Who spends alone', title: 'You, from a budget that refills.', body: 'Say 50 Venn Test USD a day. Spend it all and half is back in 12 hours.' },
+      { label: 'Who spends alone', title: 'You, from a budget that refills.', body: 'Say 50 a day. Spend it all and half is back in 12 hours.' },
       { label: 'Bigger payments', title: 'Above your budget, a friend approves.', body: 'A larger payment needs your vote plus one friend’s.' },
       { label: 'Weakness', title: 'Friends can replace a lost key.', body: 'Enough of them together could take over your place after the waiting period.' },
     ],

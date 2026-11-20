@@ -4,7 +4,8 @@
 | --- | --- |
 | Judge page | **https://venn.salemkode.com/blaze/** |
 | Web wallet | **https://venn.salemkode.com/** (opens on Mainnet; on a desktop it appears inside a phone frame, on a phone it runs full-screen) |
-| Android app | Signed preview APK on the [judge source releases](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) (built 19 November, Chipnet only) |
+| Android app | Signed preview APK 0.2.0 on the [judge source releases](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) (built 20 November; opens on Mainnet) |
+| iPhone app | [AppDrop](https://appdrop.app/d/8g7cx3rw6x) (0.2.0; signed on your iPhone with your own Apple ID) |
 | Video | [68-second walkthrough](walkthrough.mp4) ([transcript](transcript.txt)). It shows the earlier BCH-denominated prototype; a new recording is on the [to-do list](TODO-BEFORE-SUBMIT.md). |
 
 The live site runs the 20 November build (deployed 20 November, checked in phone Safari).
@@ -34,6 +35,15 @@ Venn never holds your key: the connected wallet signs, and Venn broadcasts only 
 Keep pairing links and QR codes out of recordings. Use a wallet with only a few dollars.
 
 ## Verified on 20 November
+
+### Overnight QA on the deployed site (20 November, evening)
+
+- **Mainnet payment through the web wallet:** https://venn.salemkode.com/ paired the owner's Cashonize wallet over WizardConnect (Cashonize: “WizardConnect · Venn · Connected”), showed the same 0.01820379 BCH balance, and sent **0.0001 BCH** to the wallet's own address. Cashonize showed “Send 0.00010000 BCH … Origin: Venn”, Venn showed recipient, amount, fee (374 sat) and total, and broadcast **`a018ad740448ce69d6c1402fee11a53400886c3a5f8a2f6d4254f0d0301c7409`**, accepted by two Mainnet servers.
+- **Again from the desktop phone frame** after the frame fix was deployed (Worker `4beca696`): 0.0001 BCH, **`a92b51dcf305bf96c3438b3028a1ec0de90d0b738ac16ee746eb944f6cc99ccd`**.
+- **Declining in the wallet:** Cancel in Cashonize returns Venn to the Send form with “User rejected the transaction”; nothing is sent.
+- **Found and fixed:** pairing the same wallet again was refused (“This wallet is already Cashonize”), so a pairing whose wallet tab had closed stayed in use and payments waited for an approval that never came. Re-pairing now replaces the old session (tests added).
+- **Found and fixed:** on desktop the phone frame had stopped appearing (its inline script no longer parsed after the 20 November Safari fix), so the wallet stretched to the full window. The build now fails if that script does not parse.
+- **Android 0.2.0 APK:** downloaded from the release, checksum verified, installed on an Android 16 emulator: opens on Mainnet (“Mainnet · real BCH · Venns hold MUSD”), creates a wallet, connects to Mainnet Electrum, Settings shows 0.2.0.
 
 From fresh browser sessions against the production web export (`npm run build:blaze`, served locally with the same single-page fallback as the Cloudflare Worker; not yet deployed):
 

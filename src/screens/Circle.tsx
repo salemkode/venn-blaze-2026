@@ -1,5 +1,5 @@
 // A Circle (jam'eya): the round, the pot, who has paid, whose turn it is, paying in and
-// paying out. Everything here is enforced by the Circle contract on Chipnet.
+// paying out. Everything here is enforced by the Circle contract on the Circle's network.
 import React, { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { BadgeCheck, RefreshCw, Share2, ShieldAlert } from 'lucide-react-native';
@@ -147,7 +147,7 @@ export function CircleScreen({ view, venns }: { view: CircleView; venns: VennsSt
             {prepared.rows.map(([label, value], i) => (
               <DetailRow key={label} first={!i} stacked={label === 'To'} mono={label === 'To'} label={label} value={value} />
             ))}
-            <DetailRow label="Network" value="Chipnet" />
+            <DetailRow label="Network" value={view.params.network === 'mainnet' ? 'Mainnet' : 'Chipnet'} />
           </View>
           <View style={k.actions}>
             <PillButton
@@ -157,7 +157,7 @@ export function CircleScreen({ view, venns }: { view: CircleView; venns: VennsSt
                 run(async () => {
                   await prepared.send();
                   setPrepared(null);
-                  setNotice({ text: 'Sent on Chipnet.' });
+                  setNotice({ text: `Sent on ${view.params.network === 'mainnet' ? 'Mainnet' : 'Chipnet'}.` });
                 })
               }
             />

@@ -22,11 +22,11 @@ What the rules require, and where Venn stands:
 
 | Requirement (DoraHacks) | Status | Evidence |
 | --- | --- | --- |
-| “At least one feature that involves sending Bitcoin Cash (BCH) mainnet transactions … possible USING the app for anyone (ie the judges) to simply & clearly make a useful BCH mainnet transaction” | Implemented in the web wallet, which now opens on Mainnet: a judge connects their own WizardConnect wallet and sends BCH. Verified on the production web export up to the Mainnet Send screen (pairing, balance, matching address); the same path completed a payment on Chipnet. No Mainnet payment has gone through the web wallet yet; one small owner payment on the deployed build is recommended. | [DEMO.md](DEMO.md#verified-on-20-november), Chipnet `7594e82e…` |
+| “At least one feature that involves sending Bitcoin Cash (BCH) mainnet transactions … possible USING the app for anyone (ie the judges) to simply & clearly make a useful BCH mainnet transaction” | Implemented in the web wallet, which now opens on Mainnet: a judge connects their own WizardConnect wallet and sends BCH. Verified end to end on the deployed site on 20 Nov: Cashonize paired over WizardConnect, approved, and Venn broadcast a 0.0001 BCH Mainnet payment. | [DEMO.md](DEMO.md#verified-on-20-november), Mainnet `a018ad74…`, Chipnet `7594e82e…` |
 | “A live, usable demo … judges can simply click a website link to open & experiment with” | Live at https://venn.salemkode.com/blaze/ (wallet at the root) with the 20 Nov build and the banner. | [LINKS.md](LINKS.md) |
 | “Original or significantly improved during the hackathon” | The shared-money product, contracts, app and Mainnet/Chipnet runs were all built 14–20 Nov on top of a send/receive starter. | [SUBMISSION.md](SUBMISSION.md#built-during-the-event) |
 | Top-of-page banner on the home page: Widget Factory presentation, source repository, CashTokens address for EMBER2026 | Built on the landing page and the web wallet from `banner.json`. Deck link and voting address pending your decisions. | [banner.json](banner.json) |
-| Pre-existing projects: links to old and new repo plus a demo from before the hackathon | Old: xo-react-native-wallet @ b32a7fd (14 Nov 13:55 UTC) and its README screenshot (no hosted demo existed). New: venn-blaze-2026. | [SUBMISSION.md](SUBMISSION.md#pre-existing-work) |
+| Pre-existing projects: links to old and new repo plus a demo from before the hackathon | Old: the RN + Libauth + XO template, i.e. xo-react-native-wallet @ b32a7fd (14 Nov 13:55 UTC) with react-native-libauth @ ccd225d (14 Nov 13:52 UTC), and the template's README screenshot (no hosted demo existed). New: venn-blaze-2026. | [SUBMISSION.md](SUBMISSION.md#pre-existing-work) |
 | WizardConnect or XO Template integration | Both: WizardConnect pairing and signing in the web wallet (verified 20 Nov); XO for ordinary payments in the native wallet; an XO template on Chipnet. | Source `src/wallet/relay.ts`, `contracts/xo-allowance/` |
 | Individuals or teams of 2–4 | Solo entry; the page says “individuals or teams of 2-4 members”. | — |
 | Attended at least one preparation stream (roll call) and confirmed in the BLAZE Telegram | **Unknown: only you know.** Without roll call the entry goes to the low-priority judging queue. | — |
@@ -34,7 +34,7 @@ What the rules require, and where Venn stands:
 
 Risks a judge may raise, and the honest answer:
 
-- The website's Mainnet transaction is an ordinary BCH payment from the judge's own wallet. Venn's distinctive features (budgets, votes, recovery, Circles) need the native app, and the published Android preview is Chipnet-only; their Mainnet transactions came from a script using the app's builders.
+- The website's Mainnet transaction is an ordinary BCH payment from the judge's own wallet. Venn's distinctive features (budgets, votes, recovery, Circles) need the native app: the Android preview 0.2.0 (opens on Mainnet) or the iPhone build on AppDrop. Their 19 November Mainnet transactions came from a script using the app's builders.
 - The source repository `salemkode/venn` is private. Judges see the public snapshot `venn-blaze-2026`, which must be refreshed to the presented revision.
 - No external audit.
 

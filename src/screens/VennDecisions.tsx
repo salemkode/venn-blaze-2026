@@ -45,16 +45,20 @@ const RULE_VALUES = [
 ];
 
 /** One reviewed transaction, ready to send. */
+const networkName = (n: 'chipnet' | 'mainnet') => (n === 'mainnet' ? 'Mainnet' : 'Chipnet');
+
 function Review({
   title,
   rows,
   busy,
   onSend,
   onBack,
+  network,
 }: {
   title: string;
   rows: [string, string][];
   busy: boolean;
+  network: 'chipnet' | 'mainnet';
   onSend(): void;
   onBack(): void;
 }) {
@@ -67,7 +71,7 @@ function Review({
         {rows.map(([label, value], n) => (
           <DetailRow key={label} first={!n} label={label} value={value} />
         ))}
-        <DetailRow label="Network" value="Chipnet" />
+        <DetailRow label="Network" value={networkName(network)} />
       </View>
       <View style={d.actions}>
         <PillButton label={busy ? 'Sending…' : 'Send'} disabled={busy} onPress={onSend} />
@@ -103,6 +107,7 @@ function ProposalCard({ p, view, venns }: { p: ProposalView; view: VennView; ven
   if (prepared)
     return (
       <Review
+        network={view.params.network}
         title={`Send: ${prepared.title}`}
         rows={[
           ['Approvals', `${p.saved.approvals.length} of ${p.need} needed`],
@@ -269,7 +274,7 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
       <Choice title="What do you propose?" value={kind} onChange={k => { setKind(k); setError(''); }} options={KINDS} />
       {kind === 'pay' ? (
         <>
-          <Field label="Recipient · token-aware Chipnet address" value={to} onChangeText={setTo} autoCapitalize="none" autoCorrect={false} />
+          <Field label={`Recipient · token-aware ${networkName(network)} address`} value={to} onChangeText={setTo} autoCapitalize="none" autoCorrect={false} />
           <Field label={`Amount · ${unit}`} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" />
         </>
       ) : null}
@@ -390,6 +395,7 @@ function Recovery({ view, venns }: { view: VennView; venns: VennsState }) {
   if (prepared)
     return (
       <Review
+        network={view.params.network}
         title={prepared.title}
         rows={[['Network fee', formatSats(prepared.fee)]]}
         busy={busy}
@@ -398,7 +404,7 @@ function Recovery({ view, venns }: { view: VennView; venns: VennsState }) {
           act(async () => {
             await prepared.send();
             setPrepared(null);
-            setNotice('Sent on Chipnet.');
+            setNotice(`Sent on ${networkName(view.params.network)}.`);
           })
         }
       />

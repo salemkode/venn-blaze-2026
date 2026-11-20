@@ -74,7 +74,18 @@ export const addWallet = (phrase?: string) =>
 
 /** A wallet whose keys stay in another app, paired over WizardConnect. */
 export const addConnectedWallet = (connection: Connection) =>
-  exclusive(() => add(encodeConnection(connection), { name: connectionName(connection), connected: true }));
+  exclusive(async () => {
+    const secret = encodeConnection(connection);
+    const current = await readRegistry();
+    for (const w of current?.wallets ?? []) {
+      if (!sameConnection(await readSecret(w.id), secret)) continue;
+      // The same wallet paired again. Its old relay session may be dead (say its tab was
+      // closed), so the new pairing replaces it instead of being refused.
+      await write(entry(w.id), secret);
+      return saveRegistry(withActive(current!, w.id));
+    }
+    return add(secret, { name: connectionName(connection), connected: true });
+  });
 
 /** Keeps a pairing's relay session current. */
 export const saveConnection = (id: string, connection: Connection) =>

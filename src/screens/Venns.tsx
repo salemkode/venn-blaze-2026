@@ -168,9 +168,11 @@ const waitingText = (seats: number, accepted: number[]) => {
   return remaining === others ? `Waiting for all ${others} to accept` : `Waiting for ${remaining} of ${others} to accept`;
 };
 
-// Where a browser visitor goes to see Venns working: the signed Android preview, and the
-// 19 November Mainnet run (creation, budget payment, vote and Circle with MUSD).
+// Where a browser visitor goes to see Venns working: the signed Android preview, the iPhone
+// build on AppDrop, and the 19 November Mainnet run (creation, budget payment, vote and Circle
+// with MUSD).
 const ANDROID_PREVIEW = 'https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview';
+const IPHONE_BUILD = 'https://appdrop.app/d/8g7cx3rw6x';
 const MAINNET_EVIDENCE = 'https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/live-mainnet-2026-11-19.md';
 
 /** The Venns tab. */
@@ -194,7 +196,8 @@ export function VennList({ venns, open }: { venns: VennsState; open(sheet: strin
           </Text>
         </View>
         <View style={v.emptyActions}>
-          <PillButton label="Get the Android preview (Chipnet)" onPress={() => Linking.openURL(ANDROID_PREVIEW)} />
+          <PillButton label="Get the Android app" onPress={() => Linking.openURL(ANDROID_PREVIEW)} />
+          <PillButton label="Get the iPhone app" secondary onPress={() => Linking.openURL(IPHONE_BUILD)} />
           <PillButton label="See Venns running on Mainnet" secondary onPress={() => Linking.openURL(MAINNET_EVIDENCE)} />
         </View>
       </View>
@@ -915,7 +918,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
 
       {supported && paying && !venns.pending ? (
         prepared ? (
-          <View style={v.block}>
+          <View key="review" style={v.block}>
             <Text accessibilityRole="header" style={v.reviewTitle}>
               Review payment
             </Text>
@@ -964,7 +967,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
             </View>
           </View>
         ) : (
-          <View style={v.block}>
+          <View key="form" style={v.block}>
             <SectionTitle>Pay from your allowance</SectionTitle>
             <FeeBalanceRow venns={venns} disabled={busy} />
             {venns.error ? <Note danger>{venns.error}</Note> : null}
@@ -1005,7 +1008,9 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
           </View>
         )
       ) : supported && official ? (
-        <View style={[s.buttonRow, v.actions]}>
+        // Keyed so it mounts fresh after the review: reusing the review's native views left
+        // Receive squashed on Android.
+        <View key="actions" style={[s.buttonRow, v.actions]}>
           <View style={s.fill}>
             <PillButton
               label={receiving ? 'Hide address' : 'Receive'}
@@ -1013,18 +1018,17 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
               onPress={() => setReceiving(isOpen => !isOpen)}
             />
           </View>
-          {view.available > 0n && !venns.pending ? (
-            <View style={s.fill}>
-              <PillButton
-                label="Pay"
-                testID="venn-pay"
-                onPress={() => {
-                  setReceiving(false);
-                  setPaying(true);
-                }}
-              />
-            </View>
-          ) : null}
+          <View style={s.fill}>
+            <PillButton
+              label="Pay"
+              testID="venn-pay"
+              disabled={view.available <= 0n || Boolean(venns.pending)}
+              onPress={() => {
+                setReceiving(false);
+                setPaying(true);
+              }}
+            />
+          </View>
         </View>
       ) : null}
 

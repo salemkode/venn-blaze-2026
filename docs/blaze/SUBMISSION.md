@@ -32,12 +32,12 @@ Venn is an alpha. The contracts have had internal reviews but no external audit,
 
 ## Pre-existing work
 
-Venn started from a public React Native BCH send/receive starter by the same author, plus a public native libauth adapter. Both existed before hacking began on 14 November at 14:00 UTC.
+Venn was built on the author's earlier **React Native + Libauth + XO template**: two public repositories created on 13 November, before hacking began on 14 November at 14:00 UTC. [xo-react-native-wallet](https://github.com/salemkode/xo-react-native-wallet) is the XO React Native wallet template (send, receive, Chipnet/Mainnet switch, XO primitives), and [react-native-libauth](https://github.com/salemkode/react-native-libauth) is the native Libauth adapter it runs on. Everything listed under “Built during the event” was added on top of that template.
 
 | What | Before the event | Notes |
 | --- | --- | --- |
-| XO wallet starter (send, receive, Chipnet/Mainnet switch) | [xo-react-native-wallet @ b32a7fd](https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f), committed 14 Nov 13:55 UTC; [13 Nov state @ ba90bd0](https://github.com/salemkode/xo-react-native-wallet/tree/ba90bd04f9f4db52ce30b2cef69f662efbb32482) | Its README with screenshot is the pre-event demo. There was no hosted demo before the event. |
-| Native libauth adapter | [react-native-libauth](https://github.com/salemkode/react-native-libauth), first commit 13 Nov, last pre-event push 14 Nov 13:53 UTC | Vendored as `modules/libauth-native`. |
+| XO React Native wallet template (send, receive, Chipnet/Mainnet switch) | [xo-react-native-wallet @ b32a7fd](https://github.com/salemkode/xo-react-native-wallet/tree/b32a7fd85674791e557c4bc339da29f3842cf68f), committed 14 Nov 13:55 UTC; [13 Nov state @ ba90bd0](https://github.com/salemkode/xo-react-native-wallet/tree/ba90bd04f9f4db52ce30b2cef69f662efbb32482) | Its README with screenshot is the pre-event demo. There was no hosted demo before the event. |
+| Native Libauth adapter used by the template | [react-native-libauth @ ccd225d](https://github.com/salemkode/react-native-libauth/tree/ccd225d749b55980612b44515bf47302e8b6b70c), repository created 13 Nov 11:06 UTC, last pre-event commit 14 Nov 13:52 UTC | Vendored as `modules/libauth-native`. |
 | Libraries | Expo, React Native, libauth, CashScript, XO Engine, WizardConnect | Third-party, see [LICENSE](../../LICENSE) and package.json. |
 
 The Venn repository was created on 17 November. Work between kickoff and 17 November happened in local checkouts and was imported as the first commit, `6eceb15` ("Checkpoint Venn source alpha").
@@ -71,11 +71,14 @@ Every transaction below was re-checked on 20 November (21 IDs) on two independen
 | In the app: a helper requested a seat recovery and the old key stopped it | Done on Chipnet | `0d117273316003d3cc2951993fee9e088e162d7911e9bee690d44e7fb131fcca`, `4a040ff59bf3d983899421441c69f2f043791b99f6d0b97873195959869cb40c` | Explorer |
 | Scripted (separate Venn): two helpers approved a recovery and the new key took the seat after the wait | Done on Chipnet | `a7a2368615e7c5111d630b798ae9964485a5cec264a14de29134ef6933972b18`, `d2b69db5554422a105572969df3284a06b051e704ccb8b1c4ea759b5133fa851` | Explorer |
 | The production web build paired a fresh Cashonize wallet over WizardConnect and sent a payment it signed; Venn broadcast after its review | Done on Chipnet | `7594e82ee1193e59b13cb085e10bd5c2a7381f64d15425c9f065456fc802bf4e` (20 Nov, self-payment of 0.0002 tBCH) | Explorer; [DEMO.md](DEMO.md#verified-on-20-november) |
-| The same build pairs a Cashonize wallet on Mainnet, shows its balance and matching receive address, and opens Send | Tested locally | No transaction: we made no Mainnet payment, so a judge's own payment is the first through the web wallet | [DEMO.md](DEMO.md#verified-on-20-november) |
+| The deployed web wallet (venn.salemkode.com) paired the owner's Cashonize wallet over WizardConnect on Mainnet, showed its balance, and sent 0.0001 BCH after Cashonize approved and Venn's own review | Done on Mainnet | `a018ad740448ce69d6c1402fee11a53400886c3a5f8a2f6d4254f0d0301c7409` (20 Nov, accepted by two Mainnet servers) | [DEMO.md](DEMO.md#verified-on-20-november) |
+| **From the Android app 0.2.0, on Mainnet** (two wallets on one emulator, funded from the owner's Cashonize): a Shared Venn with 0.50 MUSD was created after the second member accepted their seat | Done on Mainnet | `618c2e9dad65dafc6ac3353514512bcd4f81e2ce03d436808f63e10a8f2acb7c` | Explorer |
+| Same Venn, in the app: a 0.30 MUSD payment over the member's 0.20 budget was refused before signing; 0.10 MUSD paid alone from the budget | Done on Mainnet | `54288429411705f709236aae47ced339c3933d72f0cef3e317cfadd2ff518960` | Explorer |
+| Same Venn, in the app: the member proposed 0.30 MUSD beyond the budget, the other member approved with a code, and it was paid (2 of 2) | Done on Mainnet | `ea2bfec69906012c54f74a65af12175621f7700d1bd60aae63eccdf1846edda0` | Explorer |
 | XO Merchant Allowance v3: genesis, capped payment, follow-up from the successor; sponsor refund on a second envelope; payments before the interval refused | Done on Chipnet | `2f609c88b79efff22c1d6bbeefa6eea6ef2c86ed1028b893c9073a0d4f45ddc5`, `8b5f1cc7998d33f52c388281f587813459b24222bab3fef2c798efc883c96c5f`, `a05e6cea2dc60a35b694d271bff2a06737afe23751bde096dce18255e0f60e9f`, `39b4167c973a43030bdecd2b8c4d455c190759bf7c32ab17eaf5e02fee33c6d7` | [contracts/xo-allowance/README.md](../../contracts/xo-allowance/README.md); invitations open in the XO debugger |
-| One cent over a budget is rejected by the BCH VM; contract paths for votes, membership changes, recovery and Circle | Tested locally | `npm test`: 199 tests pass; `cd contracts/xo-allowance && npm test`: 37 pass (also on the latest XO engine) | Run from a checkout; typecheck and lint also pass |
+| One cent over a budget is rejected by the BCH VM; contract paths for votes, membership changes, recovery and Circle | Tested locally | `npm test`: 201 tests pass; `cd contracts/xo-allowance && npm test`: 37 pass (also on the latest XO engine) | Run from a checkout; typecheck and lint also pass |
 | The landing page "grocery fund" lets visitors try budgets and votes | Simulated | JavaScript in the page; no chain access | Open https://venn.salemkode.com/blaze/ |
-| External audit; Venns created and paid in the browser; Mainnet recovery and membership votes; a Mainnet build of the Android app | Planned | — | — |
+| External audit; Venns created and paid in the browser; Mainnet recovery and membership votes | Planned | — | — |
 
 ## Banner
 

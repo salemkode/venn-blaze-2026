@@ -51,7 +51,8 @@ Every kind can be created in the app. A Pot pays out by group vote; a Circle run
 | Platform | How to start | What to try |
 | --- | --- | --- |
 | **iOS or Android** | After `npm ci`, run `npm run setup:native`, then `npm run ios` or `npm run android` with Xcode or Android Studio installed. | Open **Venns → Create a Venn → Shared**. To try it for free, switch to Chipnet in **Settings → Network** and use two local test wallets. |
-| **Android preview** | Install the [signed BLAZE preview and checksum](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) (built 19 November, Chipnet only). It has its own application ID and a standalone release bundle. | Try planning, seat acceptance and shared spending on Chipnet. |
+| **Android preview** | Install the [signed BLAZE preview and checksum](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) (version 0.2.0, built 20 November; opens on Mainnet, Chipnet under Settings → Network). It has its own application ID and a standalone release bundle. | Create a wallet, plan a Venn, accept seats and spend from a budget. |
+| **iPhone** | Install from [AppDrop](https://appdrop.app/d/8g7cx3rw6x) (version 0.2.0): pair once, and the app is signed on your iPhone with your own Apple ID. | Same as Android. |
 | **Web wallet** | Open https://venn.salemkode.com/ or run `npm run web` and open [localhost:8099](http://localhost:8099). On a desktop the app is shown inside a phone frame. | Select **Connect a wallet** and pair a WizardConnect wallet (Cashonize, for example). Venn opens on Mainnet; the wallet keeps its keys and approves each BCH payment. |
 | **Hackathon website** | Run `npm run build:blaze`. Serve `dist/` at the site root and open `/blaze/`. | Judges can try the example, watch the walkthrough, get the deck and open the actual web wallet. Serve existing files first and fall back to `/index.html` for wallet routes. |
 

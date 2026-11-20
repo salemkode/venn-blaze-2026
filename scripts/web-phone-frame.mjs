@@ -60,5 +60,11 @@ const script = `${MARK}
 // Phone browsers (iOS 26 Safari especially) draw their toolbar over the bottom of a 100%-high
 // page, hiding the tab bar. Size the app to the dynamic viewport, which excludes the toolbar.
 const viewport = '<style id="venn-viewport">html,body,#root{height:100dvh}</style>';
-await writeFile(file, html.replace(/<head>/i, `<head>\n${script}`).replace(/<\/head>/i, `${viewport}\n</head>`));
+// Both go right after <head>: the frame script itself contains "</head>" inside its string,
+// so anything placed by searching for "</head>" would land inside the script and break it.
+const out = html.replace(/<head>/i, `<head>\n${script}\n${viewport}`);
+// Fail the build rather than ship a frame script that does not parse.
+const inline = out.slice(out.indexOf(MARK)).match(/<script>([\s\S]*?)<\/script>/)[1];
+new Function(inline);
+await writeFile(file, out);
 console.log(`Phone frame added to ${file}`);
