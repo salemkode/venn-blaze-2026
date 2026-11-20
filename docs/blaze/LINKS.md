@@ -6,7 +6,7 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 
 | | Link | Status |
 | --- | --- | --- |
-| Widget Factory copy (Google Slides, read-only share) | *pending* | Needs the Google step: import [venn-blaze-2026.pptx](venn-blaze-2026.pptx) into Google Drive as Slides (a copy derived from the official template), then share “anyone with the link can view”. See [deck/GOOGLE-SLIDES.md](deck/GOOGLE-SLIDES.md). |
+| Widget Factory copy (Google Slides) | https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit | Imported 20 Nov by Sol (`gpt-6.2-sol`) from the PPTX; 12 slides, text, images and speaker notes checked against the renders; slide 6, 8, 9 and 10 spacing and table borders corrected. **Shared 20 Nov: Anyone with the link, Viewer**; opens signed out. |
 | PowerPoint and PDF | [venn-blaze-2026.pptx](venn-blaze-2026.pptx) · [venn-blaze-2026.pdf](venn-blaze-2026.pdf) | Built from a copy of the official template; also served at `/blaze/venn-blaze-2026.pdf` after the next deploy. |
 | Official template (never edited) | https://docs.google.com/presentation/d/1Yfuk9CJkf4U9M_WukcELhumWgj3Ak6345Ewy8hSp-Hk/edit | — |
 | Earlier Google Slides draft | https://docs.google.com/presentation/d/1QlhgJcfTJWVvpg-cUVZjoKbgj-s2yUZquwFevxeT9qc/edit | Private; content from 18 Nov is out of date. Do not submit. |
@@ -45,7 +45,7 @@ Rendered at the top of the judge page and the web wallet from [banner.json](bann
 
 | Banner item | Target |
 | --- | --- |
-| Deck | The Google Slides share link once it exists; until then `/blaze/venn-blaze-2026.pdf` |
+| Deck | https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit?usp=sharing |
 | Source | https://github.com/salemkode/venn-blaze-2026 |
 | Before the event: code | xo-react-native-wallet @ b32a7fd |
 | Before the event: demo | Its README at b32a7fd |

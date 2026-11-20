@@ -16,7 +16,7 @@ The live site runs the 20 November build (deployed 20 November, checked in phone
 1. Open **https://venn.salemkode.com/**. Skip the intro and choose **Connect a wallet**. Venn is on Mainnet (“● Mainnet · real BCH”).
 2. In your wallet, connect with the `wiz://` link or QR (Cashonize: **Connect**, paste, **Connect New dApp**, **Connect**). Venn shows your balance and receive address.
 3. Choose **Send**, enter an address you control and a small amount, then **Review payment**. Approve in your wallet. Venn shows the recipient, amount, network fee and total; choose **Confirm and send real BCH**. Venn shows the transaction ID with a **View** link.
-4. Optional: open **https://venn.salemkode.com/blaze/** for the story. Its grocery fund is a **simulation** that explains the rules: try **$20** (paid from the budget) and **$50.01** (refused, one cent over).
+4. Optional: open **https://venn.salemkode.com/blaze/** for the story. Its grocery fund is a **simulation** that explains the rules: pay **$20** (from your own budget), then **$80** (over budget: **Ask the group**, then approve as Sam or Lee; two of three pay it from the fund).
 
 Venn never holds your key: the connected wallet signs, and Venn broadcasts only after its own review screen. Shared Venns (budgets, votes, recovery, Circles) need a recovery phrase on the phone, so they run in the native app; the Mainnet and Chipnet transactions in [SUBMISSION.md](SUBMISSION.md#evidence) show them on-chain.
 
@@ -25,7 +25,7 @@ Venn never holds your key: the connected wallet signs, and Venn broadcasts only 
 | Time | Show | Say |
 | --- | --- | --- |
 | 0:00–0:20 | Judge page hero and the grocery fund (simulation) | “Sara, Sam and Lee share a flat. Venn gives each of them a $50 daily budget from one fund, and anything bigger needs two of three.” |
-| 0:20–0:40 | Pay $20, then $50.01 | “Twenty dollars goes through alone. One cent over the budget is refused. This page simulates it; on Bitcoin Cash the contract does it.” |
+| 0:20–0:40 | Pay $20, then $80 → Ask the group → Approve | “Twenty dollars goes through alone. Eighty is over Sara’s budget, so the group votes: two of three say yes and it is paid from the fund. This page simulates it; on Bitcoin Cash the contract does it.” |
 | 0:40–1:10 | Deck slide “Create a Venn in four steps” | “In the app you pick a kind, set budgets and votes, and everyone signs for their own seat. Every rule shows its catch before you join.” |
 | 1:10–1:40 | Deck slide “BCH Usage” | “A CashScript covenant holds the fund. Each member has a CashToken card with their remaining budget. A payment must rewrite that card, so the VM refuses overspending. On 19 November it ran on Mainnet with MUSD: a budget payment, a group vote, and a full Circle.” |
 | 1:40–2:20 | Web wallet: Connect, pair, Send, review | “You can try it now on Mainnet. Connect your own wallet with WizardConnect and send BCH. Your wallet signs; Venn shows the review before anything is broadcast.” |

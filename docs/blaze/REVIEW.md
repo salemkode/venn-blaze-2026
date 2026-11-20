@@ -25,7 +25,7 @@ All three agreed on the track: **Mainnet**, with **Build with XO** only if the e
 | “All returned” overstated: BCH fees and kept coins were spent | Sol | **Fixed:** “all MUSD returned; about 45,800 sats to fees and coins the contracts keep”. |
 | Membership votes were claimed on Chipnet without a receipt | Sol, Astra | **Fixed:** now “tested locally”. |
 | The Android APK is Chipnet-only, yet the deck sent judges to the native app | Fable | **Fixed** in the deck, the docs and the web Venns card (“Android preview (Chipnet)”). A Mainnet APK is an optional TODO. |
-| The demo script promised an $80 vote and “approve as Sam”, which the judge page cannot do; the widget was not labelled a simulation | Sol, Astra, Fable | **Fixed** in DEMO.md and the script: $20 paid, $50.01 refused, labelled “simulation”. The page itself belongs to another thread's redesign and was not edited. |
+| The demo script promised an $80 vote and “approve as Sam”, which the judge page cannot do; the widget was not labelled a simulation | Sol, Astra, Fable | **Fixed:** the other thread's redesign (merged 20 Nov) added a real Ask the group → Approve/Decline vote for $80; the build now tags the widget “Simulation”, and DEMO.md and the script use $20 and $80. |
 | Slide 3: a 2-of-3 multisig needs two signatures, not three | Astra, Fable | **Fixed.** |
 | Slide 2 should lead with the household | Sol, Astra | **Fixed:** “Sara can pay $20 for groceries on her own, but an $80 purchase needs two of the three housemates.” |
 | Slide 4 label put a Chipnet claim on iOS-simulator screens | Fable | **Fixed:** two labels, “Tested locally · app screens, iOS simulator” and “Done on Chipnet · same flow on Android”. |

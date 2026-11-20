@@ -8,6 +8,7 @@ const output = new URL(withWallet ? '../dist/blaze/' : '../dist-landing/', impor
 const files = [
   'site.css',
   'site.js',
+  'kinds.js',
   'images/venn-icon.png',
   'images/review-plan.jpg',
   'images/join-seat.jpg',
@@ -37,7 +38,9 @@ const html = page
   .replace('<!-- hosted-wallet -->', walletLink)
   .replace(/<body([^>]*)>/, `<body$1>\n${bannerMarkup}`)
   .replace(/<p class="blaze-vote">[\s\S]*?<\/p>/, vote)
-  .replace('https://github.com/salemkode/venn#readme', banner.source.url);
+  .replace('https://github.com/salemkode/venn#readme', banner.source.url)
+  // The grocery fund runs in the page only; say so, so nobody mistakes it for the chain.
+  .replace(/(<h2 id="fund-title">[^<]*)(<\/h2>)/, '$1 <small style="font:600 .55em/1 system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.65;vertical-align:middle">Simulation</small>$2');
 if (!html.includes('class="blaze-banner"')) throw new Error('Could not place the BLAZE banner: landing.html has no <body> tag.');
 await writeFile(new URL('index.html', output), html);
 console.log(withWallet ? 'Serve dist/ at the site root. Judge entry: /blaze/' : 'Landing page built in dist-landing/.');

@@ -9,6 +9,7 @@
   <link rel="icon" href="images/venn-icon.png">
   <link rel="stylesheet" href="site.css">
   <script src="site.js" defer></script>
+  <script src="kinds.js" defer></script>
 </head>
 <body class="home">
   <a class="skip" href="#main">Skip to content</a>
@@ -34,41 +35,45 @@
         </div>
       </div>
 
-      <article class="fund" id="try" aria-labelledby="fund-title" data-budget>
+      <article class="fund" id="try" aria-labelledby="fund-title" data-fund>
         <header class="fund-head">
-          <h2 id="fund-title">Grocery fund</h2>
-          <p>Each person can spend up to $50 a day.</p>
+          <div>
+            <h2 id="fund-title">Grocery fund</h2>
+            <p>Each person can spend up to $50 a day. Bigger payments need 2 of 3.</p>
+          </div>
+          <p class="fund-meta"><span data-day>Day 1</span><span>Fund holds <strong data-balance>$450.00</strong></span></p>
         </header>
-        <ul class="people" aria-label="Budgets left today">
-          <li>
-            <span class="who">You</span>
-            <span class="left" data-left>$50.00</span>
-            <span class="bar"><span data-bar style="--fill: 1"></span></span>
-          </li>
-          <li>
-            <span class="who">Sam</span>
-            <span class="left">$50.00</span>
-            <span class="bar"><span style="--fill: 1"></span></span>
-          </li>
-          <li>
-            <span class="who">Lee</span>
-            <span class="left">$50.00</span>
-            <span class="bar"><span style="--fill: 1"></span></span>
-          </li>
-        </ul>
+        <fieldset class="payer">
+          <legend>Who is paying?</legend>
+          <ul class="people">
+            <li><label><input type="radio" name="payer" value="0" checked><span class="who">You</span><span class="left" data-left>$50.00</span><span class="bar"><span data-bar style="--fill: 1"></span></span></label></li>
+            <li><label><input type="radio" name="payer" value="1"><span class="who">Sam</span><span class="left" data-left>$50.00</span><span class="bar"><span data-bar style="--fill: 1"></span></span></label></li>
+            <li><label><input type="radio" name="payer" value="2"><span class="who">Lee</span><span class="left" data-left>$50.00</span><span class="bar"><span data-bar style="--fill: 1"></span></span></label></li>
+          </ul>
+        </fieldset>
         <div class="pay">
-          <label for="expense">You pay the shop</label>
+          <label for="expense"><span data-payer-name>You</span> pay the shop</label>
           <div class="amount"><span aria-hidden="true">$</span><input id="expense" type="number" min="0.01" max="10000" step="0.01" value="20.00" inputmode="decimal" aria-describedby="fund-result"></div>
         </div>
         <div class="chips" role="group" aria-label="Try an amount">
+          <button type="button" data-amount="12.40" aria-pressed="false">$12.40</button>
           <button type="button" data-amount="20" aria-pressed="true">$20</button>
           <button type="button" data-amount="50" aria-pressed="false">$50</button>
-          <button type="button" data-amount="50.01" aria-pressed="false">$50.01</button>
+          <button type="button" data-amount="80" aria-pressed="false">$80</button>
         </div>
-        <p class="result" id="fund-result" role="status" data-outcome data-state="approved">
-          <strong data-verdict>Paid.</strong>
-          <span data-remaining>You have $30.00 left today. Sam and Lee still have $50.00.</span>
+        <p class="result" id="fund-result" role="status" data-outcome data-state="ready">
+          <strong data-verdict>Within your budget.</strong>
+          <span data-remaining>You would have $30.00 left today.</span>
         </p>
+        <div class="vote" data-vote hidden>
+          <p class="vote-title" data-vote-title>Sam asks the group to pay $80.00.</p>
+          <ul class="voters" data-voters></ul>
+        </div>
+        <div class="fund-actions">
+          <button type="button" class="btn btn-fund" data-pay>Pay $20.00</button>
+          <button type="button" class="btn-link" data-tomorrow>Skip to tomorrow</button>
+        </div>
+        <ol class="log" data-log aria-label="What happened" hidden></ol>
       </article>
     </section>
 
@@ -102,34 +107,109 @@
       </div>
     </section>
 
-    <section class="kinds wrap" id="kinds" aria-labelledby="kinds-title">
-      <h2 id="kinds-title">Pick the kind that fits your group.</h2>
-      <p class="section-lead">Every kind tells you its catch before you join.</p>
-      <div class="kind-grid">
-        <article class="kind kind-shared">
-          <h3>Shared</h3>
-          <p class="for">For a home, a couple or a team.</p>
-          <p>Everyone spends alone from their own budget, which refills every day. Bigger payments need a majority.</p>
-          <p class="catch"><strong>The catch:</strong> anyone can spend their whole budget at once, and a majority can outvote you.</p>
-        </article>
-        <article class="kind kind-personal">
-          <h3>Personal</h3>
-          <p class="for">Your money, with friends as backup.</p>
-          <p>You get a daily budget. Bigger payments need your OK plus one friend’s, and friends can get you back in if you lose your phone.</p>
-          <p class="catch"><strong>The catch:</strong> enough of those friends together could take over your place after a waiting period.</p>
-        </article>
-        <article class="kind kind-pot">
-          <h3>Pot</h3>
-          <p class="for">Save together for a trip, a gift or a project.</p>
-          <p>Nobody spends alone. Every payment needs a majority vote.</p>
-          <p class="catch"><strong>The catch:</strong> money stays put until enough people vote.</p>
-        </article>
-        <article class="kind kind-circle">
-          <h3>Circle</h3>
-          <p class="for">A savings circle, or jam’eya.</p>
-          <p>Everyone pays in the same amount each round, and the whole pot goes to whoever’s turn it is.</p>
-          <p class="catch"><strong>The catch:</strong> nobody can be forced to pay in, though every missed payment is visible to everyone.</p>
-        </article>
+    <section class="kinds" id="kinds" aria-labelledby="kinds-title">
+      <div class="wrap">
+        <h2 id="kinds-title">Pick the kind that fits your group.</h2>
+        <p class="section-lead">Every kind tells you its catch before you join. Swipe to compare.</p>
+      </div>
+      <div class="deck" data-deck>
+        <div class="deck-track" data-track tabindex="0" role="region" aria-roledescription="carousel" aria-label="Kinds of Venn">
+          <article class="pick pick-personal" aria-roledescription="slide" aria-label="Personal, 1 of 4">
+            <div class="pick-top">
+              <h3>Personal</h3>
+              <p>Your money, with a daily budget that refills. Bigger payments need your OK plus one friend’s, and friends can give you a new key if you lose your phone.</p>
+            </div>
+            <figure class="pick-figure">
+              <figcaption>Your budget refills over 24 hours</figcaption>
+              <svg viewBox="0 0 320 186" aria-hidden="true" data-chart="refill">
+                <g class="grid">
+                  <line x1="32" y1="30" x2="298" y2="30"/><line x1="32" y1="84" x2="298" y2="84"/><line x1="32" y1="138" x2="298" y2="138"/>
+                </g>
+                <g class="label" font-size="12" text-anchor="end"><text x="19" y="34">50</text><text x="19" y="88">25</text><text x="19" y="142">0</text></g>
+                <path class="area" d="M32 138 L298 30 V138 Z" data-area/>
+                <line class="stroke" x1="32" y1="138" x2="298" y2="30" data-line/>
+                <circle class="head" r="11" cx="298" cy="30" data-head/>
+                <circle class="head-dot" r="4" cx="298" cy="30" data-head/>
+                <g class="label" font-size="12"><text x="32" y="164">0 h</text><text x="165" y="164" text-anchor="middle">12 h</text><text x="298" y="164" text-anchor="end">24 h</text></g>
+              </svg>
+            </figure>
+            <div class="pick-weak">
+              <span>Weakness</span>
+              <p>Friends can replace a lost key. Enough of them together could take over after the wait.</p>
+            </div>
+          </article>
+          <article class="pick pick-shared" aria-roledescription="slide" aria-label="Shared, 2 of 4">
+            <div class="pick-top">
+              <h3>Shared</h3>
+              <p>For a household or a team. Everyone spends alone from their own refilling budget. Bigger payments need a majority vote.</p>
+            </div>
+            <figure class="pick-figure">
+              <figcaption>You spend 20 · Sam still has 50</figcaption>
+              <svg viewBox="0 0 320 186" aria-hidden="true" data-chart="budgets">
+                <g class="label strong" font-size="16"><text x="18" y="34">You</text><text x="302" y="34" text-anchor="end">50 → 30</text><text x="18" y="116">Sam</text><text x="302" y="116" text-anchor="end">50</text></g>
+                <rect class="track" x="18" y="46" width="284" height="26" rx="13"/>
+                <rect class="fill" x="18" y="46" width="170.4" height="26" rx="13" data-bar/>
+                <rect class="full" x="18" y="128" width="284" height="26" rx="13"/>
+              </svg>
+            </figure>
+            <div class="pick-weak">
+              <span>Weakness</span>
+              <p>Anyone can spend their whole budget at once, and a majority can outvote you.</p>
+            </div>
+          </article>
+          <article class="pick pick-pot" aria-roledescription="slide" aria-label="Pot, 3 of 4">
+            <div class="pick-top">
+              <h3>Pot</h3>
+              <p>Collect together for one goal, like a trip or a gift. Nobody spends alone: every payment needs a majority vote.</p>
+            </div>
+            <figure class="pick-figure">
+              <figcaption>Two of three votes approve a payment</figcaption>
+              <svg viewBox="0 0 320 186" aria-hidden="true" data-chart="votes">
+                <line class="link" x1="53" y1="85" x2="267" y2="85"/>
+                <circle class="seat" cx="53" cy="85" r="34"/><circle class="seat" cx="160" cy="85" r="34"/><circle class="seat waiting" cx="267" cy="85" r="34"/>
+                <circle class="pip" cx="53" cy="85" r="4"/><circle class="pip" cx="160" cy="85" r="4"/><circle class="pip" cx="267" cy="85" r="4"/>
+                <g class="label strong" font-size="15" text-anchor="middle"><text x="53" y="145">You</text><text x="160" y="145">Sam</text><text x="267" y="145">Lee</text></g>
+                <circle class="stamp" cx="53" cy="85" r="34" data-stamp="0.12"/><path class="check" d="M41 84 l8 9 17 -19" data-check="0.12"/>
+                <circle class="stamp" cx="160" cy="85" r="34" data-stamp="0.55"/><path class="check" d="M148 84 l8 9 17 -19" data-check="0.55"/>
+              </svg>
+            </figure>
+            <div class="pick-weak">
+              <span>Weakness</span>
+              <p>Slow: money stays in the Pot until enough people vote.</p>
+            </div>
+          </article>
+          <article class="pick pick-circle" aria-roledescription="slide" aria-label="Circle, 4 of 4">
+            <div class="pick-top">
+              <h3>Circle</h3>
+              <p>A savings circle (jam’eya). Everyone pays the same each round, and the contract pays the whole pot to whoever’s turn it is.</p>
+            </div>
+            <figure class="pick-figure">
+              <figcaption>One payout per round, in turn</figcaption>
+              <svg viewBox="0 0 320 186" aria-hidden="true" data-chart="turns">
+                <circle class="ring" cx="160" cy="97" r="73"/>
+                <text class="label strong" x="160" y="96" text-anchor="middle" font-size="18" font-weight="700">The pot</text>
+                <text class="label" x="160" y="114" text-anchor="middle" font-size="12">one per round</text>
+                <circle class="stop" cx="160" cy="24" r="10"/><circle class="stop" cx="223.2" cy="133.5" r="10"/><circle class="stop" cx="96.8" cy="133.5" r="10"/>
+                <circle class="token" cx="96.8" cy="133.5" r="13" data-token/>
+                <g class="label strong" font-size="14"><text x="139" y="24" text-anchor="end">1 · You</text><text x="242" y="139">2 · Sam</text><text x="78" y="139" text-anchor="end">3 · Lee</text></g>
+              </svg>
+            </figure>
+            <div class="pick-weak">
+              <span>Weakness</span>
+              <p>The contract fixes the turns and the amount, but cannot make anyone pay. Every missed payment is visible to everyone.</p>
+            </div>
+          </article>
+        </div>
+        <div class="deck-nav wrap">
+          <button type="button" class="deck-arrow" data-step="-1" aria-label="Previous kind">←</button>
+          <div class="dots" data-dots>
+            <button type="button" aria-label="Show Personal"></button>
+            <button type="button" aria-label="Show Shared"></button>
+            <button type="button" aria-label="Show Pot"></button>
+            <button type="button" aria-label="Show Circle"></button>
+          </div>
+          <button type="button" class="deck-arrow" data-step="1" aria-label="Next kind">→</button>
+        </div>
       </div>
     </section>
 
@@ -140,16 +220,20 @@
           <div>
             <h3>No one holds the money for you</h3>
             <p>A Venn lives on Bitcoin Cash. Nobody can spend past the rules you all agreed to: not the person who set it up, and not us.</p>
+            <button type="button" class="try" data-attack="creator" hidden>Try taking it all</button>
           </div>
           <div>
             <h3>Overspending simply fails</h3>
             <p>Try to pay more than your budget and the payment is refused. Your budget stays exactly where it was.</p>
+            <button type="button" class="try" data-attack="overspend" hidden>Try overspending</button>
           </div>
           <div>
             <h3>Lose your phone, not your share</h3>
             <p>Your group can move your seat to a new phone after a waiting period, so a lost device doesn’t lock you out.</p>
+            <button type="button" class="try" data-attack="phone" hidden>Lose a phone</button>
           </div>
         </div>
+        <ol class="replay" data-replay aria-live="polite" hidden></ol>
       </div>
     </section>
 
