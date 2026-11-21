@@ -7,7 +7,7 @@ import { styles as s } from '../ui/styles';
 import { colors as c } from '../ui/theme';
 
 const VIDEO = 'https://venn.salemkode.com/blaze/venn-mainnet-demo.mp4';
-const ANDROID = 'https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview';
+const ANDROID = 'https://venn.salemkode.com/android';
 const IPHONE = 'https://appdrop.app/d/8g7cx3rw6x';
 
 export default function Live() {

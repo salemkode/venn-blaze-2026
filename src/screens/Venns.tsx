@@ -189,7 +189,7 @@ const waitingText = (seats: number, accepted: number[]) => {
 // Where a browser visitor goes to see Venns working: the signed Android preview, the iPhone
 // build on AppDrop, and the 19 November Mainnet run (creation, budget payment, vote and Circle
 // with MUSD).
-const ANDROID_PREVIEW = 'https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview';
+const ANDROID_PREVIEW = 'https://venn.salemkode.com/android';
 const IPHONE_BUILD = 'https://appdrop.app/d/8g7cx3rw6x';
 const MAINNET_EVIDENCE = 'https://github.com/salemkode/venn-blaze-2026/blob/hackathon/docs/live-mainnet-2026-11-19.md';
 

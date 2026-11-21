@@ -4,7 +4,7 @@
 | --- | --- |
 | Judge page | **https://venn.salemkode.com/blaze/** |
 | Web wallet | **https://venn.salemkode.com/** (opens on Mainnet; on a desktop it appears inside a phone frame, on a phone it runs full-screen) |
-| Android app | Signed preview APK 0.2.0 on the [judge source releases](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) (built 20 November; opens on Mainnet) |
+| Android app | Signed preview APK 0.2.0: https://venn.salemkode.com/android downloads it ([release page with checksum](https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview)) (built 20 November; opens on Mainnet) |
 | iPhone app | [AppDrop](https://appdrop.app/d/8g7cx3rw6x) (0.2.0; signed on your iPhone with your own Apple ID) |
 | Video | **[79-second Mainnet demo](https://venn.salemkode.com/blaze/venn-mainnet-demo.mp4)** (21 Nov, Android app 0.2.0 on Bitcoin Cash Mainnet): a Shared Venn, a 0.30 MUSD payment refused over budget, 0.10 MUSD paid alone (`aee01e645daeecf6367786ddeaa61e4163c14b61d65f64db67ffb3a80b50d7c0`), 0.25 MUSD proposed and paid after a second member approved (`a1045b78606179527ca45c9730221213963527ab551679e0c8eceb49818e05d5`), shown on the 3xpl explorer. The older [68-second walkthrough](walkthrough.mp4) shows the earlier BCH-denominated prototype. |
 

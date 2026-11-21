@@ -34,7 +34,7 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 | --- | --- | --- |
 | After: judge page | https://venn.salemkode.com/blaze/ | Live: 21 Nov build from master `8d3e5b4` (Worker `venn-blaze`, version `ff895c5e`); checked at desktop and phone widths. |
 | After: web wallet | https://venn.salemkode.com/ | Same. |
-| After: Android preview | https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview | Signed APK 0.2.0 (versionCode 2), built 20 Nov from master, opens on Mainnet; same signing certificate as 0.1.0 (SHA-256 `27de31f2…`), so it updates in place. Downloaded, checksum verified and installed on an Android 16 emulator. |
+| After: Android preview | https://venn.salemkode.com/android (downloads the APK; checksum on https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview) | Signed APK 0.2.0 (versionCode 2), built 20 Nov from master, opens on Mainnet; same signing certificate as 0.1.0 (SHA-256 `27de31f2…`), so it updates in place. Downloaded, checksum verified and installed on an Android 16 emulator. |
 | After: iPhone build | https://appdrop.app/d/8g7cx3rw6x | AppDrop link, 0.2.0 (build 2), published 20 Nov; each recipient's iPhone signs it with their own Apple ID. |
 | Before | https://github.com/salemkode/xo-react-native-wallet/blob/b32a7fd85674791e557c4bc339da29f3842cf68f/README.md | The starter's README and screenshot; no hosted demo existed before the event. |
 

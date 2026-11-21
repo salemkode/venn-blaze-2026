@@ -1,6 +1,7 @@
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { bannerHtml, readBanner } from './blaze-banner.mjs';
+import { redirectsFile } from './site-redirects.mjs';
 
 const source = new URL('../docs/blaze/', import.meta.url);
 const withWallet = process.argv.includes('--with-wallet');
@@ -44,4 +45,6 @@ const html = page
   .replace(/(<h2 id="fund-title">[^<]*)(<\/h2>)/, '$1 <small style="font:600 .55em/1 system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.65;vertical-align:middle">Simulation</small>$2');
 if (!html.includes('class="blaze-banner"')) throw new Error('Could not place the BLAZE banner: landing.html has no <body> tag.');
 await writeFile(new URL('index.html', output), html);
+// Site-wide short links (/android → the APK) apply only when the wallet is served at the root.
+if (withWallet) await writeFile(new URL('../_redirects', output), redirectsFile());
 console.log(withWallet ? 'Serve dist/ at the site root. Judge entry: /blaze/' : 'Landing page built in dist-landing/.');
