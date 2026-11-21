@@ -134,6 +134,30 @@ export function buildVennFeePreparation(utxos: Utxo[], publicKey: Bytes) {
 }
 
 /**
+ * Moves every plain BCH coin on a Venn key to `to` (for example the wallet's own address), less
+ * the network fee. Token coins, such as MUSD and seat cards, stay on the key.
+ */
+export function buildVennKeySweep(utxos: Utxo[], publicKey: Bytes, to: Bytes) {
+  const lockingBytecode = p2pkhForPublicKey(publicKey);
+  const coins = spendable(utxos).filter(coin => equal(coin.lockingBytecode, lockingBytecode));
+  if (!coins.length) throw new Error('The Venn key has no BCH to move.');
+  const total = sum(coins.map(coin => coin.value));
+  const output = { lockingBytecode: to, value: total };
+  const draft = settleFee({
+    tx: {
+      version: 2,
+      locktime: 0,
+      inputs: coins.map(coin => ({ txid: coin.txid, vout: coin.vout, sequence: SEQUENCE_FINAL, unlockingBytecode: new Uint8Array() })),
+      outputs: [output],
+    },
+    sources: coins.map(sourceOf),
+    fee: 0n,
+  }, fee => { output.value = total - fee; });
+  if (output.value < DUST) throw new Error('Too little BCH on the Venn key to move after the network fee.');
+  return draft;
+}
+
+/**
  * Creates a vault: the rules NFT, one card per member, the first deposit, a small amount of
  * BCH to every other member (for their fees, and so their wallet finds the vault) and a
  * marker. The vault category is the txid of input 0's outpoint, which must have index 0.

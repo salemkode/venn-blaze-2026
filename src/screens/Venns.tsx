@@ -781,7 +781,7 @@ export function JoinScreen({ venns, onDone }: { venns: VennsState; onDone?(): vo
   );
 }
 
-function AllowanceCard({ seat, available, unit }: { seat: Seat; available: bigint; unit: string }) {
+function AllowanceCard({ seat, available, empty, unit }: { seat: Seat; available: bigint; empty: boolean; unit: string }) {
   if ((seat.roles & ROLE.SPEND) !== ROLE.SPEND || seat.budgetMode === BUDGET.NONE)
     return (
       <View style={s.infoCard}>
@@ -805,7 +805,11 @@ function AllowanceCard({ seat, available, unit }: { seat: Seat; available: bigin
     <View style={s.infoCard}>
       <Text style={s.detailLabel}>Yours to spend alone now</Text>
       <Text style={v.allowance}>{money(0n, unit)}</Text>
-      <Text style={s.body}>You’ve used your allowance. It refills over time ({lower(rule)}).</Text>
+      <Text style={s.body}>
+        {empty
+          ? `There is no ${unit} in this Venn right now. Anyone can add some with Receive (${lower(rule)}).`
+          : `You’ve used your allowance. It refills over time (${lower(rule)}).`}
+      </Text>
     </View>
   );
 }
@@ -899,7 +903,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
         ? view.official.warnings.map(w => <Note key={w}>{w}</Note>)
         : null}
       {!supported ? <Note>This Venn holds an older asset and is available for viewing.</Note> : null}
-      {mine ? <AllowanceCard seat={mine} available={view.available} unit={unit} /> : null}
+      {mine ? <AllowanceCard seat={mine} available={view.available} empty={view.balance === 0n} unit={unit} /> : null}
 
       {venns.pending ? (
         <View style={v.actions}>

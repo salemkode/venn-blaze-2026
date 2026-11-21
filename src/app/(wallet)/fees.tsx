@@ -1,18 +1,36 @@
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowDownLeft, RefreshCw, X } from 'lucide-react-native';
+import { ArrowDownLeft, ArrowUpRight, RefreshCw, X } from 'lucide-react-native';
 import { useApp } from '../../state/AppState';
 import BrandMark from '../../ui/BrandMark';
-import { Note, PillButton } from '../../ui/kit';
+import { DetailRow, Note, PillButton } from '../../ui/kit';
+import { styles as shared } from '../../ui/styles';
 import { colors } from '../../ui/theme';
 import { groupSats } from '../../ui/format';
 import { feeUnit, networkName } from '../../venn/asset';
 
 const grouped = groupSats;
 
+type Move = Awaited<ReturnType<ReturnType<typeof useApp>['venns']['prepareMoveFees']>>;
+
 export default function Fees() {
-  const { venns } = useApp();
+  const { venns, wallet } = useApp();
+  const [move, setMove] = useState<Move | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  const act = async (task: () => Promise<void>) => {
+    setBusy(true);
+    setNotice('');
+    try {
+      await task();
+    } catch (e) {
+      setNotice((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
   const insets = useSafeAreaInsets();
   const loading = venns.status === 'loading';
   const balance = venns.keyBalance === null ? 'unavailable' : `${grouped(venns.keyBalance)} sats`;
@@ -43,6 +61,32 @@ export default function Fees() {
       {venns.error ? <Note danger>{venns.error}</Note> : null}
       <PillButton label={`Top up with ${feeUnit(venns.network)}`} icon={ArrowDownLeft} disabled={!venns.available || !venns.keyAddress}
         onPress={() => router.replace({ pathname: '/(wallet)/key', params: { funding: 'fees' } })} />
+      {move ? (
+        <View style={s.review}>
+          <Text accessibilityRole="header" style={s.reviewTitle}>Move the fee balance to this wallet</Text>
+          <View style={shared.detailCard}>
+            <DetailRow first stacked mono label="To" value={move.address} />
+            <DetailRow label="Amount" value={`${grouped(move.amount)} sats`} />
+            <DetailRow label="Network fee" value={`${grouped(move.fee)} sats`} />
+            <DetailRow label="Network" value={networkName(venns.network)} />
+          </View>
+          <Text style={s.explanation}>
+            {venns.asset.symbol} and Venn seats stay on your Venn key. Creating or paying from a Venn needs a fee balance again.
+          </Text>
+          <PillButton label={busy ? 'Sending…' : `Move ${grouped(move.amount)} sats`} disabled={busy}
+            onPress={() => act(async () => {
+              await venns.sendPrepared(move);
+              setMove(null);
+              setNotice(`Moved to this wallet on ${networkName(venns.network)}.`);
+            })} />
+          <PillButton label="Cancel" secondary disabled={busy} onPress={() => setMove(null)} />
+        </View>
+      ) : (
+        <PillButton label="Move to this wallet" icon={ArrowUpRight} secondary
+          disabled={busy || !venns.available || !wallet.address || !venns.keyBalance || Boolean(venns.pending)}
+          onPress={() => act(async () => setMove(await venns.prepareMoveFees(wallet.address)))} />
+      )}
+      {notice ? <Note>{notice}</Note> : null}
       <Pressable accessibilityRole="button" disabled={loading || !venns.available}
         accessibilityState={{ disabled: loading || !venns.available }} style={s.refresh} onPress={() => void venns.reload()}>
         <RefreshCw size={15} color={colors.muted} />
@@ -69,4 +113,6 @@ const s = StyleSheet.create({
   explanation: { color: colors.muted, fontSize: 15, lineHeight: 21, paddingVertical: 2 },
   refresh: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   refreshText: { color: colors.muted, fontSize: 15, fontWeight: '600' },
+  review: { gap: 10 },
+  reviewTitle: { fontSize: 18, fontWeight: '700', color: colors.ink },
 });

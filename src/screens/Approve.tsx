@@ -129,8 +129,9 @@ export function FollowScreen({ venns, onDone }: { venns: VennsState; onDone(): v
   return (
     <View>
       <Text style={[s.body, a.intro]}>
-        On a new phone, send your Venn key code (Settings → Venn key) to a helper. Then paste the Venn code they send
-        you here. When the helpers’ request has waited long enough, the Venn’s page lets this phone take your seat.
+        On a new phone, send your Venn key code to a helper. If you were just added to a Venn, ask a member for its
+        code. Paste the Venn code here to follow it. After a recovery has waited long enough, the Venn’s page lets
+        this phone take your seat.
       </Text>
       {venns.keyCode ? (
         <PillButton label="Share my Venn key code" icon={Share2} secondary onPress={() => Share.share({ message: venns.keyCode }).catch(() => undefined)} />

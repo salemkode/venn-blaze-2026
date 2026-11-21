@@ -17,6 +17,9 @@ export const SERVERS: Partial<Record<Network, string[]>> = {
     'wss://fulcrum.greyh.at:50004',
     'wss://blackie.c3-soft.com:50004',
     'wss://bch.soul-dev.com:50004',
+    // Added 2026-11-21 after each returned the block 900000 checkpoint below.
+    'wss://electrum.imaginary.cash:50004',
+    'wss://bch.loping.net:50004',
   ],
 };
 
@@ -57,6 +60,8 @@ export class ElectrumClient {
   private connecting?: Promise<void>;
   private serverIndex = 0;
   public server = '';
+  /** What the current server answered to `server.version`, which may be sent only once per connection. */
+  public version: unknown = null;
 
   constructor(private network: Network, private timeoutMs = 15_000, private only?: string) {
     if (!SERVERS[network] || !CHECKPOINTS[network]) throw new Error(`${network} is not supported in this release`);
@@ -162,7 +167,7 @@ export class ElectrumClient {
   }
 
   private async verifyChain() {
-    await this.raw('server.version', ['FamilyVault 1.0', '1.5']);
+    this.version = await this.raw('server.version', ['FamilyVault 1.0', '1.5']);
     const cp = CHECKPOINTS[this.network]!;
     const header: string = await this.raw('blockchain.block.header', [cp.height]);
     const hash = binToHex(reverse(hash256(hexToBin(header))));
@@ -191,6 +196,12 @@ export class ElectrumClient {
   close() {
     this.ws?.close();
     this.ws = undefined;
+  }
+
+  /** Drops the current server so the next request starts with the following one. */
+  next() {
+    this.close();
+    if (!this.only) this.serverIndex = (this.serverIndex + 1) % SERVERS[this.network]!.length;
   }
 
   async tipHeight(): Promise<number> {

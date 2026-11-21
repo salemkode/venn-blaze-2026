@@ -42,10 +42,39 @@ Everything not listed here is done and merged into `master` of the private repos
 | Layout re-test: 0.05 MUSD deposit from Cashonize, paid back through the review | Receive/Pay row now correct after a payment | deposit `05bc8ffd9944d7dfda53220b46772ebf986fc0d08684bc553fb95037294f2b17`, payback `b90545982993df84b82a16f3ac14016be982108dcd07407cbf7646034dce2471` |
 | Look and feel | Desktop and phone widths checked; fixed: desktop frame, Android Receive button squashed after a payment, “Chipnet” shown on Mainnet reviews/approvals/proposal form/Circle, “Venn Test USD” on a Mainnet card, “yours to spend” above what the Venn holds, Settings version | — |
 
+## Overnight QA, round 2 (21 November): remaining flows on Mainnet
+
+All from the Android app 0.2.0 on emulator-5554 with four local test wallets (You, Sam, Lee, a “new phone”), funded only by the earlier test coins plus 0.05 MUSD from your Cashonize. Every txid below was accepted by two Mainnet servers.
+
+| Flow | Result | Mainnet txids |
+| --- | --- | --- |
+| Membership vote: add Lee to the Shared Venn (You proposes, Sam approves, 2 of 2) | Done; rules now read “2 of 3 voters” | `69cc59ec46f38b07ce311c36f365012379b40bf5fa5cb7de8647364350ea375d` |
+| Recovery: You (helper) requests a new key for Sam's seat | Done; the app shows “New key 8bff2521… takes over about 168 hours after the request confirmed. Until then the seat cannot spend or vote.” Request confirmed in block 978217 at 2026-11-20 22:50:46 UTC, so it would have completed at **2026-11-27 22:50:46 UTC** | `6c6017d92e66c73991a32f205cca9cd3f6e51e7167a127000c2960bf7cad32ae` |
+| Recovery stopped by vote (this Venn's rules don't let the old key stop it; You proposes, Lee approves, 2 of 3) | Done; the waiting notice is gone | `8f171bb83288034c70ffae314fd27b87c7a691646df26163fdfe6b669bf57c54` |
+| Personal Venn (You + Sam as friend), 0.10 MUSD | Created, then You paid the 0.10 MUSD alone back to your Cashonize | fee coin `5424f8e7feaeb35af584f7491116c1a3ae96fd82b2e7260317c6ac5f65e67604`, create `9c4b8d3b1dcf6ecc092015d8376f37f0b1ed02657f90f784f61e850819d2eb64`, payout `7c83610d85bd1ade4f04d59e39c731d6a7611a792cd4ba992173f71544c7b8fb` |
+| Pot Venn (You + Sam), 0.05 MUSD from your Cashonize | Created; paid back to your Cashonize by a 2-of-2 vote | top-up `eb2241ccb51cf99aedb9148a140d2eadba8633a83607d4336c26faf59a456f05`, fee coin `07d4525f61ebf6cab6411bf6e37b8dd691325d2fbe64483bcde3cdaef6ebd3c0`, create `16432f9e22c00c3ca7e4dbf247430a48152650377e282b46891b0455fd251744`, payout `5532d72c17220f23cc1602b526f569543e735d90d433022079648c1f647cb3d6` |
+| Circle | **Not created on Mainnet tonight, on purpose:** each payout lands on a member's Venn key, and the 0.05 MUSD contributions would then stay on emulator keys (the new “Move to this wallet” moves BCH only, not MUSD). A two-member Circle already completed on Mainnet on 19 Nov (scripted) and in the app on Chipnet. | — |
+| New: “Move to this wallet” on the fee balance screen | Built, tested and used: the Venn keys' BCH went to each wallet's own address, then to your Cashonize with the ordinary Send | You `b7397d9c451f2bf8bb3b5ccbc031225447fe8b19c90643121a984c3a3682751c` → `319877b23bdcf3a78cf2a87918422bce00b1ed89b11800888f1baaa8447a23aa`; Sam `53d4e15e0d191b03302320a2fd4a97c8744dfbf44e6f67852e4bdbb7c93220a2` → `37912d607f746f2254b438a3114a469ecc6c1a8f404920fcacc6310d42641051` |
+
+| After deploying the wallet failover (Worker `ff895c5e`): a WizardConnect payment from the hosted site's desktop frame | Cashonize signed, Venn broadcast through the new client | `c07c53f8b25b293bc9bc4d6831af51eb8565c2aaa483430aa5b5bd6bd440b1cc` |
+| Android after the fix: Sam's confirmed payment no longer stays “Payment needs checking” | Cleared; Send and wallet switching work | `37912d607f746f2254b438a3114a469ecc6c1a8f404920fcacc6310d42641051` |
+
+**Returned to your Cashonize:** all test MUSD (Cashonize shows 1.01 MUSD again) and 0.00219 + 0.00151 BCH. Net BCH cost across both rounds, including fees and the small coins the empty Venns' contracts keep: about 0.0013 BCH (under the 0.005 BCH cap). All four test wallets and both Venn keys are now at 0 (checked on a Mainnet server).
+
+**Found and fixed in this round** (all rebuilt and republished as 0.2.0; APK checksum verified after download):
+
+- **Wallet stuck on “Payment needs checking”** after a confirmed payment (Send and wallet switching blocked): the wallet library drops its own pending record during a refresh, so the check never found it. The app now looks the payment up and clears it.
+- **Single Mainnet Electrum server:** the wallet now uses six Mainnet servers (each checked against block 900000) with a retry on the next server for reads; broadcasts are never retried. Checked against live servers with the first one unreachable.
+- **Proposals over 5,000 characters could not be pasted on Android 15+** (the recovery-stop proposal was 5,116): code fields now set an explicit limit.
+- Added members showed as “Member 3”; the app now keeps the name the proposer gave. Hints pointed to “Settings → Venn key”, which doesn't exist.
+- An empty Venn said “You've used your allowance”.
+
+**Still open:** a member who is added later must use “Follow a Venn for a new key” with the Venn code to see the Venn (the label is written for recovery); added members get no fee coins, so they need BCH before they can propose.
+
 ### Still open (with evidence)
 
-- **Funds left on the emulator's test keys.** The app has no way to send money out of a Venn key, and the agent will not extract a recovery phrase. Left: creator Venn key `bitcoincash:qzd04y8dx3asw73grjx5h3arzzht6q7vlv92x40qh7` 358,053 sats + 0.10 MUSD; member Venn key `bitcoincash:qp55s3lv0nrwljuls3smqnssmrw4rdas2g2f7350xq` 102,148 sats (about 0.0046 BCH + 0.10 MUSD, roughly $0.98). All other MUSD (0.50) is back in your Cashonize. A “send from Venn key” feature would return it.
-- **Single Mainnet Electrum server in the wallet library.** `react-native-xo` uses only `electrum.imaginary.cash` on Mainnet; the first launch on an overloaded emulator showed “Electrum connection failed.” once, and it recovered after a network switch. The emulator's own browser reached all five Mainnet servers. No failover yet.
+- ~~Funds left on the emulator's test keys.~~ Returned in round 2 (see above).
+- ~~Single Mainnet Electrum server in the wallet library.~~ Fixed in round 2. Original note: `react-native-xo` uses only `electrum.imaginary.cash` on Mainnet; the first launch on an overloaded emulator showed “Electrum connection failed.” once, and it recovered after a network switch. The emulator's own browser reached all five Mainnet servers. No failover yet.
 - **iPhone build not run on a physical iPhone.** AppDrop re-signs with each recipient's Apple ID; the identical Release build was verified only on a simulator.
 - **Not exercised on Mainnet in the app tonight:** recovery and membership votes (Chipnet and tests only).
 

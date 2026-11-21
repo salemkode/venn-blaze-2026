@@ -6,7 +6,7 @@ import { AppState } from 'react-native';
 import { type Bytes, binToHex, equal, hexToBin } from '../core/bytes';
 import { hash160 } from '../core/crypto';
 import { NeedsPreparation, p2pkhForPublicKey, signPersonal } from '../core/draft';
-import { addressForLockingBytecode } from '../core/cashaddr';
+import { addressForLockingBytecode, lockingBytecodeForAddress } from '../core/cashaddr';
 import type { Transaction } from '../core/tx';
 import { requireVennAsset, tokenRecipient, VENN_FEE_ALLOCATION, vennAsset } from './asset';
 import { availableBudget } from './budget';
@@ -19,6 +19,7 @@ import {
   buildRecoveryComplete,
   buildRecoveryRequest,
   buildVennFeePreparation,
+  buildVennKeySweep,
   buildVote,
   buildVennGenesis,
   finalizeRecovery,
@@ -558,10 +559,18 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   };
 
   /** Proposes a vote: payments, members, budgets or rules. */
-  const proposeVote = async (view: VennView, change: VoteChange, title: string) => {
+  const proposeVote = async (view: VennView, change: VoteChange, title: string, names?: Record<string, string>) => {
     const coins = usable(view);
     const { fee } = await feeSource();
     const built = buildVote(view.params, coins, change, fee);
+    // Remember what the proposer called a new member, so the seat shows that name instead of "Member 3".
+    if (names)
+      await updateBook(bookId!, b => ({
+        ...b,
+        venns: b.venns.map(v =>
+          v.category === view.saved.category && v.version === view.saved.version ? { ...v, names: { ...v.names, ...names } } : v,
+        ),
+      }));
     return saveProposal('vote', built, title, built.requiredPkhs);
   };
 
@@ -765,6 +774,20 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   };
 
   /** Sends money left at a finished Circle to its last member. */
+  /** Moves the Venn key's plain BCH (the fee balance) to `toAddress`, for review before sending. */
+  const prepareMoveFees = async (toAddress: string) => {
+    const key = await myKey();
+    const to = lockingBytecodeForAddress(toAddress, network);
+    const draft = buildVennKeySweep(await keyCoins(key.publicKey, network), key.publicKey, to);
+    return {
+      tx: signPersonal(draft, key.privateKey, key.publicKey),
+      walletId,
+      address: toAddress,
+      amount: draft.tx.outputs[0].value,
+      fee: draft.fee,
+    };
+  };
+
   const prepareSweep = async (view: CircleView) => {
     const coins = usableCircle(view);
     const { key, fee } = await feeSource();
@@ -822,6 +845,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     prepareContribute,
     preparePayout,
     prepareSweep,
+    prepareMoveFees,
     deadlineOf: (view: CircleView) => (view.state ? roundDeadline(view.params, view.state.round) : null),
   };
 }

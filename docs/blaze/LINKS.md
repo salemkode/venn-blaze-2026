@@ -32,7 +32,7 @@ Status on 20 November 2026. “Pending” items wait for an approval in [TODO-BE
 
 | | Link | Status |
 | --- | --- | --- |
-| After: judge page | https://venn.salemkode.com/blaze/ | Live: 21 Nov build from master `a2786c5` (Worker `venn-blaze`, version `4beca696`); checked at desktop and phone widths. |
+| After: judge page | https://venn.salemkode.com/blaze/ | Live: 21 Nov build from master `8d3e5b4` (Worker `venn-blaze`, version `ff895c5e`); checked at desktop and phone widths. |
 | After: web wallet | https://venn.salemkode.com/ | Same. |
 | After: Android preview | https://github.com/salemkode/venn-blaze-2026/releases/tag/blaze-2026-android-preview | Signed APK 0.2.0 (versionCode 2), built 20 Nov from master, opens on Mainnet; same signing certificate as 0.1.0 (SHA-256 `27de31f2…`), so it updates in place. Downloaded, checksum verified and installed on an Android 16 emulator. |
 | After: iPhone build | https://appdrop.app/d/8g7cx3rw6x | AppDrop link, 0.2.0 (build 2), published 20 Nov; each recipient's iPhone signs it with their own Apple ID. |

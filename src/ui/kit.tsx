@@ -97,6 +97,9 @@ export function Note({ children, danger = false }: { children?: React.ReactNode;
   );
 }
 
+/** Room for the longest share codes (proposals grow with members and coins). */
+export const MAX_FIELD_LENGTH = 100_000;
+
 export function Field({
   label,
   hint,
@@ -109,6 +112,9 @@ export function Field({
       <TextInput
         accessibilityLabel={props.accessibilityLabel ?? label}
         accessibilityHint={props.accessibilityHint ?? hint}
+        // Android 15+ caps single-line fields at 5,000 characters unless a limit is set, and a
+        // proposal in a Venn with three members is already longer. Fields that need a real limit pass one.
+        maxLength={MAX_FIELD_LENGTH}
         {...props}
         placeholderTextColor={c.faint}
         style={[s.input, error ? { borderColor: c.danger, borderWidth: 1 } : null]}

@@ -228,7 +228,7 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const build = (): { change: VoteChange; title: string } => {
+  const build = (): { change: VoteChange; title: string; names?: Record<string, string> } => {
     const daily = (text: string) => {
       const units = parseAssetAmount(text, network);
       if (units <= 0n) throw new Error('Enter an amount above zero.');
@@ -246,7 +246,7 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
       const spec: MemberSpec = spends
         ? { publicKey, roles, budgetMode: BUDGET.REFILL, budget: daily(amount), period: DAY, cap: 0n }
         : { publicKey, roles, budgetMode: BUDGET.NONE, budget: 0n, period: 0n, cap: 0n };
-      return { change: { add: [spec] }, title: `Add ${name.trim()}` };
+      return { change: { add: [spec] }, title: `Add ${name.trim()}`, names: { [pkhOfKey(publicKey)]: name.trim() } };
     }
     if (kind === 'remove') return { change: { remove: [who] }, title: `Remove ${whoName}` };
     if (kind === 'budget') {
@@ -282,7 +282,7 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
         <>
           <Field
             label="Their Venn key code"
-            hint="They find it under Settings → Venn key, and send it to you."
+            hint="They open Wallet → their Venn key and send you the code from Share my Venn key code."
             value={keyCode}
             onChangeText={setKeyCode}
             autoCapitalize="none"
@@ -344,8 +344,8 @@ function Propose({ view, venns, onDone }: { view: VennView; venns: VennsState; o
             setBusy(true);
             setError('');
             try {
-              const { change, title } = build();
-              await venns.proposeVote(view, change, title);
+              const { change, title, names } = build();
+              await venns.proposeVote(view, change, title, names);
               onDone();
             } catch (e) {
               setError(errorText(e));
@@ -489,7 +489,7 @@ function Recovery({ view, venns }: { view: VennView; venns: VennsState }) {
             />
             <Field
               label="Their new Venn key code"
-              hint="They install Venn on the new phone and send you the key code from Settings → Venn key."
+              hint="They install Venn on the new phone, open Wallet → their Venn key, and send you its key code."
               value={newKey}
               onChangeText={setNewKey}
               autoCapitalize="none"

@@ -17,7 +17,7 @@ import {
 } from './prefs';
 import { type Registry, activeWallet } from './registry';
 import { addConnectedWallet, addWallet, readRegistry, readSecret, removeWallet, selectWallet } from './secure';
-import { type Session, openSession } from './session';
+import { type Session, checkPendingPayment, openSession } from './session';
 
 /** The Electrum socket closed (server drop, network change or app suspension). */
 export const connectionClosed = (error: unknown) =>
@@ -255,8 +255,8 @@ export function useWallet() {
     run('checking', async () => {
       const wallet = session.current;
       if (!wallet || !pendingRef.current) return;
-      const status = await wallet.checkPending();
-      if (!status?.resolved)
+      const status = await checkPendingPayment(wallet as never, pendingRef.current.txid);
+      if (!status.resolved)
         throw new Error('The payment is not visible yet. Nothing else was sent; check again later.');
       await clearPending();
       setPending(null);
