@@ -4,6 +4,7 @@
 // Drawn as an iOS grouped list (see venn-create/form.tsx): one level of white groups on the
 // grey page, segmented controls for small choices, steppers for counts, a sheet per person.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { defaultStopRule } from '../venn/recoveryGuard';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -562,7 +563,7 @@ export default function CreateVenn({
                 onChange={on =>
                   settings(
                     on
-                      ? { recoveryOn: true, helpersNeeded: 1, waitUnits: daysToUnits(7), stopRule: STOP.VOTERS, strongNeeded: 0, strongWaitUnits: 0 }
+                      ? { recoveryOn: true, helpersNeeded: 1, waitUnits: daysToUnits(7), stopRule: defaultStopRule(plan.members.filter(m => m.roles & ROLE.VOTE).length), strongNeeded: 0, strongWaitUnits: 0 }
                       : RECOVERY_OFF,
                   )
                 }

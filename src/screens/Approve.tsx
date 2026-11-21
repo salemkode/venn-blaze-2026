@@ -89,6 +89,7 @@ export function ApproveScreen({ venns, onDone }: { venns: VennsState; onDone(): 
           </Text>
         ))}
       </View>
+      {read.described.warning ? <Note danger={read.described.warning.danger}>{read.described.warning.text}</Note> : null}
       <View style={s.detailCard}>
         <DetailRow first label="Approvals needed" value={String(read.proposal.need)} />
         <DetailRow label="Network fee (paid by the proposer)" value={formatSats(read.described.fee)} />

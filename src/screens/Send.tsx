@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NETWORKS, type PaymentReview } from 'react-native-xo';
 import type { WalletState } from '../wallet/useWallet';
+import { maxSendable, plainAddress } from '../wallet/sendHelpers';
 import { Keyboard, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Check, Delete } from 'lucide-react-native';
 import { colors as c } from '../ui/theme';
@@ -66,7 +67,9 @@ export function SendScreen({
   setAmount,
   prepare,
   approver,
-}) {
+  max,
+  converted,
+}: any) {
   const unit = unitFor(network);
   const ready = Boolean(recipient.trim()) && Boolean(amount);
   return (
@@ -116,9 +119,26 @@ export function SendScreen({
           </Text>
         ) : null}
       </View>
-      <Text style={s.available}>
-        {balance ? balance.balanceBch : '—'} {unit} available in your wallet
-      </Text>
+      <View style={local.availableRow}>
+        <Text style={s.available}>
+          {balance ? balance.balanceBch : '—'} {unit} available in your wallet
+        </Text>
+        {max ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Send the most possible, ${max} ${unit} after the network fee`}
+            testID="send-max"
+            disabled={busy}
+            onPress={() => setAmount(max)}
+            style={({ pressed }) => [local.max, pressed ? s.keyPressed : null]}
+          >
+            <Text style={local.maxText}>Max</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {converted ? (
+        <Text style={local.scope}>This is a token-aware address. Plain {unit} goes to the same wallet’s regular address.</Text>
+      ) : null}
       <Keypad amount={amount} onChange={setAmount} disabled={busy} />
       <PillButton
         label={busy ? (approver ? `Approve in ${approver}…` : 'Preparing…') : 'Review payment'}
@@ -228,6 +248,12 @@ export function SendFlow({ wallet, to = '', onDone }: { wallet: WalletState; to?
     },
     [],
   );
+  // A review error (wrong address, too little BCH) goes away as soon as the input changes (QA 21 Nov, B5).
+  const clearFailedReview = () => {
+    if (!reviewFailed.current || wallet.pending) return;
+    reviewFailed.current = false;
+    wallet.setNotice('');
+  };
   if (sent) return <SentScreen payment={sent} network={wallet.network} config={config} done={onDone} />;
   if (review)
     return (
@@ -257,9 +283,17 @@ export function SendFlow({ wallet, to = '', onDone }: { wallet: WalletState; to?
       pending={wallet.pending}
       notice={wallet.notice}
       recipient={recipient}
-      setRecipient={setRecipient}
+      setRecipient={(text: string) => {
+        setRecipient(text);
+        clearFailedReview();
+      }}
       amount={amount}
-      setAmount={setAmount}
+      setAmount={(text: string) => {
+        setAmount(text);
+        clearFailedReview();
+      }}
+      max={wallet.signer ? null : maxSendable(wallet.balance as never, plainAddress(recipient, wallet.network).address, wallet.network)}
+      converted={plainAddress(recipient, wallet.network).converted}
       prepare={async () => {
         const prepared = await wallet.prepare(recipient, amount);
         reviewFailed.current = !prepared;
@@ -271,5 +305,8 @@ export function SendFlow({ wallet, to = '', onDone }: { wallet: WalletState; to?
 }
 
 const local = StyleSheet.create({
+  availableRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  max: { minHeight: 32, minWidth: 52, paddingHorizontal: 12, borderRadius: 16, borderWidth: 1, borderColor: c.ink, alignItems: 'center', justifyContent: 'center' },
+  maxText: { color: c.ink, fontSize: 14, fontWeight: '700' },
   scope: { color: c.muted, fontSize: 13, lineHeight: 18, marginBottom: 10, paddingHorizontal: 4 },
 });

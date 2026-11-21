@@ -14,7 +14,8 @@ import { parseAssetAmount, tokenRecipient, vennAsset } from '../venn/asset';
 import type { MemberSpec, VoteChange } from '../venn/build';
 import { BUDGET, ROLE, RULE, STOP, type RulesState } from '../venn/layout';
 import { DAY } from '../venn/presets';
-import { decodeKeyCode, pkhOfKey } from '../venn/proposal';
+import { decodeKeyCode, pkhOfKey, proposalIsCurrent, recoveryWarning } from '../venn/proposal';
+import { freezeWarning, unstoppableReason, whoCanStop } from '../venn/recoveryGuard';
 import { money } from '../venn/summary';
 import type { ProposalView, VennView, VennsState } from '../venn/useVenns';
 
@@ -54,8 +55,10 @@ function Review({
   onSend,
   onBack,
   network,
+  warning,
 }: {
   title: string;
+  warning?: { text: string; danger: boolean } | null;
   rows: [string, string][];
   busy: boolean;
   network: 'chipnet' | 'mainnet';
@@ -73,6 +76,7 @@ function Review({
         ))}
         <DetailRow label="Network" value={networkName(network)} />
       </View>
+      {warning ? <Note danger={warning.danger}>{warning.text}</Note> : null}
       <View style={d.actions}>
         <PillButton label={busy ? 'Sending…' : 'Send'} disabled={busy} onPress={onSend} />
         <PillButton label="Back" secondary disabled={busy} onPress={onBack} />
@@ -108,6 +112,7 @@ function ProposalCard({ p, view, venns }: { p: ProposalView; view: VennView; ven
     return (
       <Review
         network={view.params.network}
+        warning={recoveryWarning(p.proposal, view.saved.names)}
         title={`Send: ${prepared.title}`}
         rows={[
           ['Approvals', `${p.saved.approvals.length} of ${p.need} needed`],
@@ -129,13 +134,39 @@ function ProposalCard({ p, view, venns }: { p: ProposalView; view: VennView; ven
         }}
       />
     );
+  // Made from an older view of the Venn: the others would see "out of date" (QA 21 Nov, B2).
+  const stale = view.coins ? !proposalIsCurrent(p.proposal, view.coins) : false;
   return (
     <View style={[s.detailCard, d.proposal]}>
       <Text style={s.cardTitle}>{p.saved.title}</Text>
       <Text style={s.subtitle}>
         {p.saved.approvals.length} of {p.need} approvals{names.length ? `: ${names.join(', ')}` : ''}
       </Text>
-      {!ready ? (
+      {stale ? (
+        <>
+          <Note danger>
+            The Venn changed after this proposal was made (a payment or another decision), so it can no longer be sent and
+            approvals for it won’t work. Make it again from the Venn as it is now and share the new one.
+          </Note>
+          <PillButton
+            label={busy ? 'Remaking…' : 'Refresh and re-propose'}
+            testID="proposal-repropose"
+            disabled={busy || Boolean(venns.pending)}
+            onPress={async () => {
+              setBusy(true);
+              setError('');
+              try {
+                await venns.repropose(view, p.saved.id);
+              } catch (e) {
+                setError(errorText(e));
+              } finally {
+                setBusy(false);
+              }
+            }}
+          />
+          {error ? <Note danger>{error}</Note> : null}
+        </>
+      ) : !ready ? (
         <>
           <Text style={s.body}>Share this proposal with the others. Each one who agrees sends back an approval code.</Text>
           <PillButton label="Share proposal" icon={Share2} secondary onPress={() => shareText(p.saved.code)} />
@@ -495,6 +526,17 @@ function Recovery({ view, venns }: { view: VennView; venns: VennsState }) {
               autoCapitalize="none"
               autoCorrect={false}
             />
+            {target
+              ? (() => {
+                  const n = cards.findIndex(c => c.state.pkh === target);
+                  const w = freezeWarning(
+                    nameOf(target, n),
+                    hours(strong ? rules.strongWaitUnits : rules.waitUnits),
+                    whoCanStop(rules.stopRule, rules.voters, n >= 0 && (cards[n].state.roles & ROLE.VOTE) === ROLE.VOTE, strong),
+                  );
+                  return <Note danger={w.danger}>{w.text}</Note>;
+                })()
+              : null}
             {rules.stopRule === STOP.BOTH ? (
               <View style={s.detailCard}>
                 <Toggle
@@ -540,6 +582,51 @@ function Recovery({ view, venns }: { view: VennView; venns: VennsState }) {
   );
 }
 
+/**
+ * A Venn whose recovery requests could not be stopped (two voters, stop = voters): say so and
+ * offer the one rules vote that fixes it, letting a seat's own key stop requests.
+ */
+function StopRuleFix({ view, venns, member }: { view: VennView; venns: VennsState; member: boolean }) {
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<{ text: string; danger?: boolean } | null>(null);
+  const rules = view.coins!.rules.state;
+  const reason = unstoppableReason(rules, rules.voters);
+  if (!reason) return null;
+  const frozen = view.coins!.cards.some(c => c.state.recovery !== 0);
+  return (
+    <View style={d.gap} testID="stop-rule-warning">
+      <Note danger>
+        {`In this Venn nobody can stop a recovery request on a voter’s seat: ${rules.voters} voters can never outvote each other, and the seat’s own key may not stop it. While a request waits, that seat cannot spend or vote.`}
+      </Note>
+      {member && !frozen ? (
+        <PillButton
+          label={busy ? 'Preparing…' : 'Propose: let a seat’s own key stop requests'}
+          testID="stop-rule-fix"
+          secondary
+          disabled={busy || Boolean(venns.pending)}
+          onPress={async () => {
+            setBusy(true);
+            setNotice(null);
+            try {
+              await venns.proposeVote(
+                view,
+                { settings: { stopRule: STOP.KEY, strongNeeded: 0, strongWaitUnits: 0 } },
+                'Let a seat’s own key stop recovery requests',
+              );
+              setNotice({ text: 'Proposal created above. Share it with the other voters.' });
+            } catch (e) {
+              setNotice({ text: errorText(e), danger: true });
+            } finally {
+              setBusy(false);
+            }
+          }}
+        />
+      ) : null}
+      {notice ? <Note danger={notice.danger}>{notice.text}</Note> : null}
+    </View>
+  );
+}
+
 /** Decisions and recovery for a Venn this wallet can act in. */
 export function VennDecisions({ view, venns }: { view: VennView; venns: VennsState }) {
   const [proposing, setProposing] = useState(false);
@@ -570,6 +657,7 @@ export function VennDecisions({ view, venns }: { view: VennView; venns: VennsSta
       <Text accessibilityRole="header" style={[s.sectionTitle, d.title]}>
         Lost phones
       </Text>
+      <StopRuleFix view={view} venns={venns} member={member} />
       <Recovery view={view} venns={venns} />
       <Text style={[s.caption, d.fee]}>Your fee balance pays the network fee for anything you send: {venns.keyBalance === null ? '…' : formatSats(venns.keyBalance)}.</Text>
     </View>

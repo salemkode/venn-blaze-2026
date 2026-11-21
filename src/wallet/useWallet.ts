@@ -2,6 +2,7 @@
 // one payment in flight. Every action that changes wallets or money holds `lock`.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { plainAddress } from './sendHelpers';
 import type { PaymentReview } from 'react-native-xo';
 import type { Connection } from './connection';
 import { connectionNetwork, decodeConnection, startingNetwork } from './connection';
@@ -27,6 +28,8 @@ export type Phase = 'loading' | 'new' | 'ready' | 'error';
 export interface Balance {
   balanceBch: string;
   balanceSatoshis: string;
+  /** Coins in the wallet, when the wallet reports it (for Max). */
+  outputCount?: number;
 }
 
 export function useWallet() {
@@ -45,6 +48,7 @@ export function useWallet() {
   const generation = useRef(0);
   const locked = useRef(false);
   const foreground = useRef(true);
+  const quiet = useRef<Promise<void> | null>(null);
 
   const setPending = (value: PendingPayment | null) => {
     pendingRef.current = value;
@@ -53,6 +57,8 @@ export function useWallet() {
 
   /** Runs one wallet-changing action at a time; errors become the notice. */
   const run = useCallback(async <T>(label: string, task: () => Promise<T>): Promise<T | undefined> => {
+    // A background refresh finishes first, so an action never runs beside it or is dropped.
+    if (quiet.current) await quiet.current;
     if (locked.current) return undefined;
     locked.current = true;
     setBusy(label);
@@ -150,6 +156,50 @@ export function useWallet() {
     };
   }, [boot]);
 
+  /**
+   * Reads the balance in the background (on return to the app and every minute) and clears a
+   * payment record once the payment is visible, without busy labels or notices. Never sends.
+   * QA 21 Nov (B3, B6): balances stayed stale and Send stayed paused until a manual check.
+   */
+  const backgroundRefresh = useCallback(() => {
+    if (locked.current || quiet.current || !foreground.current) return;
+    const wallet = session.current;
+    if (!wallet) return;
+    const revision = generation.current;
+    quiet.current = (async () => {
+      try {
+        const record = pendingRef.current;
+        if (record) {
+          const status = await checkPendingPayment(wallet as never, record.txid);
+          if (status.resolved && revision === generation.current && pendingRef.current?.txid === record.txid) {
+            await clearPending();
+            setPending(null);
+            if (status.status === 'conflicted')
+              setNotice('That payment was not found and its coins were spent elsewhere. It did not go through.');
+          }
+        }
+        const snapshot = await wallet.refresh();
+        if (revision === generation.current) setBalance(snapshot);
+      } catch {
+        // A background read that fails changes nothing; Refresh shows the error.
+      } finally {
+        quiet.current = null;
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (phase !== 'ready') return;
+    const timer = setInterval(backgroundRefresh, 60_000);
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') backgroundRefresh();
+    });
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+    };
+  }, [phase, backgroundRefresh]);
+
   const refresh = () =>
     run('refreshing', async () => {
       if (!session.current) return open(registry, network);
@@ -209,7 +259,8 @@ export function useWallet() {
     run('preparing', async () => {
       if (pendingRef.current) throw new Error('Check the pending payment first.');
       if (!session.current) throw new Error('The wallet is not open yet.');
-      return session.current.prepareSend({ address: to.trim(), amountBch });
+      // Plain BCH to a token-aware address goes to its plain form: same key (QA 21 Nov, B5).
+      return session.current.prepareSend({ address: plainAddress(to, network).address, amountBch });
     });
 
   const cancelReview = useCallback(() => session.current?.cancelSend(), []);
@@ -294,6 +345,7 @@ export function useWallet() {
     session,
     boot,
     refresh,
+    backgroundRefresh,
     create,
     connect,
     switchTo,

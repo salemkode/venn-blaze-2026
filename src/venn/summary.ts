@@ -1,6 +1,7 @@
 // Plain-language summary of a Venn's rules, each line with its weakness. The same text is
 // shown before creating, before joining and on the Venn itself.
 import { formatBch } from 'react-native-xo/core';
+import { othersCanOutvote } from './recoveryGuard';
 import { formatAssetAmount, MUSD, VENN_TEST_USD } from './asset';
 import { voteNeed } from './budget';
 import { BUDGET, ROLE, RULE, STOP } from './layout';
@@ -127,13 +128,15 @@ export function summarize(seats: Seat[], settings: Settings, unit = 'BCH'): Line
     const stop =
       settings.stopRule === STOP.KEY
         ? 'The current key can stop a request during the wait.'
+        : settings.stopRule === STOP.VOTERS && !othersCanOutvote(voters, true)
+        ? `Nobody can stop a request on a voter’s seat: the seat’s own key may not, and ${voters} voters can never outvote each other.`
         : settings.stopRule === STOP.VOTERS
         ? 'A majority of voters can stop a request during the wait.'
         : `The current key can stop a normal request. A stronger request needs ${settings.strongNeeded} ${
             settings.strongNeeded === 1 ? 'helper' : 'helpers'
           } and ${unitsToDays(settings.strongWaitUnits)} ${
             unitsToDays(settings.strongWaitUnits) === 1 ? 'day' : 'days'
-          }, and the current key cannot stop it.`;
+          }, and the current key cannot stop it${othersCanOutvote(voters, true) ? '' : '; with only ' + voters + ' voters, nobody can'}.`;
     lines.push({ text: stop, weakness: WEAKNESS.stop[settings.stopRule as 1 | 2 | 3] });
   }
   lines.push({ text: 'A Venn cannot make anyone pay in, and money only leaves under these rules.' });

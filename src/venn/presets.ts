@@ -1,6 +1,7 @@
 // The four kinds of Venn. Each is a starting point: every value can be changed before
 // the Venn is created. Every option carries the weakness the app shows next to it.
 import { type MemberSpec, type RulesSettings, cardFor, rulesFor, validateMember } from './build';
+import { defaultStopRule, unstoppableReason } from './recoveryGuard';
 import { BUDGET, ROLE, RULE, STOP } from './layout';
 
 export type VennType = 'personal' | 'shared' | 'pot' | 'circle';
@@ -157,7 +158,8 @@ export const presetPlan = (type: VennType, you: Person, others: Person[], budget
         recoveryRule: RULE.MAJORITY,
         governance: RULE.MAJORITY,
         payments: RULE.MAJORITY,
-        ...(others.length ? recovery(others.length, STOP.BOTH) : off),
+        // Two voters can never outvote each other, so a request could only be stopped by the seat's key.
+        ...(others.length ? recovery(others.length, others.length + 1 >= 3 ? STOP.BOTH : STOP.KEY) : off),
       },
     };
   }
@@ -173,7 +175,7 @@ export const presetPlan = (type: VennType, you: Person, others: Person[], budget
         recoveryRule: RULE.MAJORITY,
         governance: RULE.MAJORITY,
         payments: RULE.MAJORITY,
-        ...(everyone.length > 1 ? recovery(everyone.length, STOP.VOTERS, 7, true) : off),
+        ...(everyone.length > 1 ? recovery(everyone.length, defaultStopRule(everyone.length), 7, true) : off),
       },
     };
   }
@@ -187,7 +189,7 @@ export const presetPlan = (type: VennType, you: Person, others: Person[], budget
       recoveryRule: RULE.MAJORITY,
       governance: type === 'circle' ? RULE.EVERYONE : RULE.MAJORITY,
       payments: RULE.MAJORITY,
-      ...(everyone.length > 1 ? recovery(everyone.length, STOP.VOTERS, 7, true) : off),
+      ...(everyone.length > 1 ? recovery(everyone.length, defaultStopRule(everyone.length), 7, true) : off),
     },
     ...(type === 'circle'
       ? { turns: everyone.map((_, seat) => seat), circle: { contribution: budget, period: 30n * DAY } }
@@ -207,6 +209,9 @@ export function checkPlan(plan: Plan) {
   members.forEach(validateMember);
   rulesFor(plan.settings, members.map(cardFor));
   if (!plan.members.some(m => m.roles & ROLE.VOTE)) throw new Error('At least one person must vote.');
+  // A request nobody but its helpers could stop freezes a seat and hands it over (QA, 21 Nov).
+  const unstoppable = unstoppableReason(plan.settings, plan.members.filter(m => m.roles & ROLE.VOTE).length);
+  if (unstoppable) throw new Error(unstoppable);
   // Helpers never approve their own seat's recovery: the creator's seat must stay recoverable.
   if (plan.settings.recoveryOn) {
     const others = plan.members.slice(1).filter(m => m.roles & ROLE.HELPER).length;

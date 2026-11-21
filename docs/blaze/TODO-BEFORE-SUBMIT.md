@@ -87,7 +87,9 @@ All from the Android app 0.2.0 on emulator-5554 with four local test wallets (Yo
 | Returning visitors saw a blank screen: the wallet library rejected a `listunspent` reply over 200 coins, and the error unmounted the wallet screens. Token coins are now trimmed from large lists, the first refresh can fail without closing the wallet, and the app moves to the tabs only once. | #19, #20 | Worker deployed; checked with a saved wallet and with a fresh visitor |
 | Venn has its own EMBER2026 voting address `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` on every surface (each entry has its own). | #21 | Worker `56deb275`; BUIDL saved and checked logged out |
 | “Try a Venn in your browser” at https://venn.salemkode.com/try uses play money and the real BCH 2026 VM. It covers create, pay within the budget, an overspend refused by `require(sent <= available);` (VennVault.cash line 230), and close and refund. It is linked first on /blaze and in the BUIDL's “JUDGES IN 2 MINUTES”. | #22 | Worker `2daec694` |
-| Join a Venn accepts a Venn's code (added members). Members low on BCH for fees see a prompt and a top-up path. | #23 | APK, AppDrop and web, see below |
+| Join a Venn accepts a Venn's code (added members). Members low on BCH for fees see a prompt and a top-up path. | #23 | APK `bb086ddf`, AppDrop 6, Worker `d78fc4d5` |
+| `/android` redirects (302) to the signed APK | #24 | Worker `1379c5eb` |
+| Household QA fixes: unstoppable two-voter recovery (app-side guard, warning, fixing vote), stale proposals (fresh reads, Refresh and re-propose), automatic refresh, success after create, z-address BCH sends, Max, long-code QR. Still open: copy-paste round trips, the two balances, no Venn history. See SUBMISSION.md, “Known limitations”. | #25 | see the report |
 
 ## Fields that need your answer or an organizer's
 

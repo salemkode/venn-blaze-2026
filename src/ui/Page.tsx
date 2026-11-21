@@ -1,5 +1,5 @@
 import { use } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, Platform, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { HeaderHeightContext } from 'expo-router/react-navigation';
 import { styles } from './styles';
@@ -12,7 +12,18 @@ export function useKeyboardOffset() {
   return use(HeaderHeightContext) ?? 0;
 }
 
-export default function Page({ children, top = false }: { children: React.ReactNode; top?: boolean }) {
+export default function Page({
+  children,
+  top = false,
+  onRefresh,
+  refreshing = false,
+}: {
+  children: React.ReactNode;
+  top?: boolean;
+  /** Pull to refresh, when the screen has something to reload. */
+  onRefresh?: () => void;
+  refreshing?: boolean;
+}) {
   const offset = useKeyboardOffset();
   return (
     <SafeAreaView style={styles.root} edges={top ? ['top', 'left', 'right'] : ['left', 'right', 'bottom']}>
@@ -21,7 +32,11 @@ export default function Page({ children, top = false }: { children: React.ReactN
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={offset}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} /> : undefined}
+        >
           {children}
         </ScrollView>
       </KeyboardAvoidingView>

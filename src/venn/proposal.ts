@@ -10,11 +10,13 @@ import type { Draft, Utxo } from '../core/draft';
 import { decodeOutputs, decodeTransaction, encodeOutput, encodeTransaction, type Output } from '../core/tx';
 import { type Network, addressForLockingBytecode } from '../core/cashaddr';
 import { checkVennSignature } from './build';
+import { freezeWarning, whoCanStop } from './recoveryGuard';
 import type { VennCoins } from './coins';
 import { type VennFunction, type VennParams, moneyLocking, vennLocking } from './contract';
 import {
   type CardState,
   ROLE,
+  STOP,
   type RulesState,
   decodeCardState,
   decodeRulesState,
@@ -170,6 +172,8 @@ export const checkApproval = (p: Proposal, a: ApprovalCode): boolean =>
 
 export interface Described {
   lines: string[];
+  /** For a recovery request: the seat freeze and who can stop it, shown before anyone signs. */
+  warning?: { text: string; danger: boolean };
   /** Key hashes whose cards are inputs and may sign this proposal. */
   signers: string[];
   fee: bigint;
@@ -217,7 +221,7 @@ export function describeProposal(
     if (!coin || coin.value !== source.value || !equal(coin.lockingBytecode, source.lockingBytecode) ||
       JSON.stringify(coin.token ?? null, (_, v) => (typeof v === 'bigint' ? v.toString() : v)) !==
         JSON.stringify(source.token ?? null, (_, v) => (typeof v === 'bigint' ? v.toString() : v)))
-      throw new Error('This proposal is out of date: the Venn has changed since it was made. Ask for a new one.');
+      throw new Error('This proposal is out of date: the Venn has changed since it was made. Ask whoever proposed it to tap Refresh and re-propose, then open the new one.');
   });
   if (outpointKey(draft.tx.inputs[0]) !== outpointKey(coins.rules)) throw new Error('This proposal does not lead with this Venn’s rules.');
 
@@ -244,12 +248,8 @@ export function describeProposal(
     const after = decodeCardState(draft.tx.outputs[changed].token!.nft!.commitment);
     if (p.kind === 'recoveryRequest') {
       lines.push(`Give ${nameOf(before.pkh)}’s seat a new key (${after.newPkh.slice(0, 8)}…).`);
-      lines.push(
-        `After about ${Math.round((after.waitUnits * 512) / 3600)} hours the new key takes over, unless ` +
-          (after.recovery === 1 ? `${nameOf(before.pkh)}’s current key or ` : '') +
-          'the rules let it be stopped first.',
-      );
-      lines.push('While it waits, that seat cannot spend or vote.');
+      const warning = recoveryWarning(p, names);
+      if (warning) return { lines, signers, fee: draft.fee, warning };
     } else {
       lines.push(`Stop the recovery request waiting on ${nameOf(before.pkh)}’s seat.`);
     }
@@ -321,4 +321,38 @@ function describeRules(before: RulesState, after: RulesState, lines: string[]) {
 }
 
 /** The key hash of a public key, hex. */
+/**
+ * What a recovery request does to the seat while it waits, and who can stop it, read from the
+ * proposal's own transaction (rules at input 0, the target card's new state). Null for others.
+ */
+export function recoveryWarning(p: Proposal, names: Record<string, string>): { text: string; danger: boolean } | null {
+  if (p.kind !== 'recoveryRequest') return null;
+  const draft = draftOf(p);
+  const lock = vennLocking(paramsOf(p));
+  const rules = decodeRulesState(draft.sources[0].token!.nft!.commitment);
+  const i = draft.tx.outputs.findIndex(
+    (o, n) => n > 0 && equal(o.lockingBytecode, lock) && o.token?.nft && draft.sources[n]?.token?.nft &&
+      o.token.nft.commitment !== draft.sources[n].token!.nft!.commitment,
+  );
+  if (i < 1) return null;
+  const before = decodeCardState(draft.sources[i].token!.nft!.commitment);
+  const after = decodeCardState(draft.tx.outputs[i].token!.nft!.commitment);
+  const name = names[before.pkh] ?? 'this member';
+  const strong = rules.stopRule === STOP.BOTH && after.recovery === 2;
+  const hours = Math.max(1, Math.round((after.waitUnits * 512) / 3600));
+  return freezeWarning(name, hours, whoCanStop(rules.stopRule, rules.voters, (before.roles & ROLE.VOTE) === ROLE.VOTE, strong));
+}
+
+/**
+ * Whether every Venn coin this proposal spends is still unspent in `coins`. A proposal made from
+ * an old view of the Venn (QA 21 Nov, B2) fails this and must be made again.
+ */
+export function proposalIsCurrent(p: Proposal, coins: VennCoins): boolean {
+  const draft = draftOf(p);
+  const params = paramsOf(p);
+  const ours = [vennLocking(params), moneyLocking(params)];
+  const have = new Set([coins.rules, ...coins.cards, ...coins.money].map(outpointKey));
+  return draft.tx.inputs.every((input, i) => !ours.some(l => equal(l, draft.sources[i].lockingBytecode)) || have.has(outpointKey(input)));
+}
+
 export const pkhOfKey = (publicKey: string) => binToHex(hash160(hexToBin(publicKey)));

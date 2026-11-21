@@ -2,6 +2,9 @@
 // group decisions it proposed, and the actions that build, sign and send their transactions
 // with its Venn key. Chipnet only.
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { unstoppableReason } from './recoveryGuard';
+import { type Remake, decodeRemake, encodeRemake } from './remake';
+import { ROLE } from './layout';
 import { AppState } from 'react-native';
 import { type Bytes, binToHex, equal, hexToBin } from '../core/bytes';
 import { hash160 } from '../core/crypto';
@@ -145,11 +148,13 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   /** Each network keeps its own list of Venns, Circles, plans and proposals on this device. */
   const bookId = walletId ? (network === 'mainnet' ? `${walletId}:mainnet` : walletId) : null;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (quiet = false) => {
     if (!available || !walletId) return;
     const current = ++revision.current;
-    setStatus('loading');
-    setError('');
+    if (!quiet) {
+      setStatus('loading');
+      setError('');
+    }
     try {
       const key = hexToBin(await vennPublicKey(walletId, network));
       const pkh = binToHex(hash160(key));
@@ -275,11 +280,37 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       setPreparing(book.preparing.map(p => ({ invite: p.invite, accepted: p.acceptances.map(a => a.seat) })));
       setStatus('idle');
     } catch (e) {
-      if (current !== revision.current) return;
+      // A background read that fails keeps what is on screen; a requested one shows the error.
+      if (current !== revision.current || quiet) return;
       setError((e as Error).message);
       setStatus('error');
     }
   }, [available, walletId, network, asset, bookId]);
+
+  // QA 21 Nov (B3): Venns, balances and fee balances refresh on their own: on return to the app,
+  // every 30 seconds while it is open, and a few times after anything is sent, so a Venn someone
+  // else created or a payment that just confirmed shows up without a manual refresh.
+  const reloadQuietly = useCallback(() => void load(true), [load]);
+  const followUps = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const refreshSoon = useCallback(() => {
+    for (const delay of [4_000, 12_000, 30_000]) followUps.current.push(setTimeout(() => void load(true), delay));
+  }, [load]);
+  useEffect(() => {
+    if (!available || !walletId) return;
+    const timer = setInterval(() => {
+      if (AppState.currentState === 'active') void load(true);
+    }, 30_000);
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') void load(true);
+    });
+    const pendingTimers = followUps.current;
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+      pendingTimers.forEach(clearTimeout);
+      pendingTimers.length = 0;
+    };
+  }, [available, walletId, load]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Reset the external wallet subscription before starting its async load.
@@ -307,6 +338,24 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     requireVennAsset(view.params);
     if (view.official.status !== 'official' || !view.coins) throw new Error('This Venn is not official, so it cannot be used.');
     return view.coins;
+  };
+
+  /**
+   * The Venn as it is on chain right now, not as it was when the screen last loaded: building from
+   * an old view makes proposals the others reject as out of date (QA 21 Nov, B2). Also refreshes
+   * the screens in the background.
+   */
+  const current = async (view: VennView) => {
+    usable(view);
+    const { official, coins } = await readVenn(view.params);
+    if (official.status !== 'official' || !coins) throw new Error('This Venn is not official, so it cannot be used.');
+    const pkh = binToHex(hash160((await myKey()).publicKey));
+    void load(true);
+    return {
+      coins,
+      seat: coins.cards.findIndex(c => c.state.pkh === pkh),
+      incoming: coins.cards.findIndex(c => c.state.recovery !== 0 && c.state.newPkh === pkh),
+    };
   };
 
   /** Saves a plan being prepared and returns its invitation code. */
@@ -399,6 +448,12 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
         });
         built = { draft: c.draft, circle: c.params };
       } else {
+        // An older plan may still let a request on a voter's seat go unstopped (QA, 21 Nov).
+        const unstoppable = unstoppableReason(
+          invite.settings as { recoveryOn: boolean; stopRule: number },
+          members.filter(m => m.roles & ROLE.VOTE).length,
+        );
+        if (unstoppable) throw new Error(`${unstoppable} Make a new plan with that change.`);
         const v = buildVennGenesis({
           utxos,
           publicKey: key.publicKey,
@@ -447,6 +502,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     } finally {
       const record = await readVennPending();
       setPending(record?.txid ?? null);
+      refreshSoon();
     }
   };
 
@@ -507,10 +563,10 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   /** Builds and signs a payment from this member's budget; nothing is sent yet. */
   const prepareSpend = async (view: VennView, to: string, amount: bigint) => {
-    const coins = usable(view);
-    if (view.seat < 0) throw new Error('You have no seat in this Venn.');
+    const { coins, seat } = await current(view);
+    if (seat < 0) throw new Error('You have no seat in this Venn.');
     const { key, fee } = await feeSource();
-    const draft = buildBudgetSpend(view.params, coins, view.seat, await chainNow(network), tokenRecipient(to, network), amount, fee);
+    const draft = buildBudgetSpend(view.params, coins, seat, await chainNow(network), tokenRecipient(to, network), amount, fee);
     const tx = finalizeSpend(
       draft,
       binToHex(key.publicKey),
@@ -535,7 +591,13 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
   // Group decisions: votes, recovery requests and votes to stop a recovery
 
   /** Saves a proposal this wallet made, with its own approval when it may sign. */
-  const saveProposal = async (kind: ProposalKind, built: { draft: ReturnType<typeof draftOf>; need: number }, title: string, required: string[] = []) => {
+  const saveProposal = async (
+    kind: ProposalKind,
+    built: { draft: ReturnType<typeof draftOf>; need: number },
+    title: string,
+    required: string[] = [],
+    remake?: Remake,
+  ) => {
     const key = await myKey();
     const proposal = proposalFor(kind, built.draft, title, built.need, required);
     const id = proposalId(proposal);
@@ -551,7 +613,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
       ...b,
       proposals: [
         ...b.proposals.filter(p => p.id !== id),
-        { id, code, category: proposal.vaultCategory, title: proposal.title, approvals },
+        { id, code, category: proposal.vaultCategory, title: proposal.title, approvals, ...(remake ? { remake: encodeRemake(remake) } : {}) },
       ],
     }));
     await load();
@@ -560,7 +622,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   /** Proposes a vote: payments, members, budgets or rules. */
   const proposeVote = async (view: VennView, change: VoteChange, title: string, names?: Record<string, string>) => {
-    const coins = usable(view);
+    const { coins } = await current(view);
     const { fee } = await feeSource();
     const built = buildVote(view.params, coins, change, fee);
     // Remember what the proposer called a new member, so the seat shows that name instead of "Member 3".
@@ -571,25 +633,25 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
           v.category === view.saved.category && v.version === view.saved.version ? { ...v, names: { ...v.names, ...names } } : v,
         ),
       }));
-    return saveProposal('vote', built, title, built.requiredPkhs);
+    return saveProposal('vote', built, title, built.requiredPkhs, { kind: 'vote', change, title, ...(names ? { names } : {}) });
   };
 
   /** Proposes giving `target`'s seat the key in `newPublicKey`. */
   const proposeRecovery = async (view: VennView, target: string, newPublicKey: string, strong: boolean) => {
-    const coins = usable(view);
+    const { coins } = await current(view);
     const { fee } = await feeSource();
     const built = buildRecoveryRequest(view.params, coins, target, newPublicKey, strong, fee);
     const name = view.saved.names[target] ?? 'a member';
-    return saveProposal('recoveryRequest', built, `Give ${name}’s seat a new key`);
+    return saveProposal('recoveryRequest', built, `Give ${name}’s seat a new key`, [], { kind: 'recoveryRequest', target, newPublicKey, strong });
   };
 
   /** Proposes stopping the recovery waiting on `target`'s seat. */
   const proposeStopRecovery = async (view: VennView, target: string) => {
-    const coins = usable(view);
+    const { coins } = await current(view);
     const { fee } = await feeSource();
     const built = buildRecoveryCancelByVote(view.params, coins, target, fee);
     const name = view.saved.names[target] ?? 'a member';
-    return saveProposal('recoveryCancelByVote', built, `Stop the recovery of ${name}’s seat`);
+    return saveProposal('recoveryCancelByVote', built, `Stop the recovery of ${name}’s seat`, [], { kind: 'recoveryCancelByVote', target });
   };
 
   /** Reads a proposal against the Venn's current coins, for someone deciding whether to approve. */
@@ -675,6 +737,18 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     return txid;
   };
 
+  /** Makes a saved proposal again from the Venn's current coins and replaces the old one. */
+  const repropose = async (view: VennView, id: string) => {
+    const book = await readBook(bookId!);
+    const saved = book.proposals.find(p => p.id === id);
+    if (!saved?.remake) throw new Error('This proposal can’t be remade here. Delete it and propose it again.');
+    const r = decodeRemake(saved.remake);
+    await updateBook(bookId!, b => ({ ...b, proposals: b.proposals.filter(p => p.id !== id) }));
+    if (r.kind === 'vote') return proposeVote(view, r.change, r.title, r.names);
+    if (r.kind === 'recoveryRequest') return proposeRecovery(view, r.target, r.newPublicKey, r.strong);
+    return proposeStopRecovery(view, r.target);
+  };
+
   const dropProposal = async (id: string) => {
     await updateBook(bookId!, b => ({ ...b, proposals: b.proposals.filter(p => p.id !== id) }));
     await load();
@@ -685,10 +759,10 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   /** The seat's current key stops a request it may stop. */
   const prepareStopByKey = async (view: VennView) => {
-    const coins = usable(view);
-    if (view.seat < 0) throw new Error('You have no seat in this Venn.');
+    const { coins, seat } = await current(view);
+    if (seat < 0) throw new Error('You have no seat in this Venn.');
     const { key, fee } = await feeSource();
-    const target = coins.cards[view.seat].state.pkh;
+    const target = coins.cards[seat].state.pkh;
     const draft = buildRecoveryCancelByKey(view.params, coins, target, fee);
     const tx = finalizeRecovery(
       draft,
@@ -700,9 +774,9 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
 
   /** The new key takes over its seat once the wait has passed. */
   const prepareCompleteRecovery = async (view: VennView) => {
-    const coins = usable(view);
-    if (view.incoming < 0) throw new Error('No recovery is waiting for this wallet’s key.');
-    const card = coins.cards[view.incoming];
+    const { coins, incoming } = await current(view);
+    if (incoming < 0) throw new Error('No recovery is waiting for this wallet’s key.');
+    const card = coins.cards[incoming];
     const client = chain(network);
     const elapsed = await client.lockElapsed(card.height, await client.tipHeight());
     const { key, fee } = await feeSource();
@@ -819,7 +893,8 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     preparing,
     status,
     error,
-    reload: load,
+    reload: () => load(false),
+    reloadQuietly,
     savePlan,
     dropPlan,
     addAcceptance,
@@ -838,6 +913,7 @@ export function useVenns(walletId: string | null, network: Network, enabled: boo
     prepareProposal,
     sendProposal,
     dropProposal,
+    repropose,
     prepareStopByKey,
     prepareCompleteRecovery,
     vennCode,

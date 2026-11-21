@@ -82,6 +82,28 @@ Every transaction below was re-checked on 20 November (21 IDs) on two independen
 | The landing page "grocery fund" lets visitors try budgets and votes | Simulated | JavaScript in the page; no chain access | Open https://venn.salemkode.com/blaze/ |
 | External audit; Venns created and paid in the browser; Mainnet recovery and membership votes | Planned | — | — |
 
+## Known limitations (independent Mainnet QA, 21 November)
+
+A separate QA run used the published Android APK on two phones as a two-person household on Mainnet. Creating the Venn, budgets, the over-budget refusal and a 2-of-2 vote payment all worked. It also found real problems, fixed in the app the same day (PR #25):
+
+- **Recovery in a two-voter Venn.** With "Who can stop a request = Voters", one member could start a recovery on the other member's seat, and nobody could stop it: two voters can never outvote each other. The seat cannot spend or vote while the request waits. The Venn v2 contract enforces exactly the rules each Venn chose; changing the contract before the deadline was not safe, so the fix is in the app:
+  - New two-voter Venns default to "Their key": the seat's own key can stop any request.
+  - The planner refuses voters-only stopping when the other voters could never be a majority.
+  - Existing Venns with that setting show the problem, plus the 2-of-2 rules vote that fixes it.
+  - Every recovery review says the seat freezes, and who can stop the request.
+  - **Still true:** a Venn that was already created with that setting keeps it until its members pass that vote. The QA Venn's 0.12 MUSD waits for the 24-hour recovery to finish (22 Nov, about 13:00 UTC). It is time-locked, not lost.
+- **Stale proposals.** A proposal made from an out-of-date view was rejected on the approver's phone. The app now builds from fresh chain reads, and offers "Refresh and re-propose".
+- **No automatic refresh.** Venns, balances and fees now refresh on their own: on return to the app, on a timer, on tab focus, by pull to refresh, and after every send.
+- **Smaller fixes:**
+  - Plain BCH to a token-aware address now works.
+  - Send has a Max button.
+  - The create screen confirms success.
+  - Codes too long for a QR code point to Share.
+- **Still open:**
+  - Every vote needs two copy-and-paste round trips between phones.
+  - The wallet and the Venn key have separate balances.
+  - Venn pages show no transaction history.
+
 ## Banner
 
 The landing page and the web wallet carry a top-of-page banner built from [banner.json](banner.json): the deck, the source, the pre-event source and demo, a link to the "Built during the event" section above, and the EMBER2026 CashTokens address `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd`. The deck link opens the Google Slides copy, shared as Anyone with the link: Viewer.

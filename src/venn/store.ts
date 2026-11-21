@@ -39,6 +39,8 @@ export interface SavedProposal {
   category: string;
   title: string;
   approvals: { publicKey: string; signature: string }[];
+  /** How to make this proposal again from the Venn's current coins (see remake.ts). */
+  remake?: string;
 }
 
 export interface Preparing {

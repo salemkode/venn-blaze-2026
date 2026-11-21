@@ -164,18 +164,21 @@ export function DetailRow({
   );
 }
 
+export const QR_MAX_CHARS = 2_900;
+
 /** A QR code that falls back to a message when the value is too long to encode. */
 export function SafeQR({ value, size = 176 }: { value: string; size?: number }) {
   // Remember which value failed so a new value gets a fresh attempt without an effect.
   const [failedValue, setFailedValue] = React.useState<string | null>(null);
-  if (failedValue === value)
+  // Past about 2,900 characters no QR code can hold it; don't draw a broken one first.
+  if (failedValue === value || value.length > QR_MAX_CHARS)
     return (
       <View
         accessibilityRole="text"
         style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center', padding: 12 }}
       >
         <Text style={{ color: c.muted, fontSize: 14, lineHeight: 20, textAlign: 'center' }}>
-          Too long for a QR code. Share it as text instead.
+          Too long for a QR code. Use Share and choose Copy or a messaging app.
         </Text>
       </View>
     );
