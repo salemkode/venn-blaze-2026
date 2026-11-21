@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
   listener: (_state: string) => {},
   push: vi.fn(),
   readPhrase: vi.fn(async () => 'private-test-content'),
+  markBackedUp: vi.fn(async () => {}),
 }));
 vi.mock('expo-router', () => ({ useIsFocused: () => state.focused, router: { push: state.push, dismissTo: vi.fn() } }));
 vi.mock('react-native', () => ({
@@ -19,7 +20,7 @@ vi.mock('react-native', () => ({
 }));
 vi.mock('lucide-react-native', () => ({ ChevronRight: () => null, BookOpen: () => null, Globe2: () => null, KeyRound: () => null, LogOut: () => null, WalletCards: () => null }));
 vi.mock('../../src/state/AppState', () => ({ useApp: () => ({ wallet: {
-  wallet: { id: state.walletId, name: 'Wallet 1', connected: false }, network: 'chipnet', registry: { wallets: [{}] }, readPhrase: state.readPhrase,
+  wallet: { id: state.walletId, name: 'Wallet 1', connected: false }, network: 'chipnet', registry: { wallets: [{}] }, readPhrase: state.readPhrase, markBackedUp: state.markBackedUp,
 } }) }));
 vi.mock('../../src/ui/Page', () => ({ default: ({ children }) => children }));
 vi.mock('../../src/ui/styles', () => ({ styles: {} }));
@@ -35,6 +36,7 @@ beforeEach(() => {
   state.currentState = 'active';
   state.push.mockClear();
   state.readPhrase.mockReset().mockResolvedValue('private-test-content');
+  state.markBackedUp.mockClear();
 });
 
 it('opens the recovery screen from Settings without reading the phrase', async () => {
@@ -72,3 +74,12 @@ for (const change of ['blur', 'wallet'] as const) {
     await act(async () => view.unmount());
   });
 }
+
+it('showing the phrase once marks the wallet as backed up (no more backup prompt)', async () => {
+  let view: ReactTestRenderer;
+  await act(async () => { view = create(<RecoveryPage />); });
+  expect(state.markBackedUp).not.toHaveBeenCalled();
+  await act(async () => { view.root.findByProps({ testID: 'toggle-recovery' }).props.onPress(); });
+  expect(state.markBackedUp).toHaveBeenCalledOnce();
+  await act(async () => view.unmount());
+});

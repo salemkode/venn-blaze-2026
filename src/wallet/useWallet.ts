@@ -14,8 +14,7 @@ import {
   readChosenNetwork,
   readPending,
   saveNetwork,
-  savePending,
-} from './prefs';
+  savePending, readBackedUp, rememberBackedUp } from './prefs';
 import { type Registry, activeWallet } from './registry';
 import { addConnectedWallet, addWallet, readRegistry, readSecret, removeWallet, selectWallet } from './secure';
 import { type Session, checkPendingPayment, openSession } from './session';
@@ -42,6 +41,8 @@ export function useWallet() {
   const [busy, setBusy] = useState<string | null>('opening');
   const [notice, setNotice] = useState('');
   const [signer, setSigner] = useState<string | null>(null);
+  /** False until a new wallet's phrase has been shown once (QA 21 Nov: no backup prompt). */
+  const [backedUp, setBackedUp] = useState<boolean | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const session = useRef<Session | null>(null);
   const pendingRef = useRef<PendingPayment | null>(null);
@@ -91,6 +92,10 @@ export function useWallet() {
       return;
     }
     const id = list.activeId;
+    setBackedUp(null);
+    void readBackedUp(id).then(done => {
+      if (revision === generation.current) setBackedUp(done);
+    });
     const secret = await readSecret(id);
     if (!secret) throw new Error('This wallet’s secure entry is missing. Nothing was changed.');
     const wallet = await openSession(id, secret, net);
@@ -219,7 +224,20 @@ export function useWallet() {
     return next;
   };
 
-  const create = (phrase?: string) => run('saving', async () => adopt(await addWallet(phrase)));
+  const create = (phrase?: string) =>
+    run('saving', async () => {
+      const next = await addWallet(phrase);
+      // Restoring from a phrase means it is already written down.
+      if (phrase) await rememberBackedUp(next.activeId);
+      return adopt(next);
+    });
+
+  const markBackedUp = useCallback(async () => {
+    const id = registry?.activeId;
+    if (!id) return;
+    await rememberBackedUp(id);
+    setBackedUp(true);
+  }, [registry?.activeId]);
 
   const connect = (connection: Connection) =>
     run('saving', async () => {
@@ -346,6 +364,8 @@ export function useWallet() {
     boot,
     refresh,
     backgroundRefresh,
+    backedUp,
+    markBackedUp,
     create,
     connect,
     switchTo,

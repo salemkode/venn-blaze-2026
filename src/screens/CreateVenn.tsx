@@ -20,7 +20,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePreventRemove } from 'expo-router';
 import { ArrowUp, CircleMinus, Plus } from 'lucide-react-native';
-import { formatAssetAmount, parseCents, vennAsset } from '../venn/asset';
+import { VENN_FEE_ALLOCATION, formatAssetAmount, parseCents, vennAsset } from '../venn/asset';
+import { formatSats } from '../ui/format';
 import { colors as c } from '../ui/theme';
 import { styles as s } from '../ui/styles';
 import { Note, PillButton } from '../ui/kit';
@@ -724,6 +725,14 @@ export default function CreateVenn({
                 : 'When you create it. Nobody else needs to accept.'
             }
           />
+          {names.length > 1 ? (
+            <InfoRow
+              stacked
+              label="What creating it costs you"
+              value={`The network fee, plus ${formatSats(VENN_FEE_ALLOCATION * BigInt(names.length - 1))} from your Venn key’s fee balance: ${formatSats(VENN_FEE_ALLOCATION)} for each invited person’s own network fees. Add it before everyone accepts.`}
+              testID="venn-review-cost"
+            />
+          ) : null}
         </Group>
         <Group title="Rules" action={<GroupAction label="Change" onPress={() => setStep('rules')} testID="venn-edit-rules" />}>
           {lines.map((line, n) => (

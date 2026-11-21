@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NETWORKS, type PaymentReview } from 'react-native-xo';
 import type { WalletState } from '../wallet/useWallet';
-import { maxSendable, plainAddress } from '../wallet/sendHelpers';
+import { maxSendable, overBalance, plainAddress } from '../wallet/sendHelpers';
 import { Keyboard, Linking, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Check, Delete } from 'lucide-react-native';
 import { colors as c } from '../ui/theme';
@@ -71,7 +71,9 @@ export function SendScreen({
   converted,
 }: any) {
   const unit = unitFor(network);
-  const ready = Boolean(recipient.trim()) && Boolean(amount);
+  // Say "more than you have" while typing, not only after Review (QA 21 Nov).
+  const over = overBalance(amount, balance);
+  const ready = Boolean(recipient.trim()) && Boolean(amount) && !over;
   return (
     <View testID="send-screen">
       <Text testID="send-scope" style={local.scope}>
@@ -116,6 +118,10 @@ export function SendScreen({
         {notice ? (
           <Text testID="wallet-error" accessibilityLiveRegion="polite" style={s.amountError}>
             {inUnit(notice, unit)}
+          </Text>
+        ) : over ? (
+          <Text testID="amount-over" accessibilityLiveRegion="polite" style={s.amountError}>
+            More than the {balance.balanceBch} {unit} in your wallet.
           </Text>
         ) : null}
       </View>

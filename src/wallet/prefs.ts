@@ -18,6 +18,10 @@ export async function readChosenNetwork(): Promise<Network | null> {
 }
 export const saveNetwork = (network: Network) => AsyncStorage.setItem(KEYS.network, network);
 
+/** Whether this wallet's recovery phrase was shown (or the wallet was restored from it). */
+export const readBackedUp = async (walletId: string) => (await AsyncStorage.getItem(`venn.backedUp.${walletId}`)) === 'yes';
+export const rememberBackedUp = (walletId: string) => AsyncStorage.setItem(`venn.backedUp.${walletId}`, 'yes').catch(() => {});
+
 export const readIntroSeen = async () => (await AsyncStorage.getItem(KEYS.intro)) === 'done';
 export const rememberIntroSeen = () => AsyncStorage.setItem(KEYS.intro, 'done').catch(() => {});
 

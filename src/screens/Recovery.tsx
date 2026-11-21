@@ -22,7 +22,10 @@ export default function Recovery({ wallet }: { wallet: WalletState }) {
     if (!mounted.current || AppState.currentState !== 'active') return;
     const current = revision.current;
     const words = await wallet.readPhrase();
-    if (mounted.current && revision.current === current && AppState.currentState === 'active') setPhrase(words ?? '');
+    if (mounted.current && revision.current === current && AppState.currentState === 'active') {
+      setPhrase(words ?? '');
+      if (words) void wallet.markBackedUp?.();
+    }
   };
   if (wallet.wallet?.connected)
     return (

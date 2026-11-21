@@ -1,5 +1,5 @@
 // Helpers for sending plain BCH from the wallet (QA 21 Nov, B5 and "no Max").
-import { formatBch } from 'react-native-xo/core';
+import { formatBch, parseBch } from 'react-native-xo/core';
 import { type Network, decodeCashAddress, encodeCashAddress } from '../core/cashaddr';
 
 /**
@@ -43,4 +43,14 @@ export function maxSendable(
   const fee = BigInt(10 + balance.outputCount * 148 + 8 + 1 + recipientBytes(address, network) + 34);
   const amount = BigInt(balance.balanceSatoshis) - fee;
   return amount >= 546n ? formatBch(amount) : null;
+}
+
+/** Whether a typed amount is more than the whole balance (a fee comes on top, the review checks that). */
+export function overBalance(amountBch: string, balance: { balanceSatoshis: string } | null): boolean {
+  if (!balance || !amountBch) return false;
+  try {
+    return parseBch(amountBch) > BigInt(balance.balanceSatoshis);
+  } catch {
+    return false;
+  }
 }

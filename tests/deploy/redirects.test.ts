@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 // @ts-ignore plain ESM build script without types
-import { ANDROID_APK_URL, redirectsFile } from '../../scripts/site-redirects.mjs';
+import { ANDROID_APK_URL, APK, redirectsFile } from '../../scripts/site-redirects.mjs';
 
 it('redirects /android and /android/ to the APK file with a 302', () => {
   const lines = (redirectsFile() as string).trim().split('\n');
@@ -23,4 +23,10 @@ it('pages and app link Android to the short link that downloads the APK, not a r
     expect(text, file).toContain('https://venn.salemkode.com/android');
     expect(text, file).not.toContain('releases/tag/blaze-2026-android-preview');
   }
+});
+
+it('points /android at a versioned APK named after its checksum, never one replaced in place', () => {
+  expect(APK.sha256).toMatch(/^[0-9a-f]{64}$/);
+  expect(APK.asset).toBe(`Venn-BLAZE-Android-${APK.sha256.slice(0, 8)}.apk`);
+  expect(ANDROID_APK_URL.endsWith(`/${APK.release}/${APK.asset}`)).toBe(true);
 });

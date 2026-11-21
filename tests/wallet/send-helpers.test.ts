@@ -1,7 +1,7 @@
 // QA 21 Nov: plain BCH to a token-aware (z…) address, and a Max that leaves exactly the fee.
 import { expect, it } from 'vitest';
 import { decodeCashAddress, encodeCashAddress } from '../../src/core/cashaddr';
-import { maxSendable, plainAddress } from '../../src/wallet/sendHelpers';
+import { maxSendable, overBalance, plainAddress } from '../../src/wallet/sendHelpers';
 
 const hash = Uint8Array.from({ length: 20 }, (_, i) => i + 1);
 const z = encodeCashAddress('mainnet', 'p2pkh-tokens', hash);
@@ -26,4 +26,13 @@ it('Max is the balance less the wallet’s own fee for every coin', () => {
   expect(maxSendable({ balanceSatoshis: '700', outputCount: 1 }, q, 'mainnet')).toBeNull();
   expect(maxSendable(null, q, 'mainnet')).toBeNull();
   expect(maxSendable({ balanceSatoshis: '5000', outputCount: 0 }, q, 'mainnet')).toBeNull();
+});
+
+it('flags an amount above the whole balance while typing', () => {
+  const b = { balanceSatoshis: '260000' };
+  expect(overBalance('0.10033', b)).toBe(true); // QA: 0.10033 BCH with 0.0026 available
+  expect(overBalance('0.0026', b)).toBe(false);
+  expect(overBalance('0.', b)).toBe(false);
+  expect(overBalance('', b)).toBe(false);
+  expect(overBalance('1', null)).toBe(false);
 });

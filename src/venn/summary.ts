@@ -70,6 +70,10 @@ const needs = (rule: number, voters: number) => {
   return rule === RULE.EVERYONE ? `need all ${voters} voters` : `need ${need} of ${voters} voters`;
 };
 
+/** A majority of two is both of them: show the weakness of what the rule really requires. */
+const ruleWeakness = (rule: number, voters: number) =>
+  WEAKNESS.rule[(rule === RULE.MAJORITY && voteNeed(rule, voters) === voters ? RULE.EVERYONE : rule) as 0 | 1 | 2];
+
 const ruleText = (rule: number, voters: number) => {
   if (rule === RULE.LOCKED) return 'can never change';
   const need = voteNeed(rule, voters)!;
@@ -100,7 +104,7 @@ export function summarize(seats: Seat[], settings: Settings, unit = 'BCH'): Line
       required.length ? `, always including ${list(required.map(s => s.name))}` : ''
     }.`,
     weakness:
-      settings.payments === RULE.EVERYONE
+      settings.payments === RULE.EVERYONE || voteNeed(settings.payments, voters) === voters
         ? WEAKNESS.rule[RULE.EVERYONE]
         : 'Whoever controls enough votes can move everything.',
   });
@@ -112,7 +116,7 @@ export function summarize(seats: Seat[], settings: Settings, unit = 'BCH'): Line
     ['Changing these rules', settings.governance],
   ];
   for (const [what, rule] of changes)
-    lines.push({ text: `${what} ${ruleText(rule, voters)}.`, weakness: WEAKNESS.rule[rule as 0 | 1 | 2] });
+    lines.push({ text: `${what} ${ruleText(rule, voters)}.`, weakness: ruleWeakness(rule, voters) });
 
   if (!settings.recoveryOn) lines.push({ text: 'Recovery is off.', weakness: WEAKNESS.recoveryOff });
   else {

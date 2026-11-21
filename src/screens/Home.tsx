@@ -73,6 +73,16 @@ export default function Home({
           <PillButton label="Check payment status" disabled={busy} onPress={wallet.checkPending} />
         </View>
       ) : null}
+      {wallet.backedUp === false && wallet.wallet && !wallet.wallet.connected ? (
+        <View testID="backup-prompt" style={s.pendingCard}>
+          <Text style={s.cardTitle}>Write down your recovery phrase</Text>
+          <Text style={s.body}>
+            It is the only way to get this wallet, its money and your Venn seats back if this phone is lost. It takes a
+            minute.
+          </Text>
+          <PillButton label="Show my recovery phrase" testID="backup-open" onPress={() => open('recovery')} />
+        </View>
+      ) : null}
       <WalletCards
         wallet={activeWallet(registry)}
         others={behind(registry)}
