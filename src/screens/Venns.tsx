@@ -31,6 +31,7 @@ import { open as openRoute } from '../navigation';
 import { SettingsRow } from '../ui/SettingsList';
 import type { VennView, VennsState } from '../venn/useVenns';
 import { LiveVennCard } from './LiveVenn';
+import { LOW_FEE_BALANCE, codeKind, extractCode, joinRefusal, needsFees } from '../venn/codes';
 
 const seatsOf = (invite: Invite): Seat[] =>
   invite.seats.map(seat => ({
@@ -161,6 +162,22 @@ function FeeBalanceRow({ venns, disabled = false }: { venns: VennsState; disable
   );
 }
 
+/** Shown when the Venn key has too little BCH to pay its own network fees, with the way to add some. */
+function LowFeesNote({ venns }: { venns: VennsState }) {
+  if (!venns.available || !needsFees(venns.keyBalance)) return null;
+  const FEE = feeUnit(venns.network);
+  return (
+    <View style={v.lowFees} testID="low-fees">
+      <Note>
+        {venns.keyBalance === 0n ? `Your Venn key has no ${FEE} for network fees.` : `Your Venn key is low on ${FEE} for network fees.`}{' '}
+        Each payment, proposal or approval uses a few thousand sats; keep at least {sats(LOW_FEE_BALANCE)}. Send a little{' '}
+        {FEE} to your Venn key from this wallet or any other.
+      </Note>
+      <PillButton label={`Add ${FEE} for fees`} testID="low-fees-add" onPress={() => openRoute('key', { funding: 'fees' })} />
+    </View>
+  );
+}
+
 const waitingText = (seats: number, accepted: number[]) => {
   const others = seats - 1;
   const remaining = Math.max(0, others - new Set(accepted.filter(n => n > 0)).size);
@@ -231,19 +248,15 @@ export function VennList({ venns, open }: { venns: VennsState; open(sheet: strin
         {venns.status === 'error' ? <Note danger>{venns.error}</Note> : null}
         <View style={v.emptyActions}>
           <PillButton label="Create your first Venn" testID="create-venn-open" onPress={() => open('create')} />
-          <PillButton
-            label="Join with an invitation"
-            testID="join-venn-open"
-            secondary
-            onPress={() => open('join')}
-          />
-          <PillButton label="Follow a Venn for a new key" secondary onPress={() => open('approve', { follow: '1' })} />
+          <PillButton label="Join a Venn" testID="join-venn-open" secondary onPress={() => open('join')} />
+          <PillButton label="Take my seat back on a new phone" secondary onPress={() => open('approve', { follow: '1' })} />
         </View>
       </View>
     );
   return (
     <View testID="venn-list">
       <FeeBalanceRow venns={venns} />
+      <LowFeesNote venns={venns} />
       {venns.venns.length ? <SectionTitle>Your Venns</SectionTitle> : null}
       {venns.venns.map(item => {
         const unit = unitFor(item.params);
@@ -305,7 +318,7 @@ export function VennList({ venns, open }: { venns: VennsState; open(sheet: strin
           <PillButton label="Create a Venn" testID="create-venn-open" onPress={() => open('create')} />
         </View>
         <View style={s.fill}>
-          <PillButton label="Join" testID="join-venn-open" secondary onPress={() => open('join')} />
+          <PillButton label="Join a Venn" testID="join-venn-open" secondary onPress={() => open('join')} />
         </View>
       </View>
       <View style={v.actions}>
@@ -620,6 +633,7 @@ export function JoinScreen({ venns, onDone }: { venns: VennsState; onDone?(): vo
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [joined, setJoined] = useState('');
 
   if (answer && invite)
     return (
@@ -643,15 +657,59 @@ export function JoinScreen({ venns, onDone }: { venns: VennsState; onDone?(): vo
       </View>
     );
 
-  if (!invite)
+  if (joined)
+    return (
+      <View testID="join-followed">
+        <Text accessibilityRole="header" style={v.screenTitle}>
+          {`${joined} is in your Venns`}
+        </Text>
+        <Text style={s.body}>
+          Open it from the Venns tab. If a member added your Venn key, your seat and budget show on its page. Paying,
+          proposing and approving need a little {feeUnit(venns.network)} on your Venn key for network fees.
+        </Text>
+        <View style={v.actions}>
+          {needsFees(venns.keyBalance) ? (
+            <PillButton label={`Add ${feeUnit(venns.network)} for fees`} testID="join-add-fees" onPress={() => openRoute('key', { funding: 'fees' })} />
+          ) : null}
+          {onDone ? <PillButton label="Done" secondary onPress={onDone} /> : null}
+        </View>
+      </View>
+    );
+
+  if (!invite) {
+    const kind = codeKind(code);
+    const submit = async () => {
+      const refusal = joinRefusal(kind);
+      if (refusal) return setError(refusal);
+      const text = extractCode(code);
+      if (kind === 'venn') {
+        setBusy(true);
+        try {
+          setJoined(await venns.followVenn(text));
+        } catch (e) {
+          setError(`This Venn can’t be followed: ${errorText(e)}`);
+        } finally {
+          setBusy(false);
+        }
+        return;
+      }
+      try {
+        setInvite(venns.openInvite(text));
+        setSeat(-1);
+        setError('');
+      } catch (e) {
+        setError(`This invitation can’t be opened: ${errorText(e)}`);
+      }
+    };
     return (
       <View testID="join-screen">
         <Text style={[s.body, v.intro]}>
-          Paste the invitation someone sent you. You’ll read the Venn’s rules and choose your seat before accepting
-          anything.
+          Paste the invitation someone sent you: you’ll read the Venn’s rules and choose your seat before accepting
+          anything. If a member already added your Venn key to a Venn, paste that Venn’s code instead (any member can
+          share it from the Venn’s page).
         </Text>
         <Field
-          label="Invitation code"
+          label="Invitation or Venn code"
           hint="Paste the whole code you received in a message."
           error={error}
           testID="invite-input"
@@ -664,20 +722,22 @@ export function JoinScreen({ venns, onDone }: { venns: VennsState; onDone?(): vo
           autoCorrect={false}
         />
         <PillButton
-          label="Open invitation"
-          disabled={!code.trim()}
-          onPress={() => {
-            try {
-              setInvite(venns.openInvite(code.trim()));
-              setSeat(-1);
-              setError('');
-            } catch (e) {
-              setError(`This invitation can’t be opened: ${errorText(e)}`);
-            }
-          }}
+          label={busy ? 'Checking…' : kind === 'venn' ? 'Add this Venn' : 'Open invitation'}
+          testID="join-submit"
+          disabled={!code.trim() || busy}
+          onPress={() => void submit()}
         />
+        {venns.keyCode ? (
+          <Text style={v.hint}>
+            To be added to a Venn that already exists, send your Venn key code to a member; they propose adding you.
+          </Text>
+        ) : null}
+        {venns.keyCode ? (
+          <PillButton label="Share my Venn key code" icon={Share2} secondary onPress={() => shareText(venns.keyCode)} />
+        ) : null}
       </View>
     );
+  }
 
   const seats = seatsOf(invite);
   const unit = unitFor(invite);
@@ -906,6 +966,7 @@ export function VennScreen({ view, venns }: { view: VennView; venns: VennsState 
         : null}
       {!supported ? <Note>This Venn holds an older asset and is available for viewing.</Note> : null}
       {mine ? <AllowanceCard seat={mine} available={view.available} empty={view.balance === 0n} unit={unit} /> : null}
+      {mine ? <LowFeesNote venns={venns} /> : null}
 
       {venns.pending ? (
         <View style={v.actions}>
@@ -1145,6 +1206,7 @@ const v = StyleSheet.create({
   reviewIntro: { marginBottom: 10 },
   hint: { color: c.muted, fontSize: 13, lineHeight: 19, marginTop: 8 },
   actions: { gap: 10, marginTop: 12 },
+  lowFees: { gap: 10, marginVertical: 8 },
   dangerZone: { marginTop: 24 },
   seatOption: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: c.paper },

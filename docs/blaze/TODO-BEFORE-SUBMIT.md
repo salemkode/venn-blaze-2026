@@ -71,7 +71,7 @@ All from the Android app 0.2.0 on emulator-5554 with four local test wallets (Yo
 - Added members showed as “Member 3”; the app now keeps the name the proposer gave. Hints pointed to “Settings → Venn key”, which doesn't exist.
 - An empty Venn said “You've used your allowance”.
 
-**Still open:** a member who is added later must use “Follow a Venn for a new key” with the Venn code to see the Venn (the label is written for recovery); added members get no fee coins, so they need BCH before they can propose.
+~~**Still open:** a member who is added later must use “Follow a Venn for a new key”…~~ Fixed on 21 November (PR #23): Join a Venn takes the Venn code, and members low on BCH see an “Add BCH for fees” prompt.
 
 ### Still open (with evidence)
 
@@ -79,6 +79,15 @@ All from the Android app 0.2.0 on emulator-5554 with four local test wallets (Yo
 - ~~Single Mainnet Electrum server in the wallet library.~~ Fixed in round 2. Original note: `react-native-xo` uses only `electrum.imaginary.cash` on Mainnet; the first launch on an overloaded emulator showed “Electrum connection failed.” once, and it recovered after a network switch. The emulator's own browser reached all five Mainnet servers. No failover yet.
 - **iPhone build not run on a physical iPhone.** AppDrop re-signs with each recipient's Apple ID; the identical Release build was verified only on a simulator.
 - **Not exercised on Mainnet in the app tonight:** recovery and membership votes (Chipnet and tests only).
+
+## 21 November: returning visitors, own voting address, judge flow
+
+| Change | PR | Deploy / release |
+| --- | --- | --- |
+| Returning visitors saw a blank screen: the wallet library rejected a `listunspent` reply over 200 coins, and the error unmounted the wallet screens. Token coins are now trimmed from large lists, the first refresh can fail without closing the wallet, and the app moves to the tabs only once. | #19, #20 | Worker deployed; checked with a saved wallet and with a fresh visitor |
+| Venn has its own EMBER2026 voting address `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` on every surface (each entry has its own). | #21 | Worker `56deb275`; BUIDL saved and checked logged out |
+| “Try a Venn in your browser” at https://venn.salemkode.com/try uses play money and the real BCH 2026 VM. It covers create, pay within the budget, an overspend refused by `require(sent <= available);` (VennVault.cash line 230), and close and refund. It is linked first on /blaze and in the BUIDL's “JUDGES IN 2 MINUTES”. | #22 | Worker `2daec694` |
+| Join a Venn accepts a Venn's code (added members). Members low on BCH for fees see a prompt and a top-up path. | #23 | APK, AppDrop and web, see below |
 
 ## Fields that need your answer or an organizer's
 

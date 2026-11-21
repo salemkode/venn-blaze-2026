@@ -526,16 +526,14 @@ function Recovery({ view, venns }: { view: VennView; venns: VennsState }) {
           <PillButton label="Help someone who lost their phone" secondary onPress={() => setHelping(true)} />
         )
       ) : null}
-      {rules.recoveryOn ? (
-        <View style={d.block}>
-          <Text style={s.body}>
-            A member on a new phone follows this Venn with its code, so they can finish taking their seat back.
-          </Text>
-          <PillButton label="Share Venn code" icon={Share2} secondary onPress={() => shareText(venns.vennCode(view))} />
-        </View>
-      ) : (
-        <Text style={s.weakness}>Recovery is off in this Venn: a lost key loses that seat.</Text>
-      )}
+      <View style={d.block}>
+        <Text style={s.body}>
+          Someone you add by vote opens Join a Venn and pastes this Venn’s code to see their seat.
+          {rules.recoveryOn ? ' A member on a new phone follows it the same way to finish taking their seat back.' : ''}
+        </Text>
+        <PillButton label="Share Venn code" icon={Share2} secondary onPress={() => shareText(venns.vennCode(view))} />
+      </View>
+      {rules.recoveryOn ? null : <Text style={s.weakness}>Recovery is off in this Venn: a lost key loses that seat.</Text>}
       {error ? <Note danger>{error}</Note> : null}
       {notice ? <Note>{notice}</Note> : null}
     </View>

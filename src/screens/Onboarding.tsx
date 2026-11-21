@@ -584,6 +584,16 @@ export default function Onboarding({
                 <Text style={s.secondaryText}>See a live Venn on Mainnet, no wallet needed</Text>
               </Pressable>
             ) : null}
+            {!localKeys ? (
+              <Pressable
+                accessibilityRole="link"
+                testID="onboarding-try-venn"
+                onPress={() => router.push('/try')}
+                style={({ pressed }) => [s.secondary, pressed && s.pressed]}
+              >
+                <Text style={s.secondaryText}>Try a Venn in your browser, no wallet needed</Text>
+              </Pressable>
+            ) : null}
             {localKeys ? (
               <Pressable
                 accessibilityRole="button"

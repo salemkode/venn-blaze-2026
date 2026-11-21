@@ -117,7 +117,7 @@ export function buildVennFeePreparation(utxos: Utxo[], publicKey: Bytes) {
   const coins = spendable(utxos).filter(coin => equal(coin.lockingBytecode, lockingBytecode));
   if (coins.some(coin => coin.vout === 0)) throw new Error('The Venn key already has a fee coin.');
   const [coin] = coins;
-  if (!coin) throw new Error('Fund the organizer’s Venn key with tBCH for network fees.');
+  if (!coin) throw new Error('Fund the organizer’s Venn key with BCH for network fees.');
   const output = { lockingBytecode, value: coin.value };
   const draft = settleFee({
     tx: {
@@ -129,7 +129,7 @@ export function buildVennFeePreparation(utxos: Utxo[], publicKey: Bytes) {
     sources: [sourceOf(coin)],
     fee: 0n,
   }, fee => { output.value = coin.value - fee; });
-  if (output.value < DUST) throw new Error('The Venn key needs more tBCH for network fees.');
+  if (output.value < DUST) throw new Error('The Venn key needs more BCH for network fees.');
   return draft;
 }
 

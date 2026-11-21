@@ -10,7 +10,7 @@ export default function ApprovePage() {
   const { follow } = useLocalSearchParams<{ follow?: string }>();
   return (
     <Page>
-      <Stack.Screen options={{ title: follow ? 'Follow a Venn' : 'Approve a proposal' }} />
+      <Stack.Screen options={{ title: follow ? 'Take your seat back' : 'Approve a proposal' }} />
       {follow ? <FollowScreen venns={venns} onDone={leave} /> : <ApproveScreen venns={venns} onDone={leave} />}
     </Page>
   );
