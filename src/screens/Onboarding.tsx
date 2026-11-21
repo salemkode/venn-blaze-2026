@@ -18,6 +18,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
 import { ArrowRight, BadgeCheck, Check, KeyRound, Lock, Store } from 'lucide-react-native';
 import BrandMark, { MarkLens } from '../ui/BrandMark';
@@ -573,6 +574,16 @@ export default function Onboarding({
                 <Text style={s.primaryText}>Connect a wallet</Text>
               </Pressable>
             )}
+            {!localKeys ? (
+              <Pressable
+                accessibilityRole="link"
+                testID="onboarding-live-venn"
+                onPress={() => router.push('/live')}
+                style={({ pressed }) => [s.secondary, pressed && s.pressed]}
+              >
+                <Text style={s.secondaryText}>See a live Venn on Mainnet, no wallet needed</Text>
+              </Pressable>
+            ) : null}
             {localKeys ? (
               <Pressable
                 accessibilityRole="button"

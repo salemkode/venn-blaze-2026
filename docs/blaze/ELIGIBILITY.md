@@ -4,14 +4,14 @@ Rules re-read on 20 November 2026 from the [DoraHacks details page](https://dora
 
 ## Recommendation
 
-**Enter the Mainnet track**; Community Choice follows automatically with the voting address `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9`. The entrant decided on 20 November to **skip the Build with XO bounty**, as well as Media and Migrate to XO.
+**Enter the Mainnet track**; Community Choice follows automatically with the voting address `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd`. The entrant decided on 20 November to **skip the Build with XO bounty**, as well as Media and Migrate to XO.
 
 ## Verdicts
 
 | Track | Verdict | What it still needs |
 | --- | --- | --- |
 | Mainnet | **Reachable before the deadline** | Source published and site redeployed (20 Nov); voting address set. Still needed: the shared Widget Factory deck link, your confirmation of registration, roll call and the Telegram check-in, and ideally one small Mainnet payment of your own through the site. |
-| Community Choice | **Reachable**, follows Mainnet | Address chosen by the entrant (from their BLAZE 2025 entry): `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9` (token-aware, checksum verified); it is in the banner, the footer and SUBMISSION.md. |
+| Community Choice | **Reachable**, follows Mainnet | Venn's own address, chosen by the entrant: `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` (token-aware, checksum verified); it is in the banner, the footer and SUBMISSION.md. |
 | Build with XO | **Skipped by decision** (20 Nov) | Would have needed the entrant's own feedback and the IP waiver. The template stays in the repository as part of the project. |
 | Media | Not recommended | No media piece exists. A product video is not what this track judges. |
 | Migrate to XO | Not realistic | No pre-existing Venn functionality was moved to XO. |
@@ -40,7 +40,7 @@ Risks a judge may raise, and the honest answer:
 
 ## Community Choice
 
-“All projects that are Eligible for Mainnet Track & Media Track are automatically included … as long as they list a CashTokens address on their project that can receive EMBER2026 tokens.” The entrant chose `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9`, the address from their BLAZE 2025 entry (token-aware form of `bitcoincash:qzzyq9g0n2ywatt0eajwre5h89aju3kk0st4kt7nfk`, hash160 `8440150f9a88eead6fcf64e1e697397b2e46d67c`; checksum verified; long Mainnet history). Only this address is shown on the site, the BUIDL and the public source.
+“All projects that are Eligible for Mainnet Track & Media Track are automatically included … as long as they list a CashTokens address on their project that can receive EMBER2026 tokens.” The entrant chose `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd` as Venn's own address (token-aware P2PKH, checksum verified). Each of the entrant's BLAZE entries has its own address, so Community Choice votes can be told apart; this one is shown on the site, the BUIDL and the public source.
 
 ## Build with XO (General Protocols, 0.3 BCH each, up to 10 winners): skipped
 

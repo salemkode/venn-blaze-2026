@@ -13,6 +13,7 @@ const files = [
   'images/review-plan.jpg',
   'images/join-seat.jpg',
   'walkthrough.mp4',
+  'venn-mainnet-demo.mp4',
   'transcript.txt',
   'venn-blaze-2026.pptx',
 ];

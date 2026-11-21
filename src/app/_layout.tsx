@@ -15,6 +15,7 @@ function Navigation() {
       <Stack.Screen name="intro" options={{ headerShown: false }} />
       <Stack.Screen name="development" options={{ title: 'Development checks' }} />
       <Stack.Screen name="(wallet)/network" options={{ title: 'Network' }} />
+      <Stack.Screen name="live" options={{ title: 'A live Venn on Mainnet' }} />
       <Stack.Protected guard={wallet.phase === 'ready'}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Wallet' }} />
         <Stack.Screen name="(wallet)/recovery" options={{ title: 'Recovery phrase' }} />

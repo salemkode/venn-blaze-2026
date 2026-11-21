@@ -97,8 +97,14 @@ export function useWallet() {
     setBranches(decodeConnection(secret)?.paths ?? []);
     setAddress(wallet.address);
     setPhase('ready');
-    const snapshot = await wallet.refresh();
-    if (revision === generation.current) setBalance(snapshot);
+    // The wallet is open now. A failed first balance read is a notice, never a failed start:
+    // turning it into an error would hide every screen behind an empty one.
+    try {
+      const snapshot = await wallet.refresh();
+      if (revision === generation.current) setBalance(snapshot);
+    } catch {
+      if (revision === generation.current) setNotice('Could not load the balance yet. Tap Refresh to try again.');
+    }
   }, []);
 
   const boot = useCallback(

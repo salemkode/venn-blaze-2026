@@ -9,7 +9,7 @@ Everything not listed here is done and merged into `master` of the private repos
 | # | What | Who | Why it matters |
 | --- | --- | --- | --- |
 | 1 | **Confirm registration, roll call and Telegram.** Check that your DoraHacks account is registered for BCH BLAZE 2026, that you attended at least one preparation stream (roll call), and that you confirmed the project in the BCH BLAZE Telegram. | You | Required for the Mainnet track; without roll call the entry is judged in the low-priority queue. |
-| 2 | ~~Choose the EMBER2026 voting address.~~ **Done 20 Nov:** `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9`, the address from your BLAZE 2025 entry (checksum verified), now in both banners, the judge-page footer and SUBMISSION.md. | You | — |
+| 2 | ~~Choose the EMBER2026 voting address.~~ **Done 21 Nov:** `bitcoincash:zzxajy7s8h5qk0tajmr2rmus40ypcs9csvu8j9wgrd`, Venn's own address (each entry has its own; checksum verified), now in both banners, the judge-page footer and SUBMISSION.md. | You | — |
 | 3 | ~~Publish the source.~~ **Done 20 Nov:** https://github.com/salemkode/venn-blaze-2026 branch `hackathon` at `faa806c` (balances removed from the Mainnet run doc). | — | — |
 | 4 | ~~Google Slides import.~~ **Done 20 Nov** by Sol: https://docs.google.com/presentation/d/1NcDfEq6mmGHIi0OvOzE1qG8dILfKJSs_7BqTaGnA9KI/edit (private). | — | — |
 | 5 | ~~Share the deck.~~ **Done 20 Nov:** Anyone with the link, Viewer. | — | — |
@@ -25,7 +25,7 @@ Everything not listed here is done and merged into `master` of the private repos
 
 | Tested | Result | Transaction IDs (Mainnet) |
 | --- | --- | --- |
-| Voting address everywhere public | Only `bitcoincash:zzzyq9g0n2ywatt0eajwre5h89aju3kk0svl94s4k9` on the site, the in-app banner, the public source, the BUIDL; deck has none | — |
+| Voting address everywhere public | One address on the site, the in-app banner, the public source and the BUIDL; the deck has none (changed to Venn's own address on 21 Nov) | — |
 | Hosted web wallet + Cashonize over WizardConnect, Mainnet payment | Paired, approved in Cashonize, reviewed in Venn, broadcast | `a018ad740448ce69d6c1402fee11a53400886c3a5f8a2f6d4254f0d0301c7409` |
 | Same, after the phone-frame fix was deployed (Worker `4beca696`), from the desktop phone frame | Cashonize showed the request, Venn reviewed and broadcast | `a92b51dcf305bf96c3438b3028a1ec0de90d0b738ac16ee746eb944f6cc99ccd` |
 | Declining in Cashonize | Venn shows “User rejected the transaction”, nothing sent | — |
@@ -58,6 +58,8 @@ All from the Android app 0.2.0 on emulator-5554 with four local test wallets (Yo
 
 | After deploying the wallet failover (Worker `ff895c5e`): a WizardConnect payment from the hosted site's desktop frame | Cashonize signed, Venn broadcast through the new client | `c07c53f8b25b293bc9bc4d6831af51eb8565c2aaa483430aa5b5bd6bd440b1cc` |
 | Android after the fix: Sam's confirmed payment no longer stays “Payment needs checking” | Cleared; Send and wallet switching work | `37912d607f746f2254b438a3114a469ecc6c1a8f404920fcacc6310d42641051` |
+
+| Demo video (recorded with Argent on emulator-5554, 79 s): over-budget refusal, payment alone, payment by vote | Hosted at https://venn.salemkode.com/blaze/venn-mainnet-demo.mp4 and set as the BUIDL's video | deposit `95627f94950ab3acd02c38394a53f8a276d823e64a82b3698e602c1a0ccdc336`, alone `aee01e645daeecf6367786ddeaa61e4163c14b61d65f64db67ffb3a80b50d7c0`, by vote `a1045b78606179527ca45c9730221213963527ab551679e0c8eceb49818e05d5` |
 
 **Returned to your Cashonize:** all test MUSD (Cashonize shows 1.01 MUSD again) and 0.00219 + 0.00151 BCH. Net BCH cost across both rounds, including fees and the small coins the empty Venns' contracts keep: about 0.0013 BCH (under the 0.005 BCH cap). All four test wallets and both Venn keys are now at 0 (checked on a Mainnet server).
 

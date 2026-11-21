@@ -127,3 +127,32 @@ async function checkpointHeader() {
   };
   return fake;
 }
+
+// A wallet holding many tokens: its balance must still load (seen on Mainnet with 200+ coins).
+import { UNSPENT_LIMIT, trimUnspent } from '../../src/wallet/electrum';
+
+const coin = (value: number, token = false) => ({ tx_hash: 'a'.repeat(64), tx_pos: 0, height: 1, value, ...(token ? { token_data: { category: 'c' } } : {}) });
+
+it('leaves token coins out of a coin list that is too long', () => {
+  const list = [...Array.from({ length: 200 }, () => coin(800, true)), coin(5_000), coin(90_000)];
+  const trimmed = trimUnspent(list);
+  expect(trimmed).toHaveLength(2);
+  expect(trimmed.every(c => !('token_data' in c))).toBe(true);
+});
+
+it('keeps the largest plain coins when even those are too many, and short lists as they are', () => {
+  const many = Array.from({ length: 250 }, (_, i) => coin(i + 1));
+  const trimmed = trimUnspent(many);
+  expect(trimmed).toHaveLength(UNSPENT_LIMIT);
+  expect(Math.min(...trimmed.map(c => c.value))).toBe(51);
+  const short = [coin(1, true), coin(2)];
+  expect(trimUnspent(short)).toBe(short);
+});
+
+it('trims listunspent replies passed to the wallet library', async () => {
+  const big = [...Array.from({ length: 201 }, () => coin(800, true)), coin(1_000)];
+  const client = { version: null, next: vi.fn(), close: vi.fn(), request: vi.fn(async () => big) };
+  const wallet = new WalletElectrum('mainnet', client);
+  await expect(wallet.request('blockchain.scripthash.listunspent', ['x', 'include_tokens'])).resolves.toHaveLength(1);
+  await expect(wallet.request('blockchain.scripthash.get_history', ['x'])).resolves.toHaveLength(202);
+});

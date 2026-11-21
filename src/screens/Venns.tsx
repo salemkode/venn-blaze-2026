@@ -30,6 +30,7 @@ import { type Seat, type Settings, budgetText, money, roleNames, summarize } fro
 import { open as openRoute } from '../navigation';
 import { SettingsRow } from '../ui/SettingsList';
 import type { VennView, VennsState } from '../venn/useVenns';
+import { LiveVennCard } from './LiveVenn';
 
 const seatsOf = (invite: Invite): Seat[] =>
   invite.seats.map(seat => ({
@@ -195,6 +196,7 @@ export function VennList({ venns, open }: { venns: VennsState; open(sheet: strin
             Here you can send and receive BCH with a connected wallet, which keeps its keys.
           </Text>
         </View>
+        <LiveVennCard />
         <View style={v.emptyActions}>
           <PillButton label="Get the Android app" onPress={() => Linking.openURL(ANDROID_PREVIEW)} />
           <PillButton label="Get the iPhone app" secondary onPress={() => Linking.openURL(IPHONE_BUILD)} />
